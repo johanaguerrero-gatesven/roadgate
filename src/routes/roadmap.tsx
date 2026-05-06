@@ -16,7 +16,7 @@ import {
   RoadmapItem, ItemType, Quarter, Priority, State, DisplayMode,
   loadItems, saveItems, importCSV, toCSV, uid,
   loadCapacity, saveCapacity, capacityPerQuarter, capacityPerSprint,
-  CapacityConfig, buildRoadmapView, effortByQuarter,
+  CapacityConfig, buildRoadmapView, effortByQuarter, sprintsForQuarter,
 } from "@/lib/roadmap";
 import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet } from "lucide-react";
 
@@ -25,7 +25,8 @@ export const Route = createFileRoute("/roadmap")({
   component: RoadmapPage,
 });
 
-const QUARTERS: Quarter[] = ["Q1", "Q2", "Q3", "Q4"];
+type RealQuarter = Exclude<Quarter, "">;
+const QUARTERS: RealQuarter[] = ["Q1", "Q2", "Q3", "Q4"];
 const PRIORITIES: Priority[] = ["1-High", "2-Medium", "3-Low"];
 const STATES: State[] = ["Backlog", "In Progress", "Done", "Blocked"];
 
