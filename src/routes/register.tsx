@@ -8,6 +8,7 @@ import { AuthProviders } from "@/components/AuthProviders";
 import { register, getSession } from "@/lib/auth";
 import { toast } from "sonner";
 import { AuthShell } from "./login";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -19,18 +20,19 @@ export const Route = createFileRoute("/register")({
   component: RegisterPage,
 });
 
-const schema = z.object({
-  name: z.string().trim().min(2, "Mínimo 2 caracteres").max(80),
-  email: z.string().trim().email("Email inválido").max(255),
-  password: z.string().min(6, "Mínimo 6 caracteres").max(100),
-});
-
 function RegisterPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const schema = z.object({
+    name: z.string().trim().min(2, t("validation.nameMin")).max(80),
+    email: z.string().trim().email(t("validation.emailInvalid")).max(255),
+    password: z.string().min(6, t("validation.passwordMin")).max(100),
+  });
 
   useEffect(() => {
     if (getSession()) navigate({ to: "/app" });
@@ -46,10 +48,10 @@ function RegisterPage() {
     setLoading(true);
     try {
       await register(parsed.data.name, parsed.data.email, parsed.data.password);
-      toast.success("¡Cuenta creada! Bienvenido a RoadGate 🚀");
+      toast.success(t("register.success"));
       navigate({ to: "/app" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error al registrar");
+      toast.error(err instanceof Error ? err.message : t("register.errorGeneric"));
     } finally {
       setLoading(false);
     }
@@ -58,10 +60,8 @@ function RegisterPage() {
   return (
     <AuthShell>
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-foreground">Crea tu cuenta</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Empieza gratis. Sin tarjeta de crédito.
-        </p>
+        <h1 className="text-2xl font-bold text-foreground">{t("register.title")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("register.subtitle")}</p>
       </div>
 
       <AuthProviders providers={["google"]} />
@@ -71,38 +71,38 @@ function RegisterPage() {
           <span className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase tracking-wider">
-          <span className="bg-background px-2 text-muted-foreground">o regístrate con email</span>
+          <span className="bg-background px-2 text-muted-foreground">{t("register.divider")}</span>
         </div>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="name">Nombre</Label>
+          <Label htmlFor="name">{t("register.name")}</Label>
           <Input id="name" autoComplete="name" value={name}
-            onChange={(e) => setName(e.target.value)} placeholder="Tu nombre" required />
+            onChange={(e) => setName(e.target.value)} placeholder={t("register.namePh")} required />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("login.email")}</Label>
           <Input id="email" type="email" autoComplete="email" value={email}
             onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="password">Contraseña</Label>
+          <Label htmlFor="password">{t("login.password")}</Label>
           <Input id="password" type="password" autoComplete="new-password" value={password}
-            onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
+            onChange={(e) => setPassword(e.target.value)} placeholder={t("register.passwordPh")} required />
         </div>
         <Button type="submit" className="w-full h-11" disabled={loading}>
-          {loading ? "Creando cuenta…" : "Crear cuenta"}
+          {loading ? t("register.submitting") : t("register.submit")}
         </Button>
         <p className="text-xs text-muted-foreground text-center">
-          Al continuar aceptas nuestros términos y política de privacidad.
+          {t("register.terms")}
         </p>
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
-        ¿Ya tienes cuenta?{" "}
+        {t("register.haveAccount")}{" "}
         <Link to="/login" className="font-medium text-primary hover:underline">
-          Iniciar sesión
+          {t("register.signIn")}
         </Link>
       </p>
     </AuthShell>
