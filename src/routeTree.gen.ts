@@ -9,11 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsUsersRouteImport } from './routes/settings.users'
+import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
+import { Route as SettingsIntegrationsRouteImport } from './routes/settings.integrations'
+import { Route as SettingsCompanyRouteImport } from './routes/settings.company'
+import { Route as SettingsBillingRouteImport } from './routes/settings.billing'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -34,18 +45,55 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsUsersRoute = SettingsUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsProfileRoute = SettingsProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsIntegrationsRoute = SettingsIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsCompanyRoute = SettingsCompanyRouteImport.update({
+  id: '/company',
+  path: '/company',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsBillingRoute = SettingsBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => SettingsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/settings/billing': typeof SettingsBillingRoute
+  '/settings/company': typeof SettingsCompanyRoute
+  '/settings/integrations': typeof SettingsIntegrationsRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/settings/users': typeof SettingsUsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/settings/billing': typeof SettingsBillingRoute
+  '/settings/company': typeof SettingsCompanyRoute
+  '/settings/integrations': typeof SettingsIntegrationsRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/settings/users': typeof SettingsUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +101,50 @@ export interface FileRoutesById {
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/settings/billing': typeof SettingsBillingRoute
+  '/settings/company': typeof SettingsCompanyRoute
+  '/settings/integrations': typeof SettingsIntegrationsRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/settings/users': typeof SettingsUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/login' | '/register'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/login'
+    | '/register'
+    | '/settings'
+    | '/settings/billing'
+    | '/settings/company'
+    | '/settings/integrations'
+    | '/settings/profile'
+    | '/settings/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/login' | '/register'
-  id: '__root__' | '/' | '/app' | '/login' | '/register'
+  to:
+    | '/'
+    | '/app'
+    | '/login'
+    | '/register'
+    | '/settings'
+    | '/settings/billing'
+    | '/settings/company'
+    | '/settings/integrations'
+    | '/settings/profile'
+    | '/settings/users'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/login'
+    | '/register'
+    | '/settings'
+    | '/settings/billing'
+    | '/settings/company'
+    | '/settings/integrations'
+    | '/settings/profile'
+    | '/settings/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +152,18 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  SettingsRoute: typeof SettingsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -99,14 +192,70 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/users': {
+      id: '/settings/users'
+      path: '/users'
+      fullPath: '/settings/users'
+      preLoaderRoute: typeof SettingsUsersRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/profile': {
+      id: '/settings/profile'
+      path: '/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof SettingsProfileRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/integrations': {
+      id: '/settings/integrations'
+      path: '/integrations'
+      fullPath: '/settings/integrations'
+      preLoaderRoute: typeof SettingsIntegrationsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/company': {
+      id: '/settings/company'
+      path: '/company'
+      fullPath: '/settings/company'
+      preLoaderRoute: typeof SettingsCompanyRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/billing': {
+      id: '/settings/billing'
+      path: '/billing'
+      fullPath: '/settings/billing'
+      preLoaderRoute: typeof SettingsBillingRouteImport
+      parentRoute: typeof SettingsRoute
+    }
   }
 }
+
+interface SettingsRouteChildren {
+  SettingsBillingRoute: typeof SettingsBillingRoute
+  SettingsCompanyRoute: typeof SettingsCompanyRoute
+  SettingsIntegrationsRoute: typeof SettingsIntegrationsRoute
+  SettingsProfileRoute: typeof SettingsProfileRoute
+  SettingsUsersRoute: typeof SettingsUsersRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsBillingRoute: SettingsBillingRoute,
+  SettingsCompanyRoute: SettingsCompanyRoute,
+  SettingsIntegrationsRoute: SettingsIntegrationsRoute,
+  SettingsProfileRoute: SettingsProfileRoute,
+  SettingsUsersRoute: SettingsUsersRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  SettingsRoute: SettingsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

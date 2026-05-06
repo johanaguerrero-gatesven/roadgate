@@ -1,11 +1,19 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { clearSession } from "@/lib/auth";
-import { Map, Users, Gauge, Plus } from "lucide-react";
+import { Map, Users, Gauge, Plus, User, Settings, LogOut } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app")({
@@ -42,9 +50,30 @@ function AppHome() {
               {t("app.greeting")} <span className="text-foreground font-medium">{session.name}</span>
             </span>
             <LanguageSwitcher />
-            <Button variant="outline" onClick={() => { clearSession(); navigate({ to: "/" }); }}>
-              {t("nav.signOut")}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold hover:opacity-90">
+                  {(session.name || session.email).charAt(0).toUpperCase()}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="font-medium">{session.name}</div>
+                  <div className="text-xs text-muted-foreground font-normal">{session.email}</div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/settings/profile"><User className="h-4 w-4" /> {t("nav.profile")}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings/company"><Settings className="h-4 w-4" /> {t("nav.settings")}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => { clearSession(); navigate({ to: "/" }); }}>
+                  <LogOut className="h-4 w-4" /> {t("nav.signOut")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
