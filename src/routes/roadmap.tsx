@@ -247,6 +247,15 @@ function BacklogPanel({
                       </SelectContent>
                     </Select>
                   </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number" min={1}
+                      placeholder="—"
+                      value={it.sprint ?? ""}
+                      onChange={(e) => onUpdate(it.uid, { sprint: e.target.value === "" ? undefined : Number(e.target.value) })}
+                      className="h-8 w-16"
+                    />
+                  </TableCell>
                   {type !== "story" && (
                     <TableCell>
                       <Select
