@@ -246,8 +246,22 @@ function BacklogPanel({
                       </SelectContent>
                     </Select>
                   </TableCell>
+                  {type !== "story" && (
+                    <TableCell>
+                      <Select
+                        value={it.displayMode || "auto"}
+                        onValueChange={(v) => onUpdate(it.uid, { displayMode: v as DisplayMode })}
+                      >
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="auto">Auto</SelectItem>
+                          <SelectItem value="self">Mostrar padre</SelectItem>
+                          <SelectItem value="children">Mostrar hijos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  )}
                   <TableCell>
-                    <Select value={it.state || "Backlog"} onValueChange={(v) => onUpdate(it.uid, { state: v as State })}>
                       <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {STATES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
