@@ -13,10 +13,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  RoadmapItem, ItemType, Quarter, Priority, State,
+  RoadmapItem, ItemType, Quarter, Priority, State, DisplayMode,
   loadItems, saveItems, importCSV, toCSV, uid,
   loadCapacity, saveCapacity, capacityPerQuarter, capacityPerSprint,
-  CapacityConfig,
+  CapacityConfig, buildRoadmapView, effortByQuarter, effectiveQuarter,
 } from "@/lib/roadmap";
 import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet } from "lucide-react";
 
