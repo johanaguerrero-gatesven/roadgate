@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { I18nProvider, useI18n } from "@/lib/i18n";
 
 function NotFoundComponent() {
   return (
