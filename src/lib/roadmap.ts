@@ -6,27 +6,29 @@ export type State = "Backlog" | "In Progress" | "Done" | "Blocked";
 export type DisplayMode = "auto" | "self" | "children";
 
 export type RoadmapItem = {
-  id: string;            // user-facing ID (e.g. EPIC-01 or Azure DevOps numeric)
-  uid: string;           // internal unique id
+  id: string;
+  uid: string;
   type: ItemType;
   title: string;
   description?: string;
-  parentId?: string;     // references another item.id
-  effort?: number;       // hours
+  parentId?: string;
+  effort?: number;
   priority?: Priority;
   quarter?: Quarter;
+  sprint?: number;       // 1..N within the assigned quarter
   state?: State;
   notes?: string;
   tags?: string;
-  displayMode?: DisplayMode; // only for epic/feature: how to render in the roadmap
+  displayMode?: DisplayMode;
 };
 
 export type CapacityConfig = {
   developers: number;
-  dedicationPct: number;   // 0..100
+  dedicationPct: number;
   daysPerSprint: number;
   hoursPerDay: number;
-  sprintsPerQuarter: number;
+  sprintsPerQuarter: number;             // default for every quarter
+  sprintsByQuarter?: Partial<Record<Exclude<Quarter, "">, number>>; // per-Q override
 };
 
 const ITEMS_KEY = "roadgate.roadmap.items";
@@ -38,6 +40,7 @@ export const defaultCapacity: CapacityConfig = {
   daysPerSprint: 10,
   hoursPerDay: 5,
   sprintsPerQuarter: 5,
+  sprintsByQuarter: {},
 };
 
 function isBrowser() {
