@@ -79,11 +79,16 @@ export function saveCapacity(cfg: CapacityConfig) {
   window.dispatchEvent(new Event("roadgate:roadmap"));
 }
 
+export function sprintsForQuarter(c: CapacityConfig, q: Exclude<Quarter, "">) {
+  const v = c.sprintsByQuarter?.[q];
+  return typeof v === "number" && v >= 0 ? v : c.sprintsPerQuarter;
+}
 export function capacityPerSprint(c: CapacityConfig) {
   return c.developers * (c.dedicationPct / 100) * c.daysPerSprint * c.hoursPerDay;
 }
-export function capacityPerQuarter(c: CapacityConfig) {
-  return capacityPerSprint(c) * c.sprintsPerQuarter;
+export function capacityPerQuarter(c: CapacityConfig, q?: Exclude<Quarter, "">) {
+  const sprints = q ? sprintsForQuarter(c, q) : c.sprintsPerQuarter;
+  return capacityPerSprint(c) * sprints;
 }
 
 export function uid() {
