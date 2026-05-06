@@ -14,7 +14,6 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsUsersRouteImport } from './routes/settings.users'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsIntegrationsRouteImport } from './routes/settings.integrations'
@@ -45,11 +44,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsUsersRoute = SettingsUsersRouteImport.update({
   id: '/users',
@@ -88,19 +82,18 @@ export interface FileRoutesByFullPath {
   '/settings/integrations': typeof SettingsIntegrationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
-  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/settings': typeof SettingsRouteWithChildren
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
-  '/settings': typeof SettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -114,7 +107,6 @@ export interface FileRoutesById {
   '/settings/integrations': typeof SettingsIntegrationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
-  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -129,19 +121,18 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/settings/profile'
     | '/settings/users'
-    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app'
     | '/login'
     | '/register'
+    | '/settings'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
     | '/settings/profile'
     | '/settings/users'
-    | '/settings'
   id:
     | '__root__'
     | '/'
@@ -154,7 +145,6 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/settings/profile'
     | '/settings/users'
-    | '/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -202,13 +192,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings/': {
-      id: '/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof SettingsIndexRouteImport
-      parentRoute: typeof SettingsRoute
-    }
     '/settings/users': {
       id: '/settings/users'
       path: '/users'
@@ -253,7 +236,6 @@ interface SettingsRouteChildren {
   SettingsIntegrationsRoute: typeof SettingsIntegrationsRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   SettingsUsersRoute: typeof SettingsUsersRoute
-  SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
@@ -262,7 +244,6 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsIntegrationsRoute: SettingsIntegrationsRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   SettingsUsersRoute: SettingsUsersRoute,
-  SettingsIndexRoute: SettingsIndexRoute,
 }
 
 const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
@@ -279,3 +260,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
