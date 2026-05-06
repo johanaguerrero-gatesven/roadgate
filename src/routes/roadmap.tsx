@@ -175,7 +175,7 @@ function BacklogPanel({
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
         <span className="text-xs text-muted-foreground ml-auto">
-          Cabeceras esperadas: <code>id, title, description, parent, effort, priority, quarter, notes</code>
+          Acepta CSV de Azure DevOps (<code>ID, Work Item Type, Title, Parent, State, Effort, Priority, Iteration Path, Tags</code>) o un CSV simple con <code>id, title, parent, effort, priority, quarter</code>.
         </span>
       </div>
 
