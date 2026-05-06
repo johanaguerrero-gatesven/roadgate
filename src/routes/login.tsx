@@ -97,7 +97,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
       <div className="hidden md:flex flex-col justify-between p-10 text-primary-foreground relative overflow-hidden"
         style={{ background: "var(--gradient-primary)" }}>
-        <Logo tagline={false} />
+        <Logo tagline={false} variant="light" />
         <div>
           <p className="font-script text-3xl text-primary-foreground/90">
             Tu puerta al roadmap realista.
