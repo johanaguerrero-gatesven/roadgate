@@ -368,11 +368,9 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
 }
 
 function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig }) {
-  const cap = capacityPerQuarter(cfg);
-
-  // Items resolved with rollup logic (parent vs children)
   const view = useMemo(() => buildRoadmapView(items), [items]);
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
+  const capSprint = capacityPerSprint(cfg);
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
@@ -392,11 +390,18 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
     : t === "feature" ? "bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30"
     : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30";
 
+  const barColor = (pct: number) =>
+    pct === 0 ? "bg-muted"
+    : pct > 110 ? "bg-destructive"
+    : pct < 90 ? "bg-amber-500" : "bg-emerald-500";
+
   return (
     <div className="space-y-6">
+      {/* KPI por quarter */}
       <div className="grid md:grid-cols-4 gap-4">
         {QUARTERS.map((q) => {
           const eff = effortMap[q];
+          const cap = capacityPerQuarter(cfg, q);
           const pct = cap > 0 ? (eff / cap) * 100 : 0;
           const status =
             pct === 0 ? { label: "Vacío", cls: "text-muted-foreground" }
@@ -406,33 +411,114 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
           return (
             <div key={q} className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-foreground">{q}</span>
+                <span className="font-semibold text-foreground">{q} · {sprintsForQuarter(cfg, q)} sprints</span>
                 <span className={`text-xs font-medium ${status.cls}`}>{status.label}</span>
               </div>
-              <div className="mt-2 text-2xl font-bold">{eff} <span className="text-sm font-normal text-muted-foreground">/ {cap.toFixed(0)} h</span></div>
-              <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
-                <div
-                  className={`h-full ${pct > 110 ? "bg-destructive" : pct < 90 ? "bg-amber-500" : "bg-emerald-500"}`}
-                  style={{ width: `${Math.min(pct, 150)}%` }}
-                />
+              <div className="mt-2 text-2xl font-bold">
+                {eff} <span className="text-sm font-normal text-muted-foreground">/ {cap.toFixed(0)} h</span>
               </div>
-              <div className="mt-1 text-xs text-muted-foreground">{pct.toFixed(0)}% utilización · {byQuarter[q].length} items</div>
+              <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
+                <div className={`h-full ${barColor(pct)}`} style={{ width: `${Math.min(pct, 150)}%` }} />
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {pct.toFixed(0)}% utilización · {byQuarter[q].length} items
+              </div>
             </div>
           );
         })}
       </div>
 
-      <div className="rounded-xl border border-border bg-card overflow-x-auto">
-        <div className="grid grid-cols-[140px_repeat(4,minmax(220px,1fr))] min-w-[1100px]">
-          <div className="p-3 border-b border-border bg-muted/40 text-xs font-semibold uppercase text-muted-foreground">Tipo</div>
-          {QUARTERS.map((q) => (
-            <div key={q} className="p-3 border-b border-l border-border bg-muted/40 text-xs font-semibold uppercase text-muted-foreground">{q}</div>
-          ))}
+      {/* Vista por quarter, desglosada por sprint */}
+      <div className="space-y-6">
+        {QUARTERS.map((q) => {
+          const sprints = sprintsForQuarter(cfg, q);
+          const cellsPerSprint: { item: RoadmapItem; rolledUp: boolean }[][] = [];
+          const unassigned: { item: RoadmapItem; rolledUp: boolean }[] = [];
+          for (let i = 0; i < sprints; i++) cellsPerSprint.push([]);
+          byQuarter[q].forEach((v) => {
+            const s = v.item.sprint;
+            if (typeof s === "number" && s >= 1 && s <= sprints) {
+              cellsPerSprint[s - 1].push(v);
+            } else {
+              unassigned.push(v);
+            }
+          });
 
-          {(["epic", "feature", "story"] as ItemType[]).map((t) => (
-            <RowLane key={t} type={t} view={view} typeColor={typeColor} priorityColor={priorityColor} />
-          ))}
-        </div>
+          return (
+            <div key={q} className="rounded-xl border border-border bg-card overflow-x-auto">
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <h3 className="font-semibold text-foreground">{q}</h3>
+                <span className="text-xs text-muted-foreground">
+                  {sprints} sprints · {capSprint.toFixed(0)} h/sprint · {capacityPerQuarter(cfg, q).toFixed(0)} h total
+                </span>
+              </div>
+              {sprints === 0 ? (
+                <div className="p-6 text-sm text-muted-foreground">Sin sprints configurados para este quarter.</div>
+              ) : (
+                <div
+                  className="grid"
+                  style={{ gridTemplateColumns: `repeat(${sprints}, minmax(220px, 1fr))`, minWidth: `${sprints * 220}px` }}
+                >
+                  {cellsPerSprint.map((cell, i) => {
+                    const eff = cell.reduce((s, v) => s + (v.item.effort || 0), 0);
+                    const pct = capSprint > 0 ? (eff / capSprint) * 100 : 0;
+                    return (
+                      <div key={i} className="border-l border-border first:border-l-0 p-3 space-y-2 align-top">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold uppercase text-muted-foreground">Sprint {i + 1}</span>
+                          <span className="text-[10px] text-muted-foreground">{eff} / {capSprint.toFixed(0)} h</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div className={`h-full ${barColor(pct)}`} style={{ width: `${Math.min(pct, 150)}%` }} />
+                        </div>
+                        {cell.length === 0 && <div className="text-xs text-muted-foreground/60 pt-2">—</div>}
+                        {cell.map((v) => {
+                          const it = v.item;
+                          return (
+                            <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(it.type)}`}>
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="font-semibold">{it.id}</span>
+                                {it.priority && (
+                                  <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
+                                    {it.priority.split("-")[0]}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
+                              <div className="flex items-center justify-between mt-1">
+                                {(it.effort ?? 0) > 0
+                                  ? <span className="text-[10px] text-muted-foreground">{it.effort}h</span>
+                                  : <span />}
+                                {v.rolledUp && (
+                                  <span className="text-[10px] text-muted-foreground italic">rollup</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {unassigned.length > 0 && (
+                <div className="border-t border-border p-3 bg-muted/20">
+                  <div className="text-xs font-semibold text-muted-foreground mb-2">
+                    Sin sprint asignado en {q} ({unassigned.length})
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {unassigned.map((v) => (
+                      <Badge key={v.item.uid} variant="outline" className={typeColor(v.item.type)}>
+                        {v.item.id} · {v.item.title}
+                        {(v.item.effort ?? 0) > 0 ? ` · ${v.item.effort}h` : ""}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {byQuarter[""].length > 0 && (
@@ -451,51 +537,4 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
   );
 }
 
-function RowLane({
-  type, view, typeColor, priorityColor,
-}: {
-  type: ItemType;
-  view: { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[];
-  typeColor: (t: ItemType) => string;
-  priorityColor: (p?: Priority) => string;
-}) {
-  const label = type === "epic" ? "Epics" : type === "feature" ? "Features" : "User Stories";
-  return (
-    <>
-      <div className="p-3 border-b border-border text-sm font-semibold text-foreground bg-muted/20">{label}</div>
-      {QUARTERS.map((q) => {
-        const cell = view.filter((v) => v.item.type === type && v.quarter === q);
-        return (
-          <div key={q} className="p-3 border-b border-l border-border space-y-2 align-top">
-            {cell.length === 0 && <div className="text-xs text-muted-foreground/60">—</div>}
-            {cell.map((v) => {
-              const it = v.item;
-              return (
-                <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(type)}`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="font-semibold">{it.id}</span>
-                    {it.priority && (
-                      <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
-                        {it.priority.split("-")[0]}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
-                  <div className="flex items-center justify-between mt-1">
-                    {(it.effort ?? 0) > 0
-                      ? <span className="text-[10px] text-muted-foreground">{it.effort}h</span>
-                      : <span />}
-                    {v.rolledUp && (
-                      <span className="text-[10px] text-muted-foreground italic">rollup</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        );
-      })}
-    </>
-  );
-}
 
