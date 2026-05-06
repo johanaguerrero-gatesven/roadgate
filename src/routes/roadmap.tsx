@@ -196,6 +196,7 @@ function BacklogPanel({
                 <TableHead className="w-24">Esfuerzo (h)</TableHead>
                 <TableHead className="w-32">Prioridad</TableHead>
                 <TableHead className="w-24">Quarter</TableHead>
+                {type !== "story" && <TableHead className="w-32">En roadmap</TableHead>}
                 <TableHead className="w-32">Estado</TableHead>
                 <TableHead className="min-w-[180px]">Notas</TableHead>
                 <TableHead className="w-12"></TableHead>
