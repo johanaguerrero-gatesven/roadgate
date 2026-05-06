@@ -16,7 +16,7 @@ import {
   RoadmapItem, ItemType, Quarter, Priority, State, DisplayMode,
   loadItems, saveItems, importCSV, toCSV, uid,
   loadCapacity, saveCapacity, capacityPerQuarter, capacityPerSprint,
-  CapacityConfig, buildRoadmapView, effortByQuarter, effectiveQuarter,
+  CapacityConfig, buildRoadmapView, effortByQuarter,
 } from "@/lib/roadmap";
 import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet } from "lucide-react";
 
