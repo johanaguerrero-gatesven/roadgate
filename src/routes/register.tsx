@@ -64,7 +64,7 @@ function RegisterPage() {
         </p>
       </div>
 
-      <AuthProviders />
+      <AuthProviders providers={["google"]} />
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
