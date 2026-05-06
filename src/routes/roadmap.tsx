@@ -262,6 +262,7 @@ function BacklogPanel({
                     </TableCell>
                   )}
                   <TableCell>
+                    <Select value={it.state || "Backlog"} onValueChange={(v) => onUpdate(it.uid, { state: v as State })}>
                       <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {STATES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
