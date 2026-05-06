@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
 import { AuthProviders } from "@/components/AuthProviders";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { login, getSession } from "@/lib/auth";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -19,16 +21,17 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-const schema = z.object({
-  email: z.string().trim().email("Email inválido").max(255),
-  password: z.string().min(6, "Mínimo 6 caracteres").max(100),
-});
-
 function LoginPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const schema = z.object({
+    email: z.string().trim().email(t("validation.emailInvalid")).max(255),
+    password: z.string().min(6, t("validation.passwordMin")).max(100),
+  });
 
   useEffect(() => {
     if (getSession()) navigate({ to: "/app" });
@@ -44,10 +47,10 @@ function LoginPage() {
     setLoading(true);
     try {
       await login(parsed.data.email, parsed.data.password);
-      toast.success("Bienvenido de vuelta 👋");
+      toast.success(t("login.success"));
       navigate({ to: "/app" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error al iniciar sesión");
+      toast.error(err instanceof Error ? err.message : t("login.errorGeneric"));
     } finally {
       setLoading(false);
     }
@@ -56,36 +59,34 @@ function LoginPage() {
   return (
     <AuthShell>
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-foreground">Bienvenido de vuelta</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Inicia sesión para continuar con tu roadmap.
-        </p>
+        <h1 className="text-2xl font-bold text-foreground">{t("login.title")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("login.subtitle")}</p>
       </div>
 
       <AuthProviders />
 
-      <Divider>o con email</Divider>
+      <Divider>{t("login.divider")}</Divider>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("login.email")}</Label>
           <Input id="email" type="email" autoComplete="email" value={email}
             onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="password">Contraseña</Label>
+          <Label htmlFor="password">{t("login.password")}</Label>
           <Input id="password" type="password" autoComplete="current-password" value={password}
             onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
         </div>
         <Button type="submit" className="w-full h-11" disabled={loading}>
-          {loading ? "Entrando…" : "Iniciar sesión"}
+          {loading ? t("login.submitting") : t("login.submit")}
         </Button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
-        ¿No tienes cuenta?{" "}
+        {t("login.noAccount")}{" "}
         <Link to="/register" className="font-medium text-primary hover:underline">
-          Crear una cuenta
+          {t("login.createOne")}
         </Link>
       </p>
     </AuthShell>
@@ -93,6 +94,7 @@ function LoginPage() {
 }
 
 export function AuthShell({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
       <div className="hidden md:flex flex-col justify-between p-10 text-primary-foreground relative overflow-hidden"
@@ -100,13 +102,13 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
         <Logo tagline={false} variant="light" />
         <div>
           <p className="font-script text-3xl text-primary-foreground/90">
-            Tu puerta al roadmap realista.
+            {t("auth.shell.tagline")}
           </p>
           <h2 className="mt-3 text-3xl font-bold leading-tight max-w-md">
-            Planifica con visión. Entrega con la capacidad real de tu equipo.
+            {t("auth.shell.h2")}
           </h2>
           <p className="mt-4 text-primary-foreground/80 max-w-md">
-            RoadGate es la iniciativa de GATES para llevar el roadmapping a un siguiente nivel.
+            {t("auth.shell.lead")}
           </p>
         </div>
         <p className="text-xs text-primary-foreground/70">
@@ -116,8 +118,13 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-sm space-y-6">
-          <div className="md:hidden flex justify-center">
-            <Logo />
+          <div className="flex justify-between items-center">
+            <div className="md:hidden">
+              <Logo />
+            </div>
+            <div className="ml-auto">
+              <LanguageSwitcher variant="outline" />
+            </div>
           </div>
           {children}
         </div>

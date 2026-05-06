@@ -2,9 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/use-auth";
 import { clearSession } from "@/lib/auth";
 import { Map, Users, Gauge, Plus } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -16,12 +18,19 @@ export const Route = createFileRoute("/app")({
 function AppHome() {
   const { session, ready } = useAuth();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (ready && !session) navigate({ to: "/login" });
   }, [ready, session, navigate]);
 
   if (!ready || !session) return null;
+
+  const cards = [
+    { icon: Map, title: t("app.stats.roadmaps"), value: "0", hint: t("app.stats.roadmaps.hint") },
+    { icon: Users, title: t("app.stats.teams"), value: "0", hint: t("app.stats.teams.hint") },
+    { icon: Gauge, title: t("app.stats.capacity"), value: "—", hint: t("app.stats.capacity.hint") },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -30,10 +39,11 @@ function AppHome() {
           <Logo />
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:block">
-              Hola, <span className="text-foreground font-medium">{session.name}</span>
+              {t("app.greeting")} <span className="text-foreground font-medium">{session.name}</span>
             </span>
+            <LanguageSwitcher />
             <Button variant="outline" onClick={() => { clearSession(); navigate({ to: "/" }); }}>
-              Cerrar sesión
+              {t("nav.signOut")}
             </Button>
           </div>
         </div>
@@ -42,20 +52,16 @@ function AppHome() {
       <main className="mx-auto max-w-7xl px-6 py-10">
         <div className="flex items-end justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Tu espacio de roadmap</h1>
-            <p className="text-muted-foreground mt-1">Próximamente podrás crear y gestionar tus roadmaps aquí.</p>
+            <h1 className="text-3xl font-bold text-foreground">{t("app.h1")}</h1>
+            <p className="text-muted-foreground mt-1">{t("app.lead")}</p>
           </div>
           <Button size="lg" disabled>
-            <Plus className="h-4 w-4" /> Nuevo roadmap
+            <Plus className="h-4 w-4" /> {t("app.new")}
           </Button>
         </div>
 
         <div className="mt-10 grid md:grid-cols-3 gap-5">
-          {[
-            { icon: Map, title: "Roadmaps", value: "0", hint: "Crea tu primer roadmap" },
-            { icon: Users, title: "Equipos", value: "0", hint: "Define quiénes ejecutan" },
-            { icon: Gauge, title: "Capacidad disponible", value: "—", hint: "Configura FTEs por equipo" },
-          ].map((c) => (
+          {cards.map((c) => (
             <div key={c.title} className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">{c.title}</span>
@@ -69,9 +75,9 @@ function AppHome() {
 
         <div className="mt-10 rounded-2xl border border-dashed border-border bg-card/60 p-12 text-center">
           <Map className="h-10 w-10 mx-auto text-primary" />
-          <h2 className="mt-4 text-xl font-semibold text-foreground">Aún no hay roadmaps</h2>
+          <h2 className="mt-4 text-xl font-semibold text-foreground">{t("app.empty.h2")}</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-            En la siguiente iteración podrás crear iniciativas, asignarlas a equipos y validar contra la capacidad real.
+            {t("app.empty.lead")}
           </p>
         </div>
       </main>
