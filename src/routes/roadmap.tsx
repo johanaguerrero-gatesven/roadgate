@@ -13,10 +13,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  RoadmapItem, ItemType, Quarter, Priority, State,
+  RoadmapItem, ItemType, Quarter, Priority, State, DisplayMode,
   loadItems, saveItems, importCSV, toCSV, uid,
   loadCapacity, saveCapacity, capacityPerQuarter, capacityPerSprint,
-  CapacityConfig,
+  CapacityConfig, buildRoadmapView, effortByQuarter,
 } from "@/lib/roadmap";
 import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet } from "lucide-react";
 
@@ -175,7 +175,7 @@ function BacklogPanel({
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
         <span className="text-xs text-muted-foreground ml-auto">
-          Cabeceras esperadas: <code>id, title, description, parent, effort, priority, quarter, notes</code>
+          Acepta CSV de Azure DevOps (<code>ID, Work Item Type, Title, Parent, State, Effort, Priority, Iteration Path, Tags</code>) o un CSV simple con <code>id, title, parent, effort, priority, quarter</code>.
         </span>
       </div>
 
@@ -196,6 +196,7 @@ function BacklogPanel({
                 <TableHead className="w-24">Esfuerzo (h)</TableHead>
                 <TableHead className="w-32">Prioridad</TableHead>
                 <TableHead className="w-24">Quarter</TableHead>
+                {type !== "story" && <TableHead className="w-32">En roadmap</TableHead>}
                 <TableHead className="w-32">Estado</TableHead>
                 <TableHead className="min-w-[180px]">Notas</TableHead>
                 <TableHead className="w-12"></TableHead>
@@ -245,6 +246,21 @@ function BacklogPanel({
                       </SelectContent>
                     </Select>
                   </TableCell>
+                  {type !== "story" && (
+                    <TableCell>
+                      <Select
+                        value={it.displayMode || "auto"}
+                        onValueChange={(v) => onUpdate(it.uid, { displayMode: v as DisplayMode })}
+                      >
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="auto">Auto</SelectItem>
+                          <SelectItem value="self">Mostrar padre</SelectItem>
+                          <SelectItem value="children">Mostrar hijos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  )}
                   <TableCell>
                     <Select value={it.state || "Backlog"} onValueChange={(v) => onUpdate(it.uid, { state: v as State })}>
                       <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
@@ -315,13 +331,16 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
 function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig }) {
   const cap = capacityPerQuarter(cfg);
 
-  const byQuarter = useMemo(() => {
-    const map: Record<Quarter, RoadmapItem[]> = { Q1: [], Q2: [], Q3: [], Q4: [], "": [] };
-    items.forEach((it) => map[it.quarter || ""].push(it));
-    return map;
-  }, [items]);
+  // Items resolved with rollup logic (parent vs children)
+  const view = useMemo(() => buildRoadmapView(items), [items]);
+  const effortMap = useMemo(() => effortByQuarter(items), [items]);
 
-  const sumEffort = (arr: RoadmapItem[]) => arr.reduce((s, x) => s + (x.effort || 0), 0);
+  const byQuarter = useMemo(() => {
+    const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
+      { Q1: [], Q2: [], Q3: [], Q4: [], "": [] };
+    view.forEach((v) => map[v.quarter].push(v));
+    return map;
+  }, [view]);
 
   const priorityColor = (p?: Priority) =>
     p === "1-High" ? "bg-destructive/15 text-destructive border-destructive/30"
@@ -338,7 +357,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
     <div className="space-y-6">
       <div className="grid md:grid-cols-4 gap-4">
         {QUARTERS.map((q) => {
-          const eff = sumEffort(byQuarter[q]);
+          const eff = effortMap[q];
           const pct = cap > 0 ? (eff / cap) * 100 : 0;
           const status =
             pct === 0 ? { label: "Vacío", cls: "text-muted-foreground" }
@@ -372,7 +391,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
           ))}
 
           {(["epic", "feature", "story"] as ItemType[]).map((t) => (
-            <RowLane key={t} type={t} items={items} typeColor={typeColor} priorityColor={priorityColor} />
+            <RowLane key={t} type={t} view={view} typeColor={typeColor} priorityColor={priorityColor} />
           ))}
         </div>
       </div>
@@ -381,9 +400,9 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
         <div className="rounded-xl border border-dashed border-border bg-card/60 p-4">
           <h4 className="font-semibold text-foreground mb-2">Sin quarter asignado ({byQuarter[""].length})</h4>
           <div className="flex flex-wrap gap-2">
-            {byQuarter[""].map((it) => (
-              <Badge key={it.uid} variant="outline" className={typeColor(it.type)}>
-                {it.id} · {it.title}
+            {byQuarter[""].map((v) => (
+              <Badge key={v.item.uid} variant="outline" className={typeColor(v.item.type)}>
+                {v.item.id} · {v.item.title}
               </Badge>
             ))}
           </div>
@@ -394,10 +413,10 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
 }
 
 function RowLane({
-  type, items, typeColor, priorityColor,
+  type, view, typeColor, priorityColor,
 }: {
   type: ItemType;
-  items: RoadmapItem[];
+  view: { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[];
   typeColor: (t: ItemType) => string;
   priorityColor: (p?: Priority) => string;
 }) {
@@ -406,29 +425,38 @@ function RowLane({
     <>
       <div className="p-3 border-b border-border text-sm font-semibold text-foreground bg-muted/20">{label}</div>
       {QUARTERS.map((q) => {
-        const cell = items.filter((i) => i.type === type && i.quarter === q);
+        const cell = view.filter((v) => v.item.type === type && v.quarter === q);
         return (
           <div key={q} className="p-3 border-b border-l border-border space-y-2 align-top">
             {cell.length === 0 && <div className="text-xs text-muted-foreground/60">—</div>}
-            {cell.map((it) => (
-              <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(type)}`}>
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-semibold">{it.id}</span>
-                  {it.priority && (
-                    <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
-                      {it.priority.split("-")[0]}
-                    </span>
-                  )}
+            {cell.map((v) => {
+              const it = v.item;
+              return (
+                <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(type)}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-semibold">{it.id}</span>
+                    {it.priority && (
+                      <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
+                        {it.priority.split("-")[0]}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
+                  <div className="flex items-center justify-between mt-1">
+                    {(it.effort ?? 0) > 0
+                      ? <span className="text-[10px] text-muted-foreground">{it.effort}h</span>
+                      : <span />}
+                    {v.rolledUp && (
+                      <span className="text-[10px] text-muted-foreground italic">rollup</span>
+                    )}
+                  </div>
                 </div>
-                <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
-                {(it.effort ?? 0) > 0 && (
-                  <div className="text-[10px] text-muted-foreground mt-1">{it.effort}h</div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         );
       })}
     </>
   );
 }
+
