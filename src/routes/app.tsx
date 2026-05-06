@@ -84,8 +84,8 @@ function AppHome() {
             <h1 className="text-3xl font-bold text-foreground">{t("app.h1")}</h1>
             <p className="text-muted-foreground mt-1">{t("app.lead")}</p>
           </div>
-          <Button size="lg" disabled>
-            <Plus className="h-4 w-4" /> {t("app.new")}
+          <Button size="lg" asChild>
+            <Link to="/roadmap"><Plus className="h-4 w-4" /> {t("app.new")}</Link>
           </Button>
         </div>
 
