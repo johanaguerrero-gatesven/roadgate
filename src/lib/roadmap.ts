@@ -3,9 +3,10 @@ export type ItemType = "epic" | "feature" | "story";
 export type Quarter = "Q1" | "Q2" | "Q3" | "Q4" | "";
 export type Priority = "1-High" | "2-Medium" | "3-Low" | "";
 export type State = "Backlog" | "In Progress" | "Done" | "Blocked";
+export type DisplayMode = "auto" | "self" | "children";
 
 export type RoadmapItem = {
-  id: string;            // user-facing ID (e.g. EPIC-01)
+  id: string;            // user-facing ID (e.g. EPIC-01 or Azure DevOps numeric)
   uid: string;           // internal unique id
   type: ItemType;
   title: string;
@@ -16,6 +17,8 @@ export type RoadmapItem = {
   quarter?: Quarter;
   state?: State;
   notes?: string;
+  tags?: string;
+  displayMode?: DisplayMode; // only for epic/feature: how to render in the roadmap
 };
 
 export type CapacityConfig = {
@@ -86,6 +89,8 @@ export function uid() {
 
 // Minimal CSV parser supporting quoted fields and commas inside quotes
 export function parseCSV(text: string): Record<string, string>[] {
+  // Strip BOM
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
   const rows: string[][] = [];
   let cur: string[] = [];
   let field = "";
@@ -118,27 +123,61 @@ export function parseCSV(text: string): Record<string, string>[] {
 
 function pick(row: Record<string, string>, keys: string[]): string {
   for (const k of Object.keys(row)) {
-    if (keys.some((kk) => k.toLowerCase() === kk.toLowerCase())) return row[k];
+    const lk = k.toLowerCase().trim();
+    if (keys.some((kk) => lk === kk.toLowerCase())) return row[k];
   }
   return "";
 }
 
-export function importCSV(text: string, type: ItemType, existing: RoadmapItem[]): RoadmapItem[] {
+function detectType(raw: string, fallback: ItemType): ItemType {
+  const v = raw.toLowerCase().trim();
+  if (!v) return fallback;
+  if (v.startsWith("epic")) return "epic";
+  if (v.startsWith("feature")) return "feature";
+  if (v.startsWith("user story") || v.startsWith("story") || v.startsWith("product backlog") || v === "pbi" || v === "task") return "story";
+  return fallback;
+}
+
+function normalizePriority(raw: string): Priority {
+  const v = raw.trim();
+  if (!v) return "";
+  if (/^1/.test(v) || /high/i.test(v) || /alta/i.test(v)) return "1-High";
+  if (/^2/.test(v) || /med/i.test(v)) return "2-Medium";
+  if (/^3|4/.test(v) || /low/i.test(v) || /baja/i.test(v)) return "3-Low";
+  return (v as Priority) || "";
+}
+
+function normalizeQuarter(raw: string): Quarter {
+  const m = raw.match(/Q[1-4]/i);
+  return (m ? (m[0].toUpperCase() as Quarter) : "");
+}
+
+/**
+ * Imports CSV. Supports Azure DevOps export headers:
+ *  ID, Work Item Type, Title, Parent, State, Effort/Story Points, Priority,
+ *  Iteration Path, Tags, Description.
+ * If "Work Item Type" is missing, falls back to `defaultType` for every row.
+ */
+export function importCSV(text: string, defaultType: ItemType, existing: RoadmapItem[]): RoadmapItem[] {
   const rows = parseCSV(text);
   const newItems: RoadmapItem[] = rows.map((r) => {
-    const id = pick(r, ["id", "ID", "key"]) || `${type.toUpperCase()}-${uid().slice(0, 4)}`;
+    const wit = pick(r, ["work item type", "type", "item type"]);
+    const type = detectType(wit, defaultType);
+    const id = pick(r, ["id", "key", "work item id"]) || `${type.toUpperCase()}-${uid().slice(0, 4)}`;
+    const iter = pick(r, ["iteration path", "iteration", "sprint"]);
     return {
       uid: uid(),
       id,
       type,
       title: pick(r, ["title", "name", "summary"]),
       description: pick(r, ["description", "desc"]),
-      parentId: pick(r, ["parent", "parentId", "parent id"]) || undefined,
-      effort: Number(pick(r, ["effort", "hours", "estimate"])) || undefined,
-      priority: (pick(r, ["priority"]) as Priority) || "",
-      quarter: (pick(r, ["quarter", "q"]) as Quarter) || "",
+      parentId: pick(r, ["parent", "parentid", "parent id", "parent work item"]) || undefined,
+      effort: Number(pick(r, ["effort", "hours", "estimate", "story points", "original estimate"])) || undefined,
+      priority: normalizePriority(pick(r, ["priority"])),
+      quarter: normalizeQuarter(pick(r, ["quarter", "q"]) || iter),
       state: (pick(r, ["state", "status"]) as State) || "Backlog",
-      notes: pick(r, ["notes", "comment"]),
+      notes: pick(r, ["notes", "comment", "comments"]),
+      tags: pick(r, ["tags", "labels"]),
     };
   });
   // dedupe by id keeping new
@@ -148,14 +187,115 @@ export function importCSV(text: string, type: ItemType, existing: RoadmapItem[])
 }
 
 export function toCSV(items: RoadmapItem[]): string {
-  const headers = ["id", "type", "title", "description", "parent", "effort", "priority", "quarter", "state", "notes"];
+  const headers = ["ID", "Work Item Type", "Title", "Description", "Parent", "Effort", "Priority", "Quarter", "State", "Tags", "Notes"];
+  const witLabel: Record<ItemType, string> = { epic: "Epic", feature: "Feature", story: "User Story" };
   const esc = (v: unknown) => {
     const s = v == null ? "" : String(v);
-    return /[\",\n]/.test(s) ? `"${s.replace(/\"/g, '""')}"` : s;
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const lines = [headers.join(",")];
   items.forEach((it) => {
-    lines.push([it.id, it.type, it.title, it.description ?? "", it.parentId ?? "", it.effort ?? "", it.priority ?? "", it.quarter ?? "", it.state ?? "", it.notes ?? ""].map(esc).join(","));
+    lines.push([
+      it.id, witLabel[it.type], it.title, it.description ?? "", it.parentId ?? "",
+      it.effort ?? "", it.priority ?? "", it.quarter ?? "", it.state ?? "",
+      it.tags ?? "", it.notes ?? "",
+    ].map(esc).join(","));
   });
   return lines.join("\n");
+}
+
+// ---------- Roadmap rollup logic ----------
+
+function findById(items: RoadmapItem[], id?: string) {
+  if (!id) return undefined;
+  return items.find((i) => i.id === id);
+}
+
+/**
+ * Effective quarter for an item, walking up the hierarchy:
+ *   US.quarter > Feature.quarter > Epic.quarter
+ */
+export function effectiveQuarter(item: RoadmapItem, items: RoadmapItem[]): Quarter {
+  if (item.quarter) return item.quarter;
+  const parent = findById(items, item.parentId);
+  if (!parent) return "";
+  return effectiveQuarter(parent, items);
+}
+
+function childrenOf(parent: RoadmapItem, items: RoadmapItem[]) {
+  return items.filter((i) => i.parentId === parent.id);
+}
+
+/**
+ * Returns the items to render in the roadmap, applying the rollup rules:
+ * - Each epic / feature has a `displayMode`:
+ *    - "self": always render the parent (rolled-up).
+ *    - "children": always render its descendants individually.
+ *    - "auto" (default): if all its descendants resolve to the same quarter,
+ *      render the parent in that quarter. Otherwise render the children.
+ *
+ * The walker starts from epics → features → stories and prunes whatever a
+ * higher level decides to roll up.
+ */
+export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[] {
+  const out: { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[] = [];
+  const visited = new Set<string>();
+
+  const allDescendants = (node: RoadmapItem): RoadmapItem[] => {
+    const kids = childrenOf(node, items);
+    return [...kids, ...kids.flatMap(allDescendants)];
+  };
+
+  const decide = (node: RoadmapItem): "self" | "children" => {
+    const mode = node.displayMode ?? "auto";
+    if (mode === "self") return "self";
+    if (mode === "children") return "children";
+    // auto
+    const desc = allDescendants(node);
+    if (desc.length === 0) return "self";
+    const quarters = new Set(desc.map((d) => effectiveQuarter(d, items)).filter(Boolean));
+    if (quarters.size === 1 && node.quarter && quarters.has(node.quarter)) return "self";
+    if (quarters.size === 1) return "self";
+    return "children";
+  };
+
+  const walk = (node: RoadmapItem) => {
+    if (visited.has(node.uid)) return;
+    visited.add(node.uid);
+    if (node.type === "story") {
+      const q = effectiveQuarter(node, items);
+      out.push({ item: node, quarter: q, rolledUp: false });
+      return;
+    }
+    const choice = decide(node);
+    if (choice === "self") {
+      const q = effectiveQuarter(node, items);
+      out.push({ item: node, quarter: q, rolledUp: childrenOf(node, items).length > 0 });
+      // mark descendants as visited so we don't render them too
+      allDescendants(node).forEach((d) => visited.add(d.uid));
+    } else {
+      childrenOf(node, items).forEach(walk);
+    }
+  };
+
+  // Start with epics, then orphan features, then orphan stories.
+  items.filter((i) => i.type === "epic").forEach(walk);
+  items.filter((i) => i.type === "feature" && !visited.has(i.uid)).forEach(walk);
+  items.filter((i) => i.type === "story" && !visited.has(i.uid)).forEach(walk);
+  return out;
+}
+
+/**
+ * Effort committed in each quarter, computed only from leaf-level items
+ * (stories, or features/epics without children) so we never double-count.
+ */
+export function effortByQuarter(items: RoadmapItem[]): Record<Quarter, number> {
+  const acc: Record<Quarter, number> = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, "": 0 };
+  items.forEach((it) => {
+    const hasKids = items.some((c) => c.parentId === it.id);
+    if (hasKids) return;
+    const q = effectiveQuarter(it, items);
+    acc[q] += it.effort || 0;
+  });
+  return acc;
 }
