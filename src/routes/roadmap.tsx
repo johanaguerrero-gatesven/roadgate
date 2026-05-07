@@ -558,6 +558,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
 
 
 function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig }) {
+  const { t } = useI18n();
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
   const prioCount = useMemo(() => countByPriority(items), [items]);
   const prioEffort = useMemo(() => effortByPriority(items), [items]);
