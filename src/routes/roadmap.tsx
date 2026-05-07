@@ -522,7 +522,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
               {unassigned.length > 0 && (
                 <div className="border-t border-border p-3 bg-muted/20">
                   <div className="text-xs font-semibold text-muted-foreground mb-2">
-                    Sin sprint asignado en {q} ({unassigned.length})
+                    {t("roadmap.noSprintAssigned")} {q} ({unassigned.length})
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {unassigned.map((v) => (
