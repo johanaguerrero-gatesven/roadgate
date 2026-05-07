@@ -148,6 +148,7 @@ function BacklogPanel({
   onRemove: (uid: string) => void;
   onImport: (csv: string) => void;
 }) {
+  const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
   const list = items.filter((i) => i.type === type);
   const parents = items.filter((i) => i.type === (type === "story" ? "feature" : type === "feature" ? "epic" : ""));
