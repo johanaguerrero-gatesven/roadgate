@@ -318,19 +318,20 @@ function BacklogPanel({
 }
 
 function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: CapacityConfig) => void }) {
+  const { t } = useI18n();
   type NumKey = "developers" | "dedicationPct" | "daysPerSprint" | "hoursPerDay" | "sprintsPerQuarter";
   const fields: { key: NumKey; label: string }[] = [
-    { key: "developers", label: "Developers" },
-    { key: "dedicationPct", label: "% Dedicación" },
-    { key: "daysPerSprint", label: "Días por sprint" },
-    { key: "hoursPerDay", label: "Horas por día" },
-    { key: "sprintsPerQuarter", label: "Sprints por quarter (default)" },
+    { key: "developers", label: t("roadmap.cap.developers") },
+    { key: "dedicationPct", label: t("roadmap.cap.dedication") },
+    { key: "daysPerSprint", label: t("roadmap.cap.daysPerSprint") },
+    { key: "hoursPerDay", label: t("roadmap.cap.hoursPerDay") },
+    { key: "sprintsPerQuarter", label: t("roadmap.cap.sprintsPerQuarterDefault") },
   ];
   const sprint = capacityPerSprint(cfg);
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <div className="rounded-xl border border-border bg-card p-6 space-y-3">
-        <h3 className="font-semibold text-foreground mb-2">Parámetros globales</h3>
+        <h3 className="font-semibold text-foreground mb-2">{t("roadmap.cap.global")}</h3>
         {fields.map((f) => (
           <div key={f.key} className="flex items-center justify-between gap-3">
             <label className="text-sm text-muted-foreground">{f.label}</label>
@@ -343,8 +344,8 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
           </div>
         ))}
         <div className="pt-3 mt-2 border-t border-border space-y-2">
-          <h4 className="text-sm font-semibold text-foreground">Sprints por quarter</h4>
-          <p className="text-xs text-muted-foreground">Sobrescribe el valor por defecto si un quarter tiene menos sprints (vacaciones, releases, etc.).</p>
+          <h4 className="text-sm font-semibold text-foreground">{t("roadmap.cap.sprintsByQuarter")}</h4>
+          <p className="text-xs text-muted-foreground">{t("roadmap.cap.sprintsByQuarterHint")}</p>
           {QUARTERS.map((q) => (
             <div key={q} className="flex items-center justify-between gap-3">
               <label className="text-sm text-muted-foreground">{q}</label>
@@ -362,17 +363,17 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
         </div>
       </div>
       <div className="rounded-xl border border-border bg-card p-6">
-        <h3 className="font-semibold text-foreground mb-3">Capacidad calculada</h3>
+        <h3 className="font-semibold text-foreground mb-3">{t("roadmap.cap.calculated")}</h3>
         <dl className="space-y-2 text-sm">
-          <div className="flex justify-between"><dt>Por sprint</dt><dd className="font-semibold">{sprint.toFixed(0)} h</dd></div>
+          <div className="flex justify-between"><dt>{t("roadmap.cap.perSprint")}</dt><dd className="font-semibold">{sprint.toFixed(0)} h</dd></div>
           {QUARTERS.map((q) => (
             <div key={q} className="flex justify-between">
-              <dt>{q} ({sprintsForQuarter(cfg, q)} sprints)</dt>
+              <dt>{q} ({sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")})</dt>
               <dd className="font-semibold">{capacityPerQuarter(cfg, q).toFixed(0)} h</dd>
             </div>
           ))}
           <div className="flex justify-between border-t border-border pt-2">
-            <dt>Anual</dt>
+            <dt>{t("roadmap.cap.annual")}</dt>
             <dd className="font-semibold">
               {QUARTERS.reduce((s, q) => s + capacityPerQuarter(cfg, q), 0).toFixed(0)} h
             </dd>
