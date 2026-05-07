@@ -541,7 +541,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
 
       {byQuarter[""].length > 0 && (
         <div className="rounded-xl border border-dashed border-border bg-card/60 p-4">
-          <h4 className="font-semibold text-foreground mb-2">Sin quarter asignado ({byQuarter[""].length})</h4>
+          <h4 className="font-semibold text-foreground mb-2">{t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})</h4>
           <div className="flex flex-wrap gap-2">
             {byQuarter[""].map((v) => (
               <Badge key={v.item.uid} variant="outline" className={typeColor(v.item.type)}>
