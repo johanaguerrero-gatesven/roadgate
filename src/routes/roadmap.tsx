@@ -650,7 +650,7 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
       {/* Prioridades */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="rounded-xl border border-border bg-card p-6">
-          <h3 className="font-semibold text-foreground mb-4">Distribución por prioridad (items)</h3>
+          <h3 className="font-semibold text-foreground mb-4">{t("roadmap.dash.distItems")}</h3>
           <div className="space-y-2">
             {Object.entries(prioCount).map(([p, n]) => {
               const total = items.length || 1;
