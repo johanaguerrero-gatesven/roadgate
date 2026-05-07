@@ -232,11 +232,18 @@ function BacklogPanel({
                     </TableCell>
                   )}
                   <TableCell>
-                    <Input
-                      type="number" min={0}
-                      value={it.effort ?? ""} onChange={(e) => onUpdate(it.uid, { effort: e.target.value === "" ? undefined : Number(e.target.value) })}
-                      className="h-8"
-                    />
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number" min={0}
+                        value={it.effort ?? ""} onChange={(e) => onUpdate(it.uid, { effort: e.target.value === "" ? undefined : Number(e.target.value) })}
+                        className="h-8"
+                      />
+                      {type !== "story" && items.some((c) => c.parentId === it.id) && (
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap" title="Suma esfuerzo de los hijos">
+                          Σ {rolledUpEffort(it, items)}h
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Select value={it.priority || ""} onValueChange={(v) => onUpdate(it.uid, { priority: v as Priority })}>
