@@ -579,10 +579,10 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
     : pct < 90 ? "bg-amber-500" : "bg-emerald-500";
 
   const globalStatus =
-    globalPct === 0 ? { label: "Vacío", cls: "text-muted-foreground" }
-    : globalPct > 110 ? { label: "🚫 Sobrecarga anual", cls: "text-destructive" }
-    : globalPct < 90 ? { label: "⚠️ Subutilización anual", cls: "text-amber-600 dark:text-amber-400" }
-    : { label: "✅ Equilibrado", cls: "text-emerald-600 dark:text-emerald-400" };
+    globalPct === 0 ? { label: t("roadmap.status.empty"), cls: "text-muted-foreground" }
+    : globalPct > 110 ? { label: t("roadmap.status.overloadAnnual"), cls: "text-destructive" }
+    : globalPct < 90 ? { label: t("roadmap.status.underAnnual"), cls: "text-amber-600 dark:text-amber-400" }
+    : { label: t("roadmap.status.balanced"), cls: "text-emerald-600 dark:text-emerald-400" };
 
   const prioColor = (p: string) =>
     p === "1-High" ? "bg-destructive"
