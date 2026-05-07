@@ -242,7 +242,7 @@ function BacklogPanel({
                         className="h-8"
                       />
                       {type !== "story" && items.some((c) => c.parentId === it.id) && (
-                        <span className="text-[10px] text-muted-foreground whitespace-nowrap" title="Suma esfuerzo de los hijos">
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap" title={t("roadmap.rollupTitle")}>
                           Σ {rolledUpEffort(it, items)}h
                         </span>
                       )}
