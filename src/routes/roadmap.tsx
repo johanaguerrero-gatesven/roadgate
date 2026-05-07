@@ -669,7 +669,7 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-6">
-          <h3 className="font-semibold text-foreground mb-4">Esfuerzo por prioridad (horas)</h3>
+          <h3 className="font-semibold text-foreground mb-4">{t("roadmap.dash.effortByPrio")}</h3>
           <div className="space-y-2">
             {Object.entries(prioEffort).map(([p, h]) => {
               const pct = (h / maxPrioEffort) * 100;
