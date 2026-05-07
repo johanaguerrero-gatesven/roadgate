@@ -170,12 +170,12 @@ function BacklogPanel({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2 items-center">
-        <Button onClick={onAdd}><Plus className="h-4 w-4" /> Añadir</Button>
+        <Button onClick={onAdd}><Plus className="h-4 w-4" /> {t("roadmap.add")}</Button>
         <Button variant="outline" onClick={() => fileRef.current?.click()}>
-          <Upload className="h-4 w-4" /> Importar CSV
+          <Upload className="h-4 w-4" /> {t("roadmap.import")}
         </Button>
         <Button variant="outline" onClick={exportCsv}>
-          <Download className="h-4 w-4" /> Exportar CSV
+          <Download className="h-4 w-4" /> {t("roadmap.export")}
         </Button>
         <input
           ref={fileRef}
@@ -185,15 +185,15 @@ function BacklogPanel({
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
         <span className="text-xs text-muted-foreground ml-auto">
-          Acepta CSV de Azure DevOps (<code>ID, Work Item Type, Title, Parent, State, Effort, Priority, Iteration Path, Tags</code>) o un CSV simple con <code>id, title, parent, effort, priority, quarter</code>.
+          {t("roadmap.csvHint")}
         </span>
       </div>
 
       {list.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card/60 p-10 text-center">
           <FileSpreadsheet className="h-10 w-10 mx-auto text-primary" />
-          <h3 className="mt-3 font-semibold text-foreground">Aún no hay {type === "story" ? "user stories" : type + "s"}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Importa un CSV o añade entradas manualmente.</p>
+          <h3 className="mt-3 font-semibold text-foreground">{t("roadmap.empty.title")} {type === "story" ? "user stories" : type + "s"}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{t("roadmap.empty.lead")}</p>
         </div>
       ) : (
         <div className="rounded-xl border border-border bg-card overflow-x-auto">
@@ -201,15 +201,15 @@ function BacklogPanel({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-28">ID</TableHead>
-                <TableHead className="min-w-[220px]">Título</TableHead>
-                {type !== "epic" && <TableHead className="w-40">Parent</TableHead>}
-                <TableHead className="w-24">Esfuerzo (h)</TableHead>
-                <TableHead className="w-32">Prioridad</TableHead>
-                <TableHead className="w-24">Quarter</TableHead>
-                <TableHead className="w-20">Sprint</TableHead>
-                {type !== "story" && <TableHead className="w-32">En roadmap</TableHead>}
-                <TableHead className="w-32">Estado</TableHead>
-                <TableHead className="min-w-[180px]">Notas</TableHead>
+                <TableHead className="min-w-[220px]">{t("roadmap.col.title")}</TableHead>
+                {type !== "epic" && <TableHead className="w-40">{t("roadmap.col.parent")}</TableHead>}
+                <TableHead className="w-24">{t("roadmap.col.effort")}</TableHead>
+                <TableHead className="w-32">{t("roadmap.col.priority")}</TableHead>
+                <TableHead className="w-24">{t("roadmap.col.quarter")}</TableHead>
+                <TableHead className="w-20">{t("roadmap.col.sprint")}</TableHead>
+                {type !== "story" && <TableHead className="w-32">{t("roadmap.col.inRoadmap")}</TableHead>}
+                <TableHead className="w-32">{t("roadmap.col.state")}</TableHead>
+                <TableHead className="min-w-[180px]">{t("roadmap.col.notes")}</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
