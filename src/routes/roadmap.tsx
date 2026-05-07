@@ -422,14 +422,14 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
           const cap = capacityPerQuarter(cfg, q);
           const pct = cap > 0 ? (eff / cap) * 100 : 0;
           const status =
-            pct === 0 ? { label: "Vacío", cls: "text-muted-foreground" }
-            : pct > 110 ? { label: "🚫 Sobrecarga", cls: "text-destructive" }
-            : pct < 90 ? { label: "⚠️ Subutilizado", cls: "text-amber-600 dark:text-amber-400" }
-            : { label: "✅ OK", cls: "text-emerald-600 dark:text-emerald-400" };
+            pct === 0 ? { label: t("roadmap.status.empty"), cls: "text-muted-foreground" }
+            : pct > 110 ? { label: t("roadmap.status.overload"), cls: "text-destructive" }
+            : pct < 90 ? { label: t("roadmap.status.under"), cls: "text-amber-600 dark:text-amber-400" }
+            : { label: t("roadmap.status.ok"), cls: "text-emerald-600 dark:text-emerald-400" };
           return (
             <div key={q} className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-foreground">{q} · {sprintsForQuarter(cfg, q)} sprints</span>
+                <span className="font-semibold text-foreground">{q} · {sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")}</span>
                 <span className={`text-xs font-medium ${status.cls}`}>{status.label}</span>
               </div>
               <div className="mt-2 text-2xl font-bold">
@@ -439,7 +439,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                 <div className={`h-full ${barColor(pct)}`} style={{ width: `${Math.min(pct, 150)}%` }} />
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
-                {pct.toFixed(0)}% utilización · {byQuarter[q].length} items
+                {pct.toFixed(0)}% {t("roadmap.utilization")} · {byQuarter[q].length} {t("roadmap.items")}
               </div>
             </div>
           );
