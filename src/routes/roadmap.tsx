@@ -34,6 +34,7 @@ const STATES: State[] = ["Backlog", "In Progress", "Done", "Blocked"];
 
 function RoadmapPage() {
   const { session, ready } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [items, setItems] = useState<RoadmapItem[]>([]);
   const [cfg, setCfg] = useState<CapacityConfig>(loadCapacity());
@@ -60,7 +61,7 @@ function RoadmapPage() {
     const n = items.filter((i) => i.type === type).length + 1;
     update([...items, {
       uid: uid(), id: `${prefix}-${String(n).padStart(2, "0")}`, type,
-      title: "Nuevo " + type, state: "Backlog",
+      title: `${t("roadmap.new")} ${type}`, state: "Backlog",
     }]);
   };
 
