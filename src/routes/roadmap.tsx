@@ -84,19 +84,19 @@ function RoadmapPage() {
       <main className="mx-auto max-w-[1400px] px-6 py-8">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Roadmap 2026</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t("roadmap.title")}</h1>
             <p className="text-muted-foreground mt-1">
-              Importa tu backlog (Epics → Features → User Stories), asigna esfuerzo, prioridad y quarter, y visualiza el roadmap contra la capacidad real del equipo.
+              {t("roadmap.lead")}
             </p>
           </div>
         </div>
 
         <Tabs defaultValue="dashboard">
           <TabsList>
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="backlog">Backlog</TabsTrigger>
-            <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
-            <TabsTrigger value="capacity">Capacidad</TabsTrigger>
+            <TabsTrigger value="dashboard">{t("roadmap.tab.dashboard")}</TabsTrigger>
+            <TabsTrigger value="backlog">{t("roadmap.tab.backlog")}</TabsTrigger>
+            <TabsTrigger value="roadmap">{t("roadmap.tab.roadmap")}</TabsTrigger>
+            <TabsTrigger value="capacity">{t("roadmap.tab.capacity")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-6">
