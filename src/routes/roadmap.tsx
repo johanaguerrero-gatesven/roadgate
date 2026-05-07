@@ -626,7 +626,7 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
 
       {/* Capacidad por Q */}
       <div className="rounded-xl border border-border bg-card p-6">
-        <h3 className="font-semibold text-foreground mb-4">Esfuerzo vs Capacidad por Quarter</h3>
+        <h3 className="font-semibold text-foreground mb-4">{t("roadmap.dash.effortVsCap")}</h3>
         <div className="space-y-3">
           {QUARTERS.map((q) => {
             const eff = effortMap[q];
@@ -635,7 +635,7 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
             return (
               <div key={q}>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{q} <span className="text-xs text-muted-foreground">· {sprintsForQuarter(cfg, q)} sprints</span></span>
+                  <span className="font-medium">{q} <span className="text-xs text-muted-foreground">· {sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")}</span></span>
                   <span className="text-xs text-muted-foreground">{eff} / {cap.toFixed(0)} h ({pct.toFixed(0)}%)</span>
                 </div>
                 <div className="mt-1 h-3 rounded-full bg-muted overflow-hidden">
