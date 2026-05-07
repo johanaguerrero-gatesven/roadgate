@@ -467,11 +467,11 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <h3 className="font-semibold text-foreground">{q}</h3>
                 <span className="text-xs text-muted-foreground">
-                  {sprints} sprints · {capSprint.toFixed(0)} h/sprint · {capacityPerQuarter(cfg, q).toFixed(0)} h total
+                  {sprints} {t("roadmap.cap.sprints")} · {capSprint.toFixed(0)} h/sprint · {capacityPerQuarter(cfg, q).toFixed(0)} {t("roadmap.totalH")}
                 </span>
               </div>
               {sprints === 0 ? (
-                <div className="p-6 text-sm text-muted-foreground">Sin sprints configurados para este quarter.</div>
+                <div className="p-6 text-sm text-muted-foreground">{t("roadmap.noSprintsCfg")}</div>
               ) : (
                 <div
                   className="grid"
