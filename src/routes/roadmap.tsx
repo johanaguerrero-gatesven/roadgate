@@ -551,3 +551,136 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
 }
 
 
+
+function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig }) {
+  const effortMap = useMemo(() => effortByQuarter(items), [items]);
+  const prioCount = useMemo(() => countByPriority(items), [items]);
+  const prioEffort = useMemo(() => effortByPriority(items), [items]);
+
+  const totalEffort = QUARTERS.reduce((s, q) => s + effortMap[q], 0);
+  const totalCap = QUARTERS.reduce((s, q) => s + capacityPerQuarter(cfg, q), 0);
+  const globalPct = totalCap > 0 ? (totalEffort / totalCap) * 100 : 0;
+
+  const counts = {
+    epic: items.filter((i) => i.type === "epic").length,
+    feature: items.filter((i) => i.type === "feature").length,
+    story: items.filter((i) => i.type === "story").length,
+  };
+
+  const barColor = (pct: number) =>
+    pct === 0 ? "bg-muted"
+    : pct > 110 ? "bg-destructive"
+    : pct < 90 ? "bg-amber-500" : "bg-emerald-500";
+
+  const globalStatus =
+    globalPct === 0 ? { label: "Vacío", cls: "text-muted-foreground" }
+    : globalPct > 110 ? { label: "🚫 Sobrecarga anual", cls: "text-destructive" }
+    : globalPct < 90 ? { label: "⚠️ Subutilización anual", cls: "text-amber-600 dark:text-amber-400" }
+    : { label: "✅ Equilibrado", cls: "text-emerald-600 dark:text-emerald-400" };
+
+  const prioColor = (p: string) =>
+    p === "1-High" ? "bg-destructive"
+    : p === "2-Medium" ? "bg-amber-500"
+    : p === "3-Low" ? "bg-emerald-500"
+    : "bg-muted-foreground/40";
+
+  const maxPrioEffort = Math.max(1, ...Object.values(prioEffort));
+
+  return (
+    <div className="space-y-6">
+      {/* KPIs cabecera */}
+      <div className="grid md:grid-cols-4 gap-4">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="text-xs text-muted-foreground">Items totales</div>
+          <div className="mt-1 text-2xl font-bold">{items.length}</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {counts.epic} epics · {counts.feature} features · {counts.story} stories
+          </div>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="text-xs text-muted-foreground">Esfuerzo planificado</div>
+          <div className="mt-1 text-2xl font-bold">{totalEffort.toFixed(0)} h</div>
+          <div className="mt-1 text-xs text-muted-foreground">de {totalCap.toFixed(0)} h disponibles</div>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="text-xs text-muted-foreground">Utilización anual</div>
+          <div className="mt-1 text-2xl font-bold">{globalPct.toFixed(0)}%</div>
+          <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
+            <div className={`h-full ${barColor(globalPct)}`} style={{ width: `${Math.min(globalPct, 150)}%` }} />
+          </div>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="text-xs text-muted-foreground">Estado global</div>
+          <div className={`mt-1 text-lg font-semibold ${globalStatus.cls}`}>{globalStatus.label}</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {effortMap[""] > 0 && <>· {effortMap[""]} h sin quarter</>}
+          </div>
+        </div>
+      </div>
+
+      {/* Capacidad por Q */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h3 className="font-semibold text-foreground mb-4">Esfuerzo vs Capacidad por Quarter</h3>
+        <div className="space-y-3">
+          {QUARTERS.map((q) => {
+            const eff = effortMap[q];
+            const cap = capacityPerQuarter(cfg, q);
+            const pct = cap > 0 ? (eff / cap) * 100 : 0;
+            return (
+              <div key={q}>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{q} <span className="text-xs text-muted-foreground">· {sprintsForQuarter(cfg, q)} sprints</span></span>
+                  <span className="text-xs text-muted-foreground">{eff} / {cap.toFixed(0)} h ({pct.toFixed(0)}%)</span>
+                </div>
+                <div className="mt-1 h-3 rounded-full bg-muted overflow-hidden">
+                  <div className={`h-full ${barColor(pct)}`} style={{ width: `${Math.min(pct, 150)}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Prioridades */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h3 className="font-semibold text-foreground mb-4">Distribución por prioridad (items)</h3>
+          <div className="space-y-2">
+            {Object.entries(prioCount).map(([p, n]) => {
+              const total = items.length || 1;
+              const pct = (n / total) * 100;
+              return (
+                <div key={p}>
+                  <div className="flex justify-between text-xs">
+                    <span>{p}</span><span className="text-muted-foreground">{n} ({pct.toFixed(0)}%)</span>
+                  </div>
+                  <div className="mt-1 h-2 rounded-full bg-muted overflow-hidden">
+                    <div className={`h-full ${prioColor(p)}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h3 className="font-semibold text-foreground mb-4">Esfuerzo por prioridad (horas)</h3>
+          <div className="space-y-2">
+            {Object.entries(prioEffort).map(([p, h]) => {
+              const pct = (h / maxPrioEffort) * 100;
+              return (
+                <div key={p}>
+                  <div className="flex justify-between text-xs">
+                    <span>{p}</span><span className="text-muted-foreground">{h.toFixed(0)} h</span>
+                  </div>
+                  <div className="mt-1 h-2 rounded-full bg-muted overflow-hidden">
+                    <div className={`h-full ${prioColor(p)}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
