@@ -597,29 +597,29 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
       {/* KPIs cabecera */}
       <div className="grid md:grid-cols-4 gap-4">
         <div className="rounded-xl border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground">Items totales</div>
+          <div className="text-xs text-muted-foreground">{t("roadmap.dash.itemsTotal")}</div>
           <div className="mt-1 text-2xl font-bold">{items.length}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {counts.epic} epics · {counts.feature} features · {counts.story} stories
+            {counts.epic} {t("roadmap.dash.epics")} · {counts.feature} {t("roadmap.dash.features")} · {counts.story} {t("roadmap.dash.stories")}
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground">Esfuerzo planificado</div>
+          <div className="text-xs text-muted-foreground">{t("roadmap.dash.plannedEffort")}</div>
           <div className="mt-1 text-2xl font-bold">{totalEffort.toFixed(0)} h</div>
-          <div className="mt-1 text-xs text-muted-foreground">de {totalCap.toFixed(0)} h disponibles</div>
+          <div className="mt-1 text-xs text-muted-foreground">{t("roadmap.dash.of")} {totalCap.toFixed(0)} h {t("roadmap.dash.available")}</div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground">Utilización anual</div>
+          <div className="text-xs text-muted-foreground">{t("roadmap.dash.annualUtil")}</div>
           <div className="mt-1 text-2xl font-bold">{globalPct.toFixed(0)}%</div>
           <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
             <div className={`h-full ${barColor(globalPct)}`} style={{ width: `${Math.min(globalPct, 150)}%` }} />
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground">Estado global</div>
+          <div className="text-xs text-muted-foreground">{t("roadmap.dash.globalState")}</div>
           <div className={`mt-1 text-lg font-semibold ${globalStatus.cls}`}>{globalStatus.label}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {effortMap[""] > 0 && <>· {effortMap[""]} h sin quarter</>}
+            {effortMap[""] > 0 && <>· {effortMap[""]} {t("roadmap.dash.noQuarterEff")}</>}
           </div>
         </div>
       </div>
