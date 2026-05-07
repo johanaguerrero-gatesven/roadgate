@@ -307,3 +307,33 @@ export function effortByQuarter(items: RoadmapItem[]): Record<Quarter, number> {
   });
   return acc;
 }
+
+/**
+ * Sum of effort of an item including all its descendants (leaves only count once).
+ * Used to display roll-up effort on Epics/Features.
+ */
+export function rolledUpEffort(item: RoadmapItem, items: RoadmapItem[]): number {
+  const kids = items.filter((c) => c.parentId === item.id);
+  if (kids.length === 0) return item.effort || 0;
+  return kids.reduce((s, k) => s + rolledUpEffort(k, items), 0);
+}
+
+export function countByPriority(items: RoadmapItem[]): Record<string, number> {
+  const acc: Record<string, number> = { "1-High": 0, "2-Medium": 0, "3-Low": 0, "Sin prioridad": 0 };
+  items.forEach((it) => {
+    const k = it.priority || "Sin prioridad";
+    acc[k] = (acc[k] || 0) + 1;
+  });
+  return acc;
+}
+
+export function effortByPriority(items: RoadmapItem[]): Record<string, number> {
+  const acc: Record<string, number> = { "1-High": 0, "2-Medium": 0, "3-Low": 0, "Sin prioridad": 0 };
+  items.forEach((it) => {
+    const hasKids = items.some((c) => c.parentId === it.id);
+    if (hasKids) return;
+    const k = it.priority || "Sin prioridad";
+    acc[k] = (acc[k] || 0) + (it.effort || 0);
+  });
+  return acc;
+}
