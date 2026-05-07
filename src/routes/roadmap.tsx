@@ -385,6 +385,7 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
 }
 
 function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig }) {
+  const { t } = useI18n();
   const view = useMemo(() => buildRoadmapView(items), [items]);
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
   const capSprint = capacityPerSprint(cfg);
