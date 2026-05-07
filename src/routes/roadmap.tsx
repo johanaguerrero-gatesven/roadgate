@@ -89,12 +89,17 @@ function RoadmapPage() {
           </div>
         </div>
 
-        <Tabs defaultValue="backlog">
+        <Tabs defaultValue="dashboard">
           <TabsList>
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="backlog">Backlog</TabsTrigger>
             <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
             <TabsTrigger value="capacity">Capacidad</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard" className="mt-6">
+            <DashboardPanel items={items} cfg={cfg} />
+          </TabsContent>
 
           <TabsContent value="backlog" className="mt-6">
             <Tabs value={tab} onValueChange={(v) => setTab(v as ItemType)}>
