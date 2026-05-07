@@ -281,9 +281,9 @@ function BacklogPanel({
                       >
                         <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="auto">Auto</SelectItem>
-                          <SelectItem value="self">Mostrar padre</SelectItem>
-                          <SelectItem value="children">Mostrar hijos</SelectItem>
+                          <SelectItem value="auto">{t("roadmap.display.auto")}</SelectItem>
+                          <SelectItem value="self">{t("roadmap.display.self")}</SelectItem>
+                          <SelectItem value="children">{t("roadmap.display.children")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
