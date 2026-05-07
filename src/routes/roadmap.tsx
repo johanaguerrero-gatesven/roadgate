@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
+import { useI18n } from "@/lib/i18n";
 import {
   RoadmapItem, ItemType, Quarter, Priority, State, DisplayMode,
   loadItems, saveItems, importCSV, toCSV, uid,
@@ -33,6 +34,7 @@ const STATES: State[] = ["Backlog", "In Progress", "Done", "Blocked"];
 
 function RoadmapPage() {
   const { session, ready } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [items, setItems] = useState<RoadmapItem[]>([]);
   const [cfg, setCfg] = useState<CapacityConfig>(loadCapacity());
@@ -59,7 +61,7 @@ function RoadmapPage() {
     const n = items.filter((i) => i.type === type).length + 1;
     update([...items, {
       uid: uid(), id: `${prefix}-${String(n).padStart(2, "0")}`, type,
-      title: "Nuevo " + type, state: "Backlog",
+      title: `${t("roadmap.new")} ${type}`, state: "Backlog",
     }]);
   };
 
@@ -82,19 +84,19 @@ function RoadmapPage() {
       <main className="mx-auto max-w-[1400px] px-6 py-8">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Roadmap 2026</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t("roadmap.title")}</h1>
             <p className="text-muted-foreground mt-1">
-              Importa tu backlog (Epics → Features → User Stories), asigna esfuerzo, prioridad y quarter, y visualiza el roadmap contra la capacidad real del equipo.
+              {t("roadmap.lead")}
             </p>
           </div>
         </div>
 
         <Tabs defaultValue="dashboard">
           <TabsList>
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="backlog">Backlog</TabsTrigger>
-            <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
-            <TabsTrigger value="capacity">Capacidad</TabsTrigger>
+            <TabsTrigger value="dashboard">{t("roadmap.tab.dashboard")}</TabsTrigger>
+            <TabsTrigger value="backlog">{t("roadmap.tab.backlog")}</TabsTrigger>
+            <TabsTrigger value="roadmap">{t("roadmap.tab.roadmap")}</TabsTrigger>
+            <TabsTrigger value="capacity">{t("roadmap.tab.capacity")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-6">
@@ -146,6 +148,7 @@ function BacklogPanel({
   onRemove: (uid: string) => void;
   onImport: (csv: string) => void;
 }) {
+  const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
   const list = items.filter((i) => i.type === type);
   const parents = items.filter((i) => i.type === (type === "story" ? "feature" : type === "feature" ? "epic" : ""));
@@ -167,12 +170,12 @@ function BacklogPanel({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2 items-center">
-        <Button onClick={onAdd}><Plus className="h-4 w-4" /> Añadir</Button>
+        <Button onClick={onAdd}><Plus className="h-4 w-4" /> {t("roadmap.add")}</Button>
         <Button variant="outline" onClick={() => fileRef.current?.click()}>
-          <Upload className="h-4 w-4" /> Importar CSV
+          <Upload className="h-4 w-4" /> {t("roadmap.import")}
         </Button>
         <Button variant="outline" onClick={exportCsv}>
-          <Download className="h-4 w-4" /> Exportar CSV
+          <Download className="h-4 w-4" /> {t("roadmap.export")}
         </Button>
         <input
           ref={fileRef}
@@ -182,15 +185,15 @@ function BacklogPanel({
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
         <span className="text-xs text-muted-foreground ml-auto">
-          Acepta CSV de Azure DevOps (<code>ID, Work Item Type, Title, Parent, State, Effort, Priority, Iteration Path, Tags</code>) o un CSV simple con <code>id, title, parent, effort, priority, quarter</code>.
+          {t("roadmap.csvHint")}
         </span>
       </div>
 
       {list.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card/60 p-10 text-center">
           <FileSpreadsheet className="h-10 w-10 mx-auto text-primary" />
-          <h3 className="mt-3 font-semibold text-foreground">Aún no hay {type === "story" ? "user stories" : type + "s"}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Importa un CSV o añade entradas manualmente.</p>
+          <h3 className="mt-3 font-semibold text-foreground">{t("roadmap.empty.title")} {type === "story" ? "user stories" : type + "s"}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{t("roadmap.empty.lead")}</p>
         </div>
       ) : (
         <div className="rounded-xl border border-border bg-card overflow-x-auto">
@@ -198,15 +201,15 @@ function BacklogPanel({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-28">ID</TableHead>
-                <TableHead className="min-w-[220px]">Título</TableHead>
-                {type !== "epic" && <TableHead className="w-40">Parent</TableHead>}
-                <TableHead className="w-24">Esfuerzo (h)</TableHead>
-                <TableHead className="w-32">Prioridad</TableHead>
-                <TableHead className="w-24">Quarter</TableHead>
-                <TableHead className="w-20">Sprint</TableHead>
-                {type !== "story" && <TableHead className="w-32">En roadmap</TableHead>}
-                <TableHead className="w-32">Estado</TableHead>
-                <TableHead className="min-w-[180px]">Notas</TableHead>
+                <TableHead className="min-w-[220px]">{t("roadmap.col.title")}</TableHead>
+                {type !== "epic" && <TableHead className="w-40">{t("roadmap.col.parent")}</TableHead>}
+                <TableHead className="w-24">{t("roadmap.col.effort")}</TableHead>
+                <TableHead className="w-32">{t("roadmap.col.priority")}</TableHead>
+                <TableHead className="w-24">{t("roadmap.col.quarter")}</TableHead>
+                <TableHead className="w-20">{t("roadmap.col.sprint")}</TableHead>
+                {type !== "story" && <TableHead className="w-32">{t("roadmap.col.inRoadmap")}</TableHead>}
+                <TableHead className="w-32">{t("roadmap.col.state")}</TableHead>
+                <TableHead className="min-w-[180px]">{t("roadmap.col.notes")}</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
@@ -239,7 +242,7 @@ function BacklogPanel({
                         className="h-8"
                       />
                       {type !== "story" && items.some((c) => c.parentId === it.id) && (
-                        <span className="text-[10px] text-muted-foreground whitespace-nowrap" title="Suma esfuerzo de los hijos">
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap" title={t("roadmap.rollupTitle")}>
                           Σ {rolledUpEffort(it, items)}h
                         </span>
                       )}
@@ -278,9 +281,9 @@ function BacklogPanel({
                       >
                         <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="auto">Auto</SelectItem>
-                          <SelectItem value="self">Mostrar padre</SelectItem>
-                          <SelectItem value="children">Mostrar hijos</SelectItem>
+                          <SelectItem value="auto">{t("roadmap.display.auto")}</SelectItem>
+                          <SelectItem value="self">{t("roadmap.display.self")}</SelectItem>
+                          <SelectItem value="children">{t("roadmap.display.children")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
@@ -315,19 +318,20 @@ function BacklogPanel({
 }
 
 function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: CapacityConfig) => void }) {
+  const { t } = useI18n();
   type NumKey = "developers" | "dedicationPct" | "daysPerSprint" | "hoursPerDay" | "sprintsPerQuarter";
   const fields: { key: NumKey; label: string }[] = [
-    { key: "developers", label: "Developers" },
-    { key: "dedicationPct", label: "% Dedicación" },
-    { key: "daysPerSprint", label: "Días por sprint" },
-    { key: "hoursPerDay", label: "Horas por día" },
-    { key: "sprintsPerQuarter", label: "Sprints por quarter (default)" },
+    { key: "developers", label: t("roadmap.cap.developers") },
+    { key: "dedicationPct", label: t("roadmap.cap.dedication") },
+    { key: "daysPerSprint", label: t("roadmap.cap.daysPerSprint") },
+    { key: "hoursPerDay", label: t("roadmap.cap.hoursPerDay") },
+    { key: "sprintsPerQuarter", label: t("roadmap.cap.sprintsPerQuarterDefault") },
   ];
   const sprint = capacityPerSprint(cfg);
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <div className="rounded-xl border border-border bg-card p-6 space-y-3">
-        <h3 className="font-semibold text-foreground mb-2">Parámetros globales</h3>
+        <h3 className="font-semibold text-foreground mb-2">{t("roadmap.cap.global")}</h3>
         {fields.map((f) => (
           <div key={f.key} className="flex items-center justify-between gap-3">
             <label className="text-sm text-muted-foreground">{f.label}</label>
@@ -340,8 +344,8 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
           </div>
         ))}
         <div className="pt-3 mt-2 border-t border-border space-y-2">
-          <h4 className="text-sm font-semibold text-foreground">Sprints por quarter</h4>
-          <p className="text-xs text-muted-foreground">Sobrescribe el valor por defecto si un quarter tiene menos sprints (vacaciones, releases, etc.).</p>
+          <h4 className="text-sm font-semibold text-foreground">{t("roadmap.cap.sprintsByQuarter")}</h4>
+          <p className="text-xs text-muted-foreground">{t("roadmap.cap.sprintsByQuarterHint")}</p>
           {QUARTERS.map((q) => (
             <div key={q} className="flex items-center justify-between gap-3">
               <label className="text-sm text-muted-foreground">{q}</label>
@@ -359,17 +363,17 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
         </div>
       </div>
       <div className="rounded-xl border border-border bg-card p-6">
-        <h3 className="font-semibold text-foreground mb-3">Capacidad calculada</h3>
+        <h3 className="font-semibold text-foreground mb-3">{t("roadmap.cap.calculated")}</h3>
         <dl className="space-y-2 text-sm">
-          <div className="flex justify-between"><dt>Por sprint</dt><dd className="font-semibold">{sprint.toFixed(0)} h</dd></div>
+          <div className="flex justify-between"><dt>{t("roadmap.cap.perSprint")}</dt><dd className="font-semibold">{sprint.toFixed(0)} h</dd></div>
           {QUARTERS.map((q) => (
             <div key={q} className="flex justify-between">
-              <dt>{q} ({sprintsForQuarter(cfg, q)} sprints)</dt>
+              <dt>{q} ({sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")})</dt>
               <dd className="font-semibold">{capacityPerQuarter(cfg, q).toFixed(0)} h</dd>
             </div>
           ))}
           <div className="flex justify-between border-t border-border pt-2">
-            <dt>Anual</dt>
+            <dt>{t("roadmap.cap.annual")}</dt>
             <dd className="font-semibold">
               {QUARTERS.reduce((s, q) => s + capacityPerQuarter(cfg, q), 0).toFixed(0)} h
             </dd>
@@ -381,6 +385,7 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
 }
 
 function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig }) {
+  const { t } = useI18n();
   const view = useMemo(() => buildRoadmapView(items), [items]);
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
   const capSprint = capacityPerSprint(cfg);
@@ -417,14 +422,14 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
           const cap = capacityPerQuarter(cfg, q);
           const pct = cap > 0 ? (eff / cap) * 100 : 0;
           const status =
-            pct === 0 ? { label: "Vacío", cls: "text-muted-foreground" }
-            : pct > 110 ? { label: "🚫 Sobrecarga", cls: "text-destructive" }
-            : pct < 90 ? { label: "⚠️ Subutilizado", cls: "text-amber-600 dark:text-amber-400" }
-            : { label: "✅ OK", cls: "text-emerald-600 dark:text-emerald-400" };
+            pct === 0 ? { label: t("roadmap.status.empty"), cls: "text-muted-foreground" }
+            : pct > 110 ? { label: t("roadmap.status.overload"), cls: "text-destructive" }
+            : pct < 90 ? { label: t("roadmap.status.under"), cls: "text-amber-600 dark:text-amber-400" }
+            : { label: t("roadmap.status.ok"), cls: "text-emerald-600 dark:text-emerald-400" };
           return (
             <div key={q} className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-foreground">{q} · {sprintsForQuarter(cfg, q)} sprints</span>
+                <span className="font-semibold text-foreground">{q} · {sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")}</span>
                 <span className={`text-xs font-medium ${status.cls}`}>{status.label}</span>
               </div>
               <div className="mt-2 text-2xl font-bold">
@@ -434,7 +439,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                 <div className={`h-full ${barColor(pct)}`} style={{ width: `${Math.min(pct, 150)}%` }} />
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
-                {pct.toFixed(0)}% utilización · {byQuarter[q].length} items
+                {pct.toFixed(0)}% {t("roadmap.utilization")} · {byQuarter[q].length} {t("roadmap.items")}
               </div>
             </div>
           );
@@ -462,11 +467,11 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <h3 className="font-semibold text-foreground">{q}</h3>
                 <span className="text-xs text-muted-foreground">
-                  {sprints} sprints · {capSprint.toFixed(0)} h/sprint · {capacityPerQuarter(cfg, q).toFixed(0)} h total
+                  {sprints} {t("roadmap.cap.sprints")} · {capSprint.toFixed(0)} h/sprint · {capacityPerQuarter(cfg, q).toFixed(0)} {t("roadmap.totalH")}
                 </span>
               </div>
               {sprints === 0 ? (
-                <div className="p-6 text-sm text-muted-foreground">Sin sprints configurados para este quarter.</div>
+                <div className="p-6 text-sm text-muted-foreground">{t("roadmap.noSprintsCfg")}</div>
               ) : (
                 <div
                   className="grid"
@@ -517,7 +522,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
               {unassigned.length > 0 && (
                 <div className="border-t border-border p-3 bg-muted/20">
                   <div className="text-xs font-semibold text-muted-foreground mb-2">
-                    Sin sprint asignado en {q} ({unassigned.length})
+                    {t("roadmap.noSprintAssigned")} {q} ({unassigned.length})
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {unassigned.map((v) => (
@@ -536,7 +541,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
 
       {byQuarter[""].length > 0 && (
         <div className="rounded-xl border border-dashed border-border bg-card/60 p-4">
-          <h4 className="font-semibold text-foreground mb-2">Sin quarter asignado ({byQuarter[""].length})</h4>
+          <h4 className="font-semibold text-foreground mb-2">{t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})</h4>
           <div className="flex flex-wrap gap-2">
             {byQuarter[""].map((v) => (
               <Badge key={v.item.uid} variant="outline" className={typeColor(v.item.type)}>
@@ -553,6 +558,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
 
 
 function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig }) {
+  const { t } = useI18n();
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
   const prioCount = useMemo(() => countByPriority(items), [items]);
   const prioEffort = useMemo(() => effortByPriority(items), [items]);
@@ -573,10 +579,10 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
     : pct < 90 ? "bg-amber-500" : "bg-emerald-500";
 
   const globalStatus =
-    globalPct === 0 ? { label: "Vacío", cls: "text-muted-foreground" }
-    : globalPct > 110 ? { label: "🚫 Sobrecarga anual", cls: "text-destructive" }
-    : globalPct < 90 ? { label: "⚠️ Subutilización anual", cls: "text-amber-600 dark:text-amber-400" }
-    : { label: "✅ Equilibrado", cls: "text-emerald-600 dark:text-emerald-400" };
+    globalPct === 0 ? { label: t("roadmap.status.empty"), cls: "text-muted-foreground" }
+    : globalPct > 110 ? { label: t("roadmap.status.overloadAnnual"), cls: "text-destructive" }
+    : globalPct < 90 ? { label: t("roadmap.status.underAnnual"), cls: "text-amber-600 dark:text-amber-400" }
+    : { label: t("roadmap.status.balanced"), cls: "text-emerald-600 dark:text-emerald-400" };
 
   const prioColor = (p: string) =>
     p === "1-High" ? "bg-destructive"
@@ -591,36 +597,36 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
       {/* KPIs cabecera */}
       <div className="grid md:grid-cols-4 gap-4">
         <div className="rounded-xl border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground">Items totales</div>
+          <div className="text-xs text-muted-foreground">{t("roadmap.dash.itemsTotal")}</div>
           <div className="mt-1 text-2xl font-bold">{items.length}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {counts.epic} epics · {counts.feature} features · {counts.story} stories
+            {counts.epic} {t("roadmap.dash.epics")} · {counts.feature} {t("roadmap.dash.features")} · {counts.story} {t("roadmap.dash.stories")}
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground">Esfuerzo planificado</div>
+          <div className="text-xs text-muted-foreground">{t("roadmap.dash.plannedEffort")}</div>
           <div className="mt-1 text-2xl font-bold">{totalEffort.toFixed(0)} h</div>
-          <div className="mt-1 text-xs text-muted-foreground">de {totalCap.toFixed(0)} h disponibles</div>
+          <div className="mt-1 text-xs text-muted-foreground">{t("roadmap.dash.of")} {totalCap.toFixed(0)} h {t("roadmap.dash.available")}</div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground">Utilización anual</div>
+          <div className="text-xs text-muted-foreground">{t("roadmap.dash.annualUtil")}</div>
           <div className="mt-1 text-2xl font-bold">{globalPct.toFixed(0)}%</div>
           <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
             <div className={`h-full ${barColor(globalPct)}`} style={{ width: `${Math.min(globalPct, 150)}%` }} />
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground">Estado global</div>
+          <div className="text-xs text-muted-foreground">{t("roadmap.dash.globalState")}</div>
           <div className={`mt-1 text-lg font-semibold ${globalStatus.cls}`}>{globalStatus.label}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {effortMap[""] > 0 && <>· {effortMap[""]} h sin quarter</>}
+            {effortMap[""] > 0 && <>· {effortMap[""]} {t("roadmap.dash.noQuarterEff")}</>}
           </div>
         </div>
       </div>
 
       {/* Capacidad por Q */}
       <div className="rounded-xl border border-border bg-card p-6">
-        <h3 className="font-semibold text-foreground mb-4">Esfuerzo vs Capacidad por Quarter</h3>
+        <h3 className="font-semibold text-foreground mb-4">{t("roadmap.dash.effortVsCap")}</h3>
         <div className="space-y-3">
           {QUARTERS.map((q) => {
             const eff = effortMap[q];
@@ -629,7 +635,7 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
             return (
               <div key={q}>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{q} <span className="text-xs text-muted-foreground">· {sprintsForQuarter(cfg, q)} sprints</span></span>
+                  <span className="font-medium">{q} <span className="text-xs text-muted-foreground">· {sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")}</span></span>
                   <span className="text-xs text-muted-foreground">{eff} / {cap.toFixed(0)} h ({pct.toFixed(0)}%)</span>
                 </div>
                 <div className="mt-1 h-3 rounded-full bg-muted overflow-hidden">
@@ -644,7 +650,7 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
       {/* Prioridades */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="rounded-xl border border-border bg-card p-6">
-          <h3 className="font-semibold text-foreground mb-4">Distribución por prioridad (items)</h3>
+          <h3 className="font-semibold text-foreground mb-4">{t("roadmap.dash.distItems")}</h3>
           <div className="space-y-2">
             {Object.entries(prioCount).map(([p, n]) => {
               const total = items.length || 1;
@@ -663,7 +669,7 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-6">
-          <h3 className="font-semibold text-foreground mb-4">Esfuerzo por prioridad (horas)</h3>
+          <h3 className="font-semibold text-foreground mb-4">{t("roadmap.dash.effortByPrio")}</h3>
           <div className="space-y-2">
             {Object.entries(prioEffort).map(([p, h]) => {
               const pct = (h / maxPrioEffort) * 100;

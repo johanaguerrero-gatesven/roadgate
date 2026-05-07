@@ -14,8 +14,8 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Iniciar sesión — RoadGate" },
-      { name: "description", content: "Accede a tu cuenta de RoadGate." },
+      { title: "Sign in — RoadGate" },
+      { name: "description", content: "Access your RoadGate account." },
     ],
   }),
   component: LoginPage,
