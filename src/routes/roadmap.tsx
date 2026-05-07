@@ -17,6 +17,7 @@ import {
   loadItems, saveItems, importCSV, toCSV, uid,
   loadCapacity, saveCapacity, capacityPerQuarter, capacityPerSprint,
   CapacityConfig, buildRoadmapView, effortByQuarter, sprintsForQuarter,
+  rolledUpEffort, effortByPriority, countByPriority,
 } from "@/lib/roadmap";
 import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet } from "lucide-react";
 
