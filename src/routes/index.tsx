@@ -160,7 +160,7 @@ function Landing() {
       {/* CTA */}
       <section className="py-20">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <div className="rounded-2xl border border-border bg-[var(--gradient-primary)] text-primary-foreground p-10 md:p-14 text-center shadow-[var(--shadow-elegant)]">
+          <div className="rounded-2xl border border-primary/20 text-primary-foreground p-10 md:p-14 text-center shadow-[var(--shadow-elegant)]" style={{ background: "var(--gradient-primary)" }}>
             <ShieldCheck className="h-10 w-10 mx-auto opacity-90" />
             <h2 className="mt-4 text-3xl md:text-4xl font-bold tracking-tight">
               {t("home.cta2.h2")}
