@@ -436,94 +436,58 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
         })}
       </div>
 
-      {/* Vista por quarter, desglosada por sprint */}
-      <div className="space-y-6">
+      {/* Vista por quarter (sin desglose por sprint) */}
+      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
         {QUARTERS.map((q) => {
-          const sprints = sprintsForQuarter(cfg, q);
-          const cellsPerSprint: { item: RoadmapItem; rolledUp: boolean }[][] = [];
-          const unassigned: { item: RoadmapItem; rolledUp: boolean }[] = [];
-          for (let i = 0; i < sprints; i++) cellsPerSprint.push([]);
-          byQuarter[q].forEach((v) => {
-            const s = v.item.sprint;
-            if (typeof s === "number" && s >= 1 && s <= sprints) {
-              cellsPerSprint[s - 1].push(v);
-            } else {
-              unassigned.push(v);
-            }
-          });
-
+          const cap = capacityPerQuarter(cfg, q);
+          const eff = effortMap[q];
+          const pct = cap > 0 ? (eff / cap) * 100 : 0;
+          const cell = byQuarter[q];
           return (
-            <div key={q} className="rounded-xl border border-border bg-card overflow-x-auto">
-              <div className="flex items-center justify-between p-4 border-b border-border">
-                <h3 className="font-semibold text-foreground">{q}</h3>
-                <span className="text-xs text-muted-foreground">
-                  {sprints} {t("roadmap.cap.sprints")} · {capSprint.toFixed(0)} h/sprint · {capacityPerQuarter(cfg, q).toFixed(0)} {t("roadmap.totalH")}
-                </span>
+            <div key={q} className="rounded-xl border border-border bg-card flex flex-col">
+              <div className="p-4 border-b border-border">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-foreground">{q}</h3>
+                  <span className="text-[10px] text-muted-foreground">
+                    {sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")} · {capSprint.toFixed(0)} h/sprint
+                  </span>
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  {eff} / {cap.toFixed(0)} h ({pct.toFixed(0)}%)
+                </div>
+                <div className="mt-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div className={`h-full ${barColor(pct)}`} style={{ width: `${Math.min(pct, 150)}%` }} />
+                </div>
               </div>
-              {sprints === 0 ? (
-                <div className="p-6 text-sm text-muted-foreground">{t("roadmap.noSprintsCfg")}</div>
-              ) : (
-                <div
-                  className="grid"
-                  style={{ gridTemplateColumns: `repeat(${sprints}, minmax(220px, 1fr))`, minWidth: `${sprints * 220}px` }}
-                >
-                  {cellsPerSprint.map((cell, i) => {
-                    const eff = cell.reduce((s, v) => s + (v.item.effort || 0), 0);
-                    const pct = capSprint > 0 ? (eff / capSprint) * 100 : 0;
-                    return (
-                      <div key={i} className="border-l border-border first:border-l-0 p-3 space-y-2 align-top">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold uppercase text-muted-foreground">Sprint {i + 1}</span>
-                          <span className="text-[10px] text-muted-foreground">{eff} / {capSprint.toFixed(0)} h</span>
-                        </div>
-                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div className={`h-full ${barColor(pct)}`} style={{ width: `${Math.min(pct, 150)}%` }} />
-                        </div>
-                        {cell.length === 0 && <div className="text-xs text-muted-foreground/60 pt-2">—</div>}
-                        {cell.map((v) => {
-                          const it = v.item;
-                          return (
-                            <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(it.type)}`}>
-                              <div className="flex items-start justify-between gap-2">
-                                <span className="font-semibold">{it.id}</span>
-                                {it.priority && (
-                                  <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
-                                    {it.priority.split("-")[0]}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
-                              <div className="flex items-center justify-between mt-1">
-                                {(it.effort ?? 0) > 0
-                                  ? <span className="text-[10px] text-muted-foreground">{it.effort}h</span>
-                                  : <span />}
-                                {v.rolledUp && (
-                                  <span className="text-[10px] text-muted-foreground italic">rollup</span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
+              <div className="p-3 space-y-2 min-h-[80px]">
+                {cell.length === 0 && (
+                  <div className="text-xs text-muted-foreground/60 text-center py-6">—</div>
+                )}
+                {cell.map((v) => {
+                  const it = v.item;
+                  return (
+                    <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(it.type)}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold">{it.id}</span>
+                        {it.priority && (
+                          <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
+                            {it.priority.split("-")[0]}
+                          </span>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-              {unassigned.length > 0 && (
-                <div className="border-t border-border p-3 bg-muted/20">
-                  <div className="text-xs font-semibold text-muted-foreground mb-2">
-                    {t("roadmap.noSprintAssigned")} {q} ({unassigned.length})
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {unassigned.map((v) => (
-                      <Badge key={v.item.uid} variant="outline" className={typeColor(v.item.type)}>
-                        {v.item.id} · {v.item.title}
-                        {(v.item.effort ?? 0) > 0 ? ` · ${v.item.effort}h` : ""}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
+                      <div className="flex items-center justify-between mt-1">
+                        {(it.effort ?? 0) > 0
+                          ? <span className="text-[10px] text-muted-foreground">{it.effort}h</span>
+                          : <span />}
+                        {v.rolledUp && (
+                          <span className="text-[10px] text-muted-foreground italic">rollup</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           );
         })}
