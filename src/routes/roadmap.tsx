@@ -206,7 +206,6 @@ function BacklogPanel({
                 <TableHead className="w-24">{t("roadmap.col.effort")}</TableHead>
                 <TableHead className="w-32">{t("roadmap.col.priority")}</TableHead>
                 <TableHead className="w-24">{t("roadmap.col.quarter")}</TableHead>
-                <TableHead className="w-20">{t("roadmap.col.sprint")}</TableHead>
                 {type !== "story" && <TableHead className="w-32">{t("roadmap.col.inRoadmap")}</TableHead>}
                 <TableHead className="w-32">{t("roadmap.col.state")}</TableHead>
                 <TableHead className="min-w-[180px]">{t("roadmap.col.notes")}</TableHead>
