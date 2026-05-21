@@ -207,7 +207,7 @@ function BacklogPanel({
     if (!dragUid) return;
     const it = items.find((x) => x.uid === dragUid);
     if (it && (it.quarter || "") !== col) {
-      onUpdate(dragUid, { quarter: col as Quarter });
+      onMoveQuarter(dragUid, col as Quarter);
     }
     setDragUid(null);
     setOverCol(null);
