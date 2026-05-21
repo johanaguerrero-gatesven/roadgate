@@ -20,7 +20,7 @@ import {
   CapacityConfig, buildRoadmapView, effortByQuarter, sprintsForQuarter,
   rolledUpEffort, effortByPriority, countByPriority,
 } from "@/lib/roadmap";
-import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, GripVertical, Minus } from "lucide-react";
 
 export const Route = createFileRoute("/roadmap")({
   head: () => ({ meta: [{ title: "Roadmap — RoadGate" }] }),
