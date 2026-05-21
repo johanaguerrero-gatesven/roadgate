@@ -563,6 +563,9 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                 )}
                 {cell.map((v) => {
                   const it = v.item;
+                  const top = topAncestor(it, items);
+                  const cov = top ? roadmapCoverage(top, items) : null;
+                  const showParent = !!top && cov !== null && cov.pct < 100 - 0.5;
                   return (
                     <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(it.type)}`}>
                       <div className="flex items-start justify-between gap-2">
@@ -574,6 +577,13 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                         )}
                       </div>
                       <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
+                      {showParent && top && cov && (
+                        <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground" title={`${cov.planned}h / ${cov.total}h of ${top.id} planned in roadmap`}>
+                          <CornerDownRight className="h-3 w-3" />
+                          <span className="font-medium">{top.id}</span>
+                          <span>· {cov.pct.toFixed(0)}% in roadmap</span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between mt-1">
                         {(it.effort ?? 0) > 0
                           ? <span className="text-[10px] text-muted-foreground">{it.effort}h</span>
