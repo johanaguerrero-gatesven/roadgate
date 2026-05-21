@@ -239,7 +239,7 @@ function BacklogPanel({
           <p className="mt-1 text-sm text-muted-foreground">{t("roadmap.empty.lead")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div className="flex gap-4 overflow-x-auto pb-3 -mx-2 px-2 snap-x">
           {columns.map((col) => {
             const cards = byCol[col.key];
             const totalEffort = cards.reduce((s, c) => s + (c.effort || 0), 0);
@@ -250,7 +250,7 @@ function BacklogPanel({
                 onDragOver={(e) => { e.preventDefault(); setOverCol(col.key); }}
                 onDragLeave={() => setOverCol((c) => (c === col.key ? null : c))}
                 onDrop={() => onDropToCol(col.key)}
-                className={`rounded-xl border bg-muted/30 flex flex-col min-h-[300px] transition-colors ${
+                className={`rounded-xl border bg-muted/30 flex flex-col min-h-[300px] w-[340px] shrink-0 snap-start transition-colors ${
                   isOver ? "border-primary bg-primary/5" : "border-border"
                 }`}
               >
