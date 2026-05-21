@@ -125,6 +125,7 @@ function RoadmapPage() {
                     items={items}
                     onAdd={() => add(t)}
                     onUpdate={updateOne}
+                    onMoveQuarter={moveQuarter}
                     onRemove={remove}
                     onImport={(csv) => update(importCSV(csv, t, items))}
                   />
