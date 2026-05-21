@@ -20,6 +20,7 @@ export type RoadmapItem = {
   notes?: string;
   tags?: string;
   displayMode?: DisplayMode;
+  hiddenFromRoadmap?: boolean;
 };
 
 export type CapacityConfig = {
