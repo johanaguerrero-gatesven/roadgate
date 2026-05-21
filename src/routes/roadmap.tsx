@@ -163,12 +163,13 @@ function PriorityIcon({ p, className = "h-4 w-4" }: { p?: Priority; className?: 
 }
 
 function BacklogPanel({
-  type, items, onAdd, onUpdate, onRemove, onImport,
+  type, items, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
 }: {
   type: ItemType;
   items: RoadmapItem[];
   onAdd: () => void;
   onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void;
+  onMoveQuarter: (uid: string, quarter: Quarter) => void;
   onRemove: (uid: string) => void;
   onImport: (csv: string) => void;
 }) {
