@@ -309,8 +309,8 @@ function BacklogPanel({
                         <Textarea
                           value={it.title}
                           onChange={(e) => onUpdate(it.uid, { title: e.target.value })}
-                          rows={2}
-                          className="min-h-[44px] text-sm leading-snug resize-none p-1.5 border-transparent hover:border-border focus:border-input bg-transparent"
+                          rows={3}
+                          className="min-h-[64px] text-sm leading-snug resize-y p-2 border-transparent hover:border-border focus:border-input bg-transparent font-medium"
                           placeholder={t("roadmap.col.title")}
                         />
 
