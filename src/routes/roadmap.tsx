@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import {
-  RoadmapItem, ItemType, Quarter, Priority, State, DisplayMode,
+  RoadmapItem, ItemType, Quarter, Priority,
   loadItems, saveItems, importCSV, toCSV, uid,
   loadCapacity, saveCapacity, capacityPerQuarter, capacityPerSprint,
   CapacityConfig, buildRoadmapView, effortByQuarter, sprintsForQuarter,
