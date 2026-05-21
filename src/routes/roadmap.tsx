@@ -19,8 +19,9 @@ import {
   loadCapacity, saveCapacity, capacityPerQuarter, capacityPerSprint,
   CapacityConfig, buildRoadmapView, effortByQuarter, sprintsForQuarter,
   rolledUpEffort, effortByPriority, countByPriority,
+  descendantsOf, topAncestor, roadmapCoverage,
 } from "@/lib/roadmap";
-import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, GripVertical, Minus } from "lucide-react";
+import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, GripVertical, Minus, CornerDownRight } from "lucide-react";
 
 export const Route = createFileRoute("/roadmap")({
   head: () => ({ meta: [{ title: "Roadmap — RoadGate" }] }),
@@ -55,6 +56,13 @@ function RoadmapPage() {
   const updateOne = (uidKey: string, patch: Partial<RoadmapItem>) => {
     update(items.map((it) => (it.uid === uidKey ? { ...it, ...patch } : it)));
   };
+  /** Move an item to a quarter and cascade the same quarter to ALL its descendants. */
+  const moveQuarter = (uidKey: string, quarter: Quarter) => {
+    const target = items.find((i) => i.uid === uidKey);
+    if (!target) return;
+    const ids = new Set<string>([target.uid, ...descendantsOf(target, items).map((d) => d.uid)]);
+    update(items.map((it) => (ids.has(it.uid) ? { ...it, quarter } : it)));
+  };
   const remove = (uidKey: string) => update(items.filter((it) => it.uid !== uidKey));
   const add = (type: ItemType) => {
     const prefix = type === "epic" ? "EPIC" : type === "feature" ? "FEAT" : "US";
@@ -70,7 +78,7 @@ function RoadmapPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="mx-auto max-w-[1400px] px-6 h-16 flex items-center justify-between">
+        <div className="mx-auto max-w-[1700px] px-6 h-16 flex items-center justify-between">
           <Logo />
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
@@ -81,7 +89,7 @@ function RoadmapPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1400px] px-6 py-8">
+      <main className="mx-auto max-w-[1700px] px-6 py-8">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">{t("roadmap.title")}</h1>
@@ -117,6 +125,7 @@ function RoadmapPage() {
                     items={items}
                     onAdd={() => add(t)}
                     onUpdate={updateOne}
+                    onMoveQuarter={moveQuarter}
                     onRemove={remove}
                     onImport={(csv) => update(importCSV(csv, t, items))}
                   />
@@ -154,12 +163,13 @@ function PriorityIcon({ p, className = "h-4 w-4" }: { p?: Priority; className?: 
 }
 
 function BacklogPanel({
-  type, items, onAdd, onUpdate, onRemove, onImport,
+  type, items, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
 }: {
   type: ItemType;
   items: RoadmapItem[];
   onAdd: () => void;
   onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void;
+  onMoveQuarter: (uid: string, quarter: Quarter) => void;
   onRemove: (uid: string) => void;
   onImport: (csv: string) => void;
 }) {
@@ -197,7 +207,7 @@ function BacklogPanel({
     if (!dragUid) return;
     const it = items.find((x) => x.uid === dragUid);
     if (it && (it.quarter || "") !== col) {
-      onUpdate(dragUid, { quarter: col as Quarter });
+      onMoveQuarter(dragUid, col as Quarter);
     }
     setDragUid(null);
     setOverCol(null);
@@ -229,7 +239,7 @@ function BacklogPanel({
           <p className="mt-1 text-sm text-muted-foreground">{t("roadmap.empty.lead")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div className="flex gap-4 overflow-x-auto pb-3 -mx-2 px-2 snap-x">
           {columns.map((col) => {
             const cards = byCol[col.key];
             const totalEffort = cards.reduce((s, c) => s + (c.effort || 0), 0);
@@ -240,7 +250,7 @@ function BacklogPanel({
                 onDragOver={(e) => { e.preventDefault(); setOverCol(col.key); }}
                 onDragLeave={() => setOverCol((c) => (c === col.key ? null : c))}
                 onDrop={() => onDropToCol(col.key)}
-                className={`rounded-xl border bg-muted/30 flex flex-col min-h-[300px] transition-colors ${
+                className={`rounded-xl border bg-muted/30 flex flex-col min-h-[300px] w-[340px] shrink-0 snap-start transition-colors ${
                   isOver ? "border-primary bg-primary/5" : "border-border"
                 }`}
               >
@@ -299,8 +309,8 @@ function BacklogPanel({
                         <Textarea
                           value={it.title}
                           onChange={(e) => onUpdate(it.uid, { title: e.target.value })}
-                          rows={2}
-                          className="min-h-[44px] text-sm leading-snug resize-none p-1.5 border-transparent hover:border-border focus:border-input bg-transparent"
+                          rows={3}
+                          className="min-h-[64px] text-sm leading-snug resize-y p-2 border-transparent hover:border-border focus:border-input bg-transparent font-medium"
                           placeholder={t("roadmap.col.title")}
                         />
 
@@ -553,6 +563,9 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                 )}
                 {cell.map((v) => {
                   const it = v.item;
+                  const top = topAncestor(it, items);
+                  const cov = top ? roadmapCoverage(top, items) : null;
+                  const showParent = !!top && cov !== null && cov.pct < 100 - 0.5;
                   return (
                     <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(it.type)}`}>
                       <div className="flex items-start justify-between gap-2">
@@ -564,6 +577,13 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                         )}
                       </div>
                       <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
+                      {showParent && top && cov && (
+                        <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground" title={`${cov.planned}h / ${cov.total}h of ${top.id} planned in roadmap`}>
+                          <CornerDownRight className="h-3 w-3" />
+                          <span className="font-medium">{top.id}</span>
+                          <span>· {cov.pct.toFixed(0)}% in roadmap</span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between mt-1">
                         {(it.effort ?? 0) > 0
                           ? <span className="text-[10px] text-muted-foreground">{it.effort}h</span>
