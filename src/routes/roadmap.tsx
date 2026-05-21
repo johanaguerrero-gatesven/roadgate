@@ -78,7 +78,7 @@ function RoadmapPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="mx-auto max-w-[1400px] px-6 h-16 flex items-center justify-between">
+        <div className="mx-auto max-w-[1700px] px-6 h-16 flex items-center justify-between">
           <Logo />
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
@@ -89,7 +89,7 @@ function RoadmapPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1400px] px-6 py-8">
+      <main className="mx-auto max-w-[1700px] px-6 py-8">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">{t("roadmap.title")}</h1>
