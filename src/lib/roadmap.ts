@@ -301,6 +301,7 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
 export function effortByQuarter(items: RoadmapItem[]): Record<Quarter, number> {
   const acc: Record<Quarter, number> = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, "": 0 };
   items.forEach((it) => {
+    if (it.hiddenFromRoadmap) return;
     const hasKids = items.some((c) => c.parentId === it.id);
     if (hasKids) return;
     const q = effectiveQuarter(it, items);
