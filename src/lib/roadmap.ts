@@ -1,7 +1,7 @@
 // Roadmap data layer (localStorage, no backend yet)
 export type ItemType = "epic" | "feature" | "story";
 export type Quarter = "Q1" | "Q2" | "Q3" | "Q4" | "";
-export type Priority = "1-High" | "2-Medium" | "3-Low" | "";
+export type Priority = "1-High" | "2-Medium" | "3-Low" | "4-Lowest" | "";
 export type State = "Backlog" | "In Progress" | "Done" | "Blocked";
 export type DisplayMode = "auto" | "self" | "children";
 
@@ -20,6 +20,7 @@ export type RoadmapItem = {
   notes?: string;
   tags?: string;
   displayMode?: DisplayMode;
+  hiddenFromRoadmap?: boolean;
 };
 
 export type CapacityConfig = {
@@ -290,7 +291,7 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
   items.filter((i) => i.type === "epic").forEach(walk);
   items.filter((i) => i.type === "feature" && !visited.has(i.uid)).forEach(walk);
   items.filter((i) => i.type === "story" && !visited.has(i.uid)).forEach(walk);
-  return out;
+  return out.filter((v) => !v.item.hiddenFromRoadmap);
 }
 
 /**
@@ -300,6 +301,7 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
 export function effortByQuarter(items: RoadmapItem[]): Record<Quarter, number> {
   const acc: Record<Quarter, number> = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, "": 0 };
   items.forEach((it) => {
+    if (it.hiddenFromRoadmap) return;
     const hasKids = items.some((c) => c.parentId === it.id);
     if (hasKids) return;
     const q = effectiveQuarter(it, items);
