@@ -220,6 +220,46 @@ function findById(items: RoadmapItem[], id?: string) {
   return items.find((i) => i.id === id);
 }
 
+/** All descendants of `item` (children, grandchildren, ...). */
+export function descendantsOf(item: RoadmapItem, items: RoadmapItem[]): RoadmapItem[] {
+  const kids = items.filter((c) => c.parentId === item.id);
+  return [...kids, ...kids.flatMap((k) => descendantsOf(k, items))];
+}
+
+/** Topmost ancestor of `item`, walking up via parentId. Returns undefined if none. */
+export function topAncestor(item: RoadmapItem, items: RoadmapItem[]): RoadmapItem | undefined {
+  let cur: RoadmapItem | undefined = item;
+  let top: RoadmapItem | undefined;
+  const seen = new Set<string>();
+  while (cur && cur.parentId && !seen.has(cur.uid)) {
+    seen.add(cur.uid);
+    const p = findById(items, cur.parentId);
+    if (!p) break;
+    top = p;
+    cur = p;
+  }
+  return top;
+}
+
+/**
+ * What % of an item's total leaf-effort is actually planned in the roadmap
+ * (i.e. has an effective quarter and is not hidden).
+ */
+export function roadmapCoverage(item: RoadmapItem, items: RoadmapItem[]): { planned: number; total: number; pct: number } {
+  const leaves: RoadmapItem[] = [];
+  const collect = (n: RoadmapItem) => {
+    const kids = items.filter((c) => c.parentId === n.id);
+    if (kids.length === 0) leaves.push(n);
+    else kids.forEach(collect);
+  };
+  collect(item);
+  const total = leaves.reduce((s, l) => s + (l.effort || 0), 0);
+  const planned = leaves
+    .filter((l) => !l.hiddenFromRoadmap && effectiveQuarter(l, items) !== "")
+    .reduce((s, l) => s + (l.effort || 0), 0);
+  return { planned, total, pct: total > 0 ? (planned / total) * 100 : 0 };
+}
+
 /**
  * Effective quarter for an item, walking up the hierarchy:
  *   US.quarter > Feature.quarter > Epic.quarter
