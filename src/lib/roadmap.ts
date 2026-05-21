@@ -291,7 +291,7 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
   items.filter((i) => i.type === "epic").forEach(walk);
   items.filter((i) => i.type === "feature" && !visited.has(i.uid)).forEach(walk);
   items.filter((i) => i.type === "story" && !visited.has(i.uid)).forEach(walk);
-  return out;
+  return out.filter((v) => !v.item.hiddenFromRoadmap);
 }
 
 /**
