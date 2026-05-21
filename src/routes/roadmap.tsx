@@ -56,6 +56,13 @@ function RoadmapPage() {
   const updateOne = (uidKey: string, patch: Partial<RoadmapItem>) => {
     update(items.map((it) => (it.uid === uidKey ? { ...it, ...patch } : it)));
   };
+  /** Move an item to a quarter and cascade the same quarter to ALL its descendants. */
+  const moveQuarter = (uidKey: string, quarter: Quarter) => {
+    const target = items.find((i) => i.uid === uidKey);
+    if (!target) return;
+    const ids = new Set<string>([target.uid, ...descendantsOf(target, items).map((d) => d.uid)]);
+    update(items.map((it) => (ids.has(it.uid) ? { ...it, quarter } : it)));
+  };
   const remove = (uidKey: string) => update(items.filter((it) => it.uid !== uidKey));
   const add = (type: ItemType) => {
     const prefix = type === "epic" ? "EPIC" : type === "feature" ? "FEAT" : "US";
