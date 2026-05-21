@@ -30,7 +30,7 @@ export const Route = createFileRoute("/roadmap")({
 type RealQuarter = Exclude<Quarter, "">;
 const QUARTERS: RealQuarter[] = ["Q1", "Q2", "Q3", "Q4"];
 const PRIORITIES: Priority[] = ["1-High", "2-Medium", "3-Low", "4-Lowest"];
-const STATES: State[] = ["Backlog", "In Progress", "Done", "Blocked"];
+
 
 function RoadmapPage() {
   const { session, ready } = useAuth();
