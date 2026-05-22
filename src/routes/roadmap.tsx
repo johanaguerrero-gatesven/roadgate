@@ -482,58 +482,36 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
 
   return (
     <div className="space-y-6">
-      {/* KPI por quarter */}
-      <div className="grid md:grid-cols-4 gap-4">
+      {/* Una sola tarjeta por Quarter: KPI + items */}
+      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
         {QUARTERS.map((q) => {
           const eff = effortMap[q];
           const cap = capacityPerQuarter(cfg, q);
           const pct = cap > 0 ? (eff / cap) * 100 : 0;
+          const cell = byQuarter[q];
           const status =
             pct === 0 ? { label: t("roadmap.status.empty"), cls: "text-muted-foreground" }
             : pct > 110 ? { label: t("roadmap.status.overload"), cls: "text-destructive" }
             : pct < 90 ? { label: t("roadmap.status.under"), cls: "text-amber-600 dark:text-amber-400" }
             : { label: t("roadmap.status.ok"), cls: "text-emerald-600 dark:text-emerald-400" };
           return (
-            <div key={q} className="rounded-xl border border-border bg-card p-4">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-foreground">{q} · {sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")}</span>
-                <span className={`text-xs font-medium ${status.cls}`}>{status.label}</span>
-              </div>
-              <div className="mt-2 text-2xl font-bold">
-                {eff} <span className="text-sm font-normal text-muted-foreground">/ {cap.toFixed(0)} h</span>
-              </div>
-              <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
-                <div className={`h-full ${barColor(pct)}`} style={{ width: `${Math.min(pct, 150)}%` }} />
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                {pct.toFixed(0)}% {t("roadmap.utilization")} · {byQuarter[q].length} {t("roadmap.items")}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Vista por quarter (sin desglose por sprint) */}
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {QUARTERS.map((q) => {
-          const cap = capacityPerQuarter(cfg, q);
-          const eff = effortMap[q];
-          const pct = cap > 0 ? (eff / cap) * 100 : 0;
-          const cell = byQuarter[q];
-          return (
             <div key={q} className="rounded-xl border border-border bg-card flex flex-col">
               <div className="p-4 border-b border-border">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-foreground">{q}</h3>
-                  <span className="text-[10px] text-muted-foreground">
-                    {sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")} · {capSprint.toFixed(0)} h/sprint
-                  </span>
+                  <span className={`text-xs font-medium ${status.cls}`}>{status.label}</span>
                 </div>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  {eff} / {cap.toFixed(0)} h ({pct.toFixed(0)}%)
+                <div className="mt-1 text-[10px] text-muted-foreground">
+                  {sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")} · {capSprint.toFixed(0)} h/sprint
                 </div>
-                <div className="mt-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div className="mt-2 text-2xl font-bold">
+                  {eff} <span className="text-sm font-normal text-muted-foreground">/ {cap.toFixed(0)} h</span>
+                </div>
+                <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
                   <div className={`h-full ${barColor(pct)}`} style={{ width: `${Math.min(pct, 150)}%` }} />
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {pct.toFixed(0)}% {t("roadmap.utilization")} · {cell.length} {t("roadmap.items")}
                 </div>
               </div>
               <div className="p-3 space-y-2 min-h-[80px]">
@@ -579,6 +557,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
           );
         })}
       </div>
+
 
       {byQuarter[""].length > 0 && (
         <div className="rounded-xl border border-dashed border-border bg-card/60 p-4">
