@@ -21,7 +21,7 @@ import {
   rolledUpEffort, effortByPriority, countByPriority,
   descendantsOf, topAncestor, roadmapCoverage,
 } from "@/lib/roadmap";
-import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, GripVertical, Minus, CornerDownRight } from "lucide-react";
+import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Minus, CornerDownRight } from "lucide-react";
 
 export const Route = createFileRoute("/roadmap")({
   head: () => ({ meta: [{ title: "Roadmap — RoadGate" }] }),
@@ -175,8 +175,6 @@ function BacklogPanel({
 }) {
   const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [dragUid, setDragUid] = useState<string | null>(null);
-  const [overCol, setOverCol] = useState<string | null>(null);
 
   const list = items.filter((i) => i.type === type);
   const parents = items.filter((i) => i.type === (type === "story" ? "feature" : type === "feature" ? "epic" : ""));
@@ -194,25 +192,6 @@ function BacklogPanel({
     URL.revokeObjectURL(url);
   };
 
-  type ColKey = "" | RealQuarter;
-  const columns: { key: ColKey; label: string }[] = [
-    { key: "", label: "Backlog" },
-    ...QUARTERS.map((q) => ({ key: q as ColKey, label: q })),
-  ];
-
-  const byCol: Record<string, RoadmapItem[]> = { "": [], Q1: [], Q2: [], Q3: [], Q4: [] };
-  list.forEach((it) => { byCol[it.quarter || ""].push(it); });
-
-  const onDropToCol = (col: ColKey) => {
-    if (!dragUid) return;
-    const it = items.find((x) => x.uid === dragUid);
-    if (it && (it.quarter || "") !== col) {
-      onMoveQuarter(dragUid, col as Quarter);
-    }
-    setDragUid(null);
-    setOverCol(null);
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2 items-center">
@@ -228,7 +207,7 @@ function BacklogPanel({
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
         <span className="text-xs text-muted-foreground ml-auto">
-          {t("roadmap.csvHint")}
+          {list.length} {type === "story" ? "user stories" : `${type}s`}
         </span>
       </div>
 
@@ -239,166 +218,166 @@ function BacklogPanel({
           <p className="mt-1 text-sm text-muted-foreground">{t("roadmap.empty.lead")}</p>
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-3 -mx-2 px-2 snap-x">
-          {columns.map((col) => {
-            const cards = byCol[col.key];
-            const totalEffort = cards.reduce((s, c) => s + (c.effort || 0), 0);
-            const isOver = overCol === col.key;
-            return (
-              <div
-                key={col.key}
-                onDragOver={(e) => { e.preventDefault(); setOverCol(col.key); }}
-                onDragLeave={() => setOverCol((c) => (c === col.key ? null : c))}
-                onDrop={() => onDropToCol(col.key)}
-                className={`rounded-xl border bg-muted/30 flex flex-col min-h-[300px] w-[340px] shrink-0 snap-start transition-colors ${
-                  isOver ? "border-primary bg-primary/5" : "border-border"
-                }`}
-              >
-                <div className="px-3 py-2 border-b border-border flex items-center justify-between sticky top-0 bg-muted/60 rounded-t-xl">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground text-sm">{col.label}</span>
-                    <span className="text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-background">
-                      {cards.length}
-                    </span>
-                  </div>
-                  {totalEffort > 0 && (
-                    <span className="text-[10px] text-muted-foreground">{totalEffort}h</span>
-                  )}
-                </div>
-
-                <div className="p-2 space-y-2 flex-1">
-                  {cards.map((it) => {
-                    const hidden = !!it.hiddenFromRoadmap;
-                    return (
-                      <div
-                        key={it.uid}
-                        draggable
-                        onDragStart={() => setDragUid(it.uid)}
-                        onDragEnd={() => { setDragUid(null); setOverCol(null); }}
-                        className={`group rounded-lg border bg-card shadow-sm hover:shadow-md transition-all p-2.5 space-y-2 cursor-grab active:cursor-grabbing ${
-                          dragUid === it.uid ? "opacity-50" : ""
-                        } ${hidden ? "opacity-60" : ""}`}
-                      >
-                        {/* Header: drag, id, eye, delete */}
-                        <div className="flex items-center gap-1.5">
-                          <GripVertical className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
-                          <Input
-                            value={it.id}
-                            onChange={(e) => onUpdate(it.uid, { id: e.target.value })}
-                            className="h-6 px-1.5 text-[11px] font-mono font-semibold text-muted-foreground bg-transparent border-transparent hover:border-border focus:border-input flex-1 min-w-0"
-                          />
-                          <button
-                            type="button"
-                            title={hidden ? "Show in roadmap" : "Hide from roadmap"}
-                            onClick={() => onUpdate(it.uid, { hiddenFromRoadmap: !hidden })}
-                            className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
-                          >
-                            {hidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5 text-primary" />}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onRemove(it.uid)}
-                            className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
-                            title={t("roadmap.col.notes") ? "Delete" : "Delete"}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-
-                        {/* Title — full visibility */}
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
+                <tr className="[&>th]:px-2 [&>th]:py-2 [&>th]:text-left [&>th]:font-semibold [&>th]:border-b [&>th]:border-border">
+                  <th className="w-8"></th>
+                  <th className="w-[110px]">ID</th>
+                  <th className="min-w-[320px]">{t("roadmap.col.title")}</th>
+                  {type !== "epic" && <th className="w-[150px]">{t("roadmap.col.parent")}</th>}
+                  <th className="w-[80px] text-right">Effort</th>
+                  <th className="w-[140px]">Priority</th>
+                  <th className="w-[100px]">Quarter</th>
+                  <th className="min-w-[220px]">Notes</th>
+                  <th className="w-[60px] text-center">Show</th>
+                  <th className="w-[44px]"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.map((it) => {
+                  const hidden = !!it.hiddenFromRoadmap;
+                  const hasKids = type !== "story" && items.some((c) => c.parentId === it.id);
+                  return (
+                    <tr
+                      key={it.uid}
+                      className={`group border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors [&>td]:px-2 [&>td]:py-1.5 [&>td]:align-top ${hidden ? "opacity-60" : ""}`}
+                    >
+                      <td className="text-center text-muted-foreground/50">
+                        <PriorityIcon p={it.priority} className="h-4 w-4 inline" />
+                      </td>
+                      <td>
+                        <Input
+                          value={it.id}
+                          onChange={(e) => onUpdate(it.uid, { id: e.target.value })}
+                          className="h-8 px-2 text-xs font-mono font-semibold"
+                        />
+                      </td>
+                      <td>
                         <Textarea
                           value={it.title}
                           onChange={(e) => onUpdate(it.uid, { title: e.target.value })}
-                          rows={3}
-                          className="min-h-[64px] text-sm leading-snug resize-y p-2 border-transparent hover:border-border focus:border-input bg-transparent font-medium"
+                          rows={1}
+                          className="min-h-[32px] text-sm leading-snug py-1.5 px-2 resize-y font-medium"
                           placeholder={t("roadmap.col.title")}
                         />
-
-                        {/* Parent (features/stories) */}
-                        {type !== "epic" && (
+                        {hasKids && (
+                          <div className="text-[10px] text-muted-foreground italic mt-1">
+                            Σ {rolledUpEffort(it, items)}h ({t("roadmap.rollupTitle")})
+                          </div>
+                        )}
+                      </td>
+                      {type !== "epic" && (
+                        <td>
                           <Select
                             value={it.parentId || ""}
                             onValueChange={(v) => onUpdate(it.uid, { parentId: v || undefined })}
                           >
-                            <SelectTrigger className="h-7 text-[11px]">
-                              <SelectValue placeholder={`↳ ${t("roadmap.col.parent")}`} />
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="—" />
                             </SelectTrigger>
                             <SelectContent>
                               {parents.map((p) => (
                                 <SelectItem key={p.uid} value={p.id} className="text-xs">
-                                  {p.id} · {p.title}
+                                  {p.id} · {p.title.slice(0, 40)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                        )}
-
-                        {/* Footer: priority + effort */}
-                        <div className="flex items-center gap-1.5 pt-1 border-t border-border/60">
-                          <Select
-                            value={it.priority || ""}
-                            onValueChange={(v) => onUpdate(it.uid, { priority: v as Priority })}
-                          >
-                            <SelectTrigger className="h-7 w-[110px] text-[11px] gap-1 [&>span]:flex [&>span]:items-center [&>span]:gap-1">
-                              <SelectValue placeholder={
-                                <span className="flex items-center gap-1 text-muted-foreground">
-                                  <PriorityIcon p="" /> —
+                        </td>
+                      )}
+                      <td>
+                        <Input
+                          type="number" min={0}
+                          value={it.effort ?? ""}
+                          onChange={(e) => onUpdate(it.uid, {
+                            effort: e.target.value === "" ? undefined : Number(e.target.value),
+                          })}
+                          placeholder="0"
+                          className="h-8 text-xs text-right"
+                        />
+                      </td>
+                      <td>
+                        <Select
+                          value={it.priority || ""}
+                          onValueChange={(v) => onUpdate(it.uid, { priority: v as Priority })}
+                        >
+                          <SelectTrigger className="h-8 text-xs gap-1 [&>span]:flex [&>span]:items-center [&>span]:gap-1.5">
+                            <SelectValue placeholder="—">
+                              {it.priority && (
+                                <span className="flex items-center gap-1.5">
+                                  <PriorityIcon p={it.priority} />
+                                  {PRIORITY_META[it.priority as Exclude<Priority, "">].label}
                                 </span>
-                              }>
-                                {it.priority && (
-                                  <span className="flex items-center gap-1">
-                                    <PriorityIcon p={it.priority} />
-                                    {PRIORITY_META[it.priority as Exclude<Priority, "">].label}
+                              )}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PRIORITIES.map((p) => {
+                              const m = PRIORITY_META[p as Exclude<Priority, "">];
+                              return (
+                                <SelectItem key={p} value={p} className="text-xs">
+                                  <span className="flex items-center gap-2">
+                                    <PriorityIcon p={p} /> {m.label}
                                   </span>
-                                )}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              {PRIORITIES.map((p) => {
-                                const m = PRIORITY_META[p as Exclude<Priority, "">];
-                                return (
-                                  <SelectItem key={p} value={p} className="text-xs">
-                                    <span className="flex items-center gap-2">
-                                      <PriorityIcon p={p} /> {m.label}
-                                    </span>
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-
-                          <div className="flex items-center gap-1 ml-auto">
-                            <Input
-                              type="number" min={0}
-                              value={it.effort ?? ""}
-                              onChange={(e) => onUpdate(it.uid, {
-                                effort: e.target.value === "" ? undefined : Number(e.target.value),
-                              })}
-                              placeholder="0"
-                              className="h-7 w-14 text-[11px] text-right"
-                            />
-                            <span className="text-[10px] text-muted-foreground">h</span>
-                          </div>
-                        </div>
-
-                        {type !== "story" && items.some((c) => c.parentId === it.id) && (
-                          <div className="text-[10px] text-muted-foreground italic">
-                            Σ {rolledUpEffort(it, items)}h ({t("roadmap.rollupTitle")})
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {cards.length === 0 && (
-                    <div className="text-center text-[11px] text-muted-foreground/60 py-8 border border-dashed border-border/50 rounded-lg">
-                      {col.key === "" ? "Drop cards here" : `Drag to ${col.label}`}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td>
+                        <Select
+                          value={it.quarter || "__bl"}
+                          onValueChange={(v) => onMoveQuarter(it.uid, (v === "__bl" ? "" : v) as Quarter)}
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__bl" className="text-xs">Backlog</SelectItem>
+                            {QUARTERS.map((q) => (
+                              <SelectItem key={q} value={q} className="text-xs">{q}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td>
+                        <Textarea
+                          value={it.notes || ""}
+                          onChange={(e) => onUpdate(it.uid, { notes: e.target.value })}
+                          rows={1}
+                          className="min-h-[32px] text-xs leading-snug py-1.5 px-2 resize-y"
+                          placeholder="—"
+                        />
+                      </td>
+                      <td className="text-center">
+                        <button
+                          type="button"
+                          title={hidden ? "Show in roadmap" : "Hide from roadmap"}
+                          onClick={() => onUpdate(it.uid, { hiddenFromRoadmap: !hidden })}
+                          className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                        >
+                          {hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4 text-primary" />}
+                        </button>
+                      </td>
+                      <td className="text-center">
+                        <button
+                          type="button"
+                          onClick={() => onRemove(it.uid)}
+                          className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
