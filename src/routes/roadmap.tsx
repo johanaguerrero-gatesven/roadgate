@@ -21,7 +21,12 @@ import {
   rolledUpEffort, effortByPriority, countByPriority,
   descendantsOf, topAncestor, roadmapCoverage,
 } from "@/lib/roadmap";
-import { ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Minus, CornerDownRight } from "lucide-react";
+import {
+  ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff,
+  ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Minus, CornerDownRight,
+  Hexagon, Bookmark, FileText,
+} from "lucide-react";
+
 
 export const Route = createFileRoute("/roadmap")({
   head: () => ({ meta: [{ title: "Roadmap — RoadGate" }] }),
@@ -162,6 +167,23 @@ function PriorityIcon({ p, className = "h-4 w-4" }: { p?: Priority; className?: 
   return <Icon className={`${className} ${m.cls}`} />;
 }
 
+// --- Type bullet icons ---
+const TYPE_META: Record<ItemType, { icon: typeof Hexagon; cls: string; label: string }> = {
+  epic:   { icon: Hexagon,   cls: "text-orange-500",  label: "Epic" },
+  feature:{ icon: Bookmark,  cls: "text-purple-500",  label: "Feature" },
+  story:  { icon: FileText,  cls: "text-blue-500",    label: "User Story" },
+};
+
+function TypeIcon({ type, className = "h-4 w-4" }: { type: ItemType; className?: string }) {
+  const m = TYPE_META[type];
+  const Icon = m.icon;
+  return (
+    <span title={m.label} className="inline-flex">
+      <Icon className={`${className} ${m.cls}`} />
+    </span>
+  );
+}
+
 function BacklogPanel({
   type, items, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
 }: {
@@ -245,7 +267,7 @@ function BacklogPanel({
                       className={`group border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors [&>td]:px-2 [&>td]:py-1.5 [&>td]:align-top ${hidden ? "opacity-60" : ""}`}
                     >
                       <td className="text-center text-muted-foreground/50">
-                        <PriorityIcon p={it.priority} className="h-4 w-4 inline" />
+                        <TypeIcon type={it.type} className="h-4 w-4 inline" />
                       </td>
                       <td>
                         <Input
@@ -526,7 +548,10 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                   return (
                     <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(it.type)}`}>
                       <div className="flex items-start justify-between gap-2">
-                        <span className="font-semibold">{it.id}</span>
+                        <span className="flex items-center gap-1 font-semibold">
+                          <TypeIcon type={it.type} className="h-3.5 w-3.5" />
+                          {it.id}
+                        </span>
                         {it.priority && (
                           <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
                             {it.priority.split("-")[0]}
