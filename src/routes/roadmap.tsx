@@ -177,7 +177,11 @@ const TYPE_META: Record<ItemType, { icon: typeof Hexagon; cls: string; label: st
 function TypeIcon({ type, className = "h-4 w-4" }: { type: ItemType; className?: string }) {
   const m = TYPE_META[type];
   const Icon = m.icon;
-  return <Icon className={`${className} ${m.cls}`} title={m.label} />;
+  return (
+    <span title={m.label} className="inline-flex">
+      <Icon className={`${className} ${m.cls}`} />
+    </span>
+  );
 }
 
 function BacklogPanel({
