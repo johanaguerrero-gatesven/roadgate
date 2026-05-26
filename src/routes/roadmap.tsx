@@ -548,7 +548,10 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                   return (
                     <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(it.type)}`}>
                       <div className="flex items-start justify-between gap-2">
-                        <span className="font-semibold">{it.id}</span>
+                        <span className="flex items-center gap-1 font-semibold">
+                          <TypeIcon type={it.type} className="h-3.5 w-3.5" />
+                          {it.id}
+                        </span>
                         {it.priority && (
                           <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
                             {it.priority.split("-")[0]}
