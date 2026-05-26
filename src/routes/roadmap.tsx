@@ -267,7 +267,7 @@ function BacklogPanel({
                       className={`group border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors [&>td]:px-2 [&>td]:py-1.5 [&>td]:align-top ${hidden ? "opacity-60" : ""}`}
                     >
                       <td className="text-center text-muted-foreground/50">
-                        <PriorityIcon p={it.priority} className="h-4 w-4 inline" />
+                        <TypeIcon type={it.type} className="h-4 w-4 inline" />
                       </td>
                       <td>
                         <Input
