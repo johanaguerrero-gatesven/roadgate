@@ -251,7 +251,7 @@ function BacklogPanel({
                       className={`group border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors [&>td]:px-2 [&>td]:py-1.5 [&>td]:align-top ${hidden ? "opacity-60" : ""}`}
                     >
                       <td className="text-center text-muted-foreground/50">
-                        <TypeIcon type={it.type} className="h-4 w-4 inline" />
+                        <WorkItemIcon type={it.type} className="h-4 w-4 inline" />
                       </td>
                       <td>
                         <Input
@@ -476,10 +476,6 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
     : p === "3-Low" ? "bg-muted text-muted-foreground border-border"
     : "bg-muted text-muted-foreground border-border";
 
-  const typeColor = (t: ItemType) =>
-    t === "epic" ? "bg-primary/15 text-primary border-primary/30"
-    : t === "feature" ? "bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30"
-    : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30";
 
   const barColor = (pct: number) =>
     pct === 0 ? "bg-muted"
