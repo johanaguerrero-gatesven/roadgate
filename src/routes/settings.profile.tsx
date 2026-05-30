@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
+
 import { useI18n } from "@/lib/i18n";
 import { getProfile, saveProfile, type Profile } from "@/lib/profile";
 import { useAuth } from "@/hooks/use-auth";
