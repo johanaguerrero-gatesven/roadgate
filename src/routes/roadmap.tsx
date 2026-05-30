@@ -167,22 +167,6 @@ function PriorityIcon({ p, className = "h-4 w-4" }: { p?: Priority; className?: 
   return <Icon className={`${className} ${m.cls}`} />;
 }
 
-// --- Type bullet icons ---
-const TYPE_META: Record<ItemType, { icon: typeof Hexagon; cls: string; label: string }> = {
-  epic:   { icon: Hexagon,   cls: "text-orange-500",  label: "Epic" },
-  feature:{ icon: Bookmark,  cls: "text-purple-500",  label: "Feature" },
-  story:  { icon: FileText,  cls: "text-blue-500",    label: "User Story" },
-};
-
-function TypeIcon({ type, className = "h-4 w-4" }: { type: ItemType; className?: string }) {
-  const m = TYPE_META[type];
-  const Icon = m.icon;
-  return (
-    <span title={m.label} className="inline-flex">
-      <Icon className={`${className} ${m.cls}`} />
-    </span>
-  );
-}
 
 function BacklogPanel({
   type, items, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
