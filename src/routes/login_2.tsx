@@ -55,30 +55,28 @@ function Login2Page() {
 /* ----------------------------- Auth (login + register) ----------------------------- */
 
 function AuthTabs({ onChallenge }: { onChallenge: () => void }) {
+  const { t } = useI18n();
   return (
-    <Tabs defaultValue="signin" className="w-full">
-      <div className="text-center mb-6 space-y-1">
-        <div className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary mb-2">
-          <ShieldCheck className="h-5 w-5" />
-        </div>
-        <h1 className="text-2xl font-bold">Welcome to RoadGate</h1>
-        <p className="text-sm text-muted-foreground">Sign in or create a new account</p>
+    <Tabs defaultValue="signin" className="w-full space-y-6">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-foreground">{t("login.title")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("login.subtitle")}</p>
       </div>
 
-      <TabsList className="grid grid-cols-2 w-full mb-6">
-        <TabsTrigger value="signin">Sign in</TabsTrigger>
-        <TabsTrigger value="signup">Sign up</TabsTrigger>
+      <TabsList className="grid grid-cols-2 w-full">
+        <TabsTrigger value="signin">{t("login.submit")}</TabsTrigger>
+        <TabsTrigger value="signup">{t("register.submit")}</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="signin" className="space-y-5">
+      <TabsContent value="signin" className="space-y-6 mt-0">
         <AuthProviders />
-        <Divider>or with email</Divider>
+        <Divider>{t("login.divider")}</Divider>
         <SignInForm onChallenge={onChallenge} />
       </TabsContent>
 
-      <TabsContent value="signup" className="space-y-5">
+      <TabsContent value="signup" className="space-y-6 mt-0">
         <AuthProviders providers={["google"]} />
-        <Divider>or sign up with email</Divider>
+        <Divider>{t("register.divider")}</Divider>
         <SignUpForm />
       </TabsContent>
     </Tabs>
@@ -92,7 +90,7 @@ function Divider({ children }: { children: React.ReactNode }) {
         <span className="w-full border-t border-border" />
       </div>
       <div className="relative flex justify-center text-xs uppercase tracking-wider">
-        <span className="bg-card px-2 text-muted-foreground">{children}</span>
+        <span className="bg-background px-2 text-muted-foreground">{children}</span>
       </div>
     </div>
   );
