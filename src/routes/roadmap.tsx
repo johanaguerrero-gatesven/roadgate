@@ -24,8 +24,8 @@ import {
 import {
   ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff,
   ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Minus, CornerDownRight,
-  Hexagon, Bookmark, FileText,
 } from "lucide-react";
+import { WORK_ITEM_ICONS, WorkItemIcon } from "@/lib/work-item-icons";
 
 
 export const Route = createFileRoute("/roadmap")({
@@ -167,22 +167,6 @@ function PriorityIcon({ p, className = "h-4 w-4" }: { p?: Priority; className?: 
   return <Icon className={`${className} ${m.cls}`} />;
 }
 
-// --- Type bullet icons ---
-const TYPE_META: Record<ItemType, { icon: typeof Hexagon; cls: string; label: string }> = {
-  epic:   { icon: Hexagon,   cls: "text-orange-500",  label: "Epic" },
-  feature:{ icon: Bookmark,  cls: "text-purple-500",  label: "Feature" },
-  story:  { icon: FileText,  cls: "text-blue-500",    label: "User Story" },
-};
-
-function TypeIcon({ type, className = "h-4 w-4" }: { type: ItemType; className?: string }) {
-  const m = TYPE_META[type];
-  const Icon = m.icon;
-  return (
-    <span title={m.label} className="inline-flex">
-      <Icon className={`${className} ${m.cls}`} />
-    </span>
-  );
-}
 
 function BacklogPanel({
   type, items, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
@@ -267,7 +251,7 @@ function BacklogPanel({
                       className={`group border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors [&>td]:px-2 [&>td]:py-1.5 [&>td]:align-top ${hidden ? "opacity-60" : ""}`}
                     >
                       <td className="text-center text-muted-foreground/50">
-                        <TypeIcon type={it.type} className="h-4 w-4 inline" />
+                        <WorkItemIcon type={it.type} className="h-4 w-4 inline" />
                       </td>
                       <td>
                         <Input
@@ -492,10 +476,6 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
     : p === "3-Low" ? "bg-muted text-muted-foreground border-border"
     : "bg-muted text-muted-foreground border-border";
 
-  const typeColor = (t: ItemType) =>
-    t === "epic" ? "bg-primary/15 text-primary border-primary/30"
-    : t === "feature" ? "bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30"
-    : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30";
 
   const barColor = (pct: number) =>
     pct === 0 ? "bg-muted"
@@ -546,10 +526,10 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                   const cov = top ? roadmapCoverage(top, items) : null;
                   const showParent = !!top && cov !== null && cov.pct < 100 - 0.5;
                   return (
-                    <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(it.type)}`}>
+                    <div key={it.uid} className={`rounded-md border p-2 text-xs ${WORK_ITEM_ICONS[it.type].badgeClass}`}>
                       <div className="flex items-start justify-between gap-2">
                         <span className="flex items-center gap-1 font-semibold">
-                          <TypeIcon type={it.type} className="h-3.5 w-3.5" />
+                          <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
                           {it.id}
                         </span>
                         {it.priority && (
@@ -589,7 +569,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
           <h4 className="font-semibold text-foreground mb-2">{t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})</h4>
           <div className="flex flex-wrap gap-2">
             {byQuarter[""].map((v) => (
-              <Badge key={v.item.uid} variant="outline" className={typeColor(v.item.type)}>
+              <Badge key={v.item.uid} variant="outline" className={WORK_ITEM_ICONS[v.item.type].badgeClass}>
                 {v.item.id} · {v.item.title}
               </Badge>
             ))}
