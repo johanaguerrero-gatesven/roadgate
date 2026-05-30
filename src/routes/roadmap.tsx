@@ -24,8 +24,8 @@ import {
 import {
   ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff,
   ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Minus, CornerDownRight,
-  Hexagon, Bookmark, FileText,
 } from "lucide-react";
+import { WORK_ITEM_ICONS, WorkItemIcon } from "@/lib/work-item-icons";
 
 
 export const Route = createFileRoute("/roadmap")({
