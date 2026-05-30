@@ -77,6 +77,12 @@ function ProfilePage() {
             {t("profile.tab.profile")}
           </TabsTrigger>
           <TabsTrigger
+            value="security"
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs tracking-wider"
+          >
+            Security & 2FA
+          </TabsTrigger>
+          <TabsTrigger
             value="notifications"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs tracking-wider"
           >
