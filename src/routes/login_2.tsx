@@ -4,12 +4,10 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Logo } from "@/components/Logo";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { AuthProviders } from "@/components/AuthProviders";
+import { AuthShell } from "./login";
 import { login, register, getSession, clearSession } from "@/lib/auth";
 import {
   getTwoFA,
@@ -18,14 +16,15 @@ import {
   getPendingLogin,
   clearPendingLogin,
 } from "@/lib/twofa";
+import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
-import { ShieldCheck, Smartphone, KeyRound, RefreshCw, Lock } from "lucide-react";
+import { Smartphone, KeyRound, RefreshCw, Lock, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/login_2")({
   head: () => ({
     meta: [
       { title: "Sign in — RoadGate" },
-      { name: "description", content: "Access your RoadGate account (v2)." },
+      { name: "description", content: "Access your RoadGate account." },
     ],
   }),
   component: Login2Page,
@@ -43,29 +42,13 @@ function Login2Page() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/40 flex flex-col">
-      {/* Top bar */}
-      <header className="w-full px-4 sm:px-6 lg:px-10 py-4 flex items-center justify-between">
-        <Logo />
-        <LanguageSwitcher variant="outline" />
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-4 py-6 sm:py-12">
-        <div className="w-full max-w-md">
-          <Card className="border border-border/60 shadow-[var(--shadow-elegant,0_10px_40px_-15px_rgba(0,0,0,0.2))] p-6 sm:p-8 rounded-2xl backdrop-blur-sm bg-card/95">
-            {step === "auth" ? (
-              <AuthTabs onChallenge={() => setStep("challenge")} />
-            ) : (
-              <ChallengeView onBack={() => { clearPendingLogin(); setStep("auth"); }} />
-            )}
-          </Card>
-
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            © {new Date().getFullYear()} GATES · RoadGate
-          </p>
-        </div>
-      </main>
-    </div>
+    <AuthShell>
+      {step === "auth" ? (
+        <AuthTabs onChallenge={() => setStep("challenge")} />
+      ) : (
+        <ChallengeView onBack={() => { clearPendingLogin(); setStep("auth"); }} />
+      )}
+    </AuthShell>
   );
 }
 
