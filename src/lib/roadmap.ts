@@ -295,17 +295,32 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
     return [...kids, ...kids.flatMap(allDescendants)];
   };
 
-  const decide = (node: RoadmapItem): "self" | "children" => {
+  /**
+   * Returns the single shared quarter of all descendants (ignoring unassigned),
+   * or null if descendants resolve to different quarters / none have a quarter.
+   */
+  const sharedChildQuarter = (node: RoadmapItem): Quarter | null => {
+    const desc = allDescendants(node);
+    if (desc.length === 0) return null;
+    const quarters = new Set(desc.map((d) => effectiveQuarter(d, items)).filter(Boolean));
+    if (quarters.size !== 1) return null;
+    return [...quarters][0] as Quarter;
+  };
+
+  const decide = (node: RoadmapItem): { choice: "self" | "children"; quarter?: Quarter } => {
     const mode = node.displayMode ?? "auto";
-    if (mode === "self") return "self";
-    if (mode === "children") return "children";
+    if (mode === "self") return { choice: "self" };
+    if (mode === "children") return { choice: "children" };
     // auto
     const desc = allDescendants(node);
-    if (desc.length === 0) return "self";
-    const quarters = new Set(desc.map((d) => effectiveQuarter(d, items)).filter(Boolean));
-    if (quarters.size === 1 && node.quarter && quarters.has(node.quarter)) return "self";
-    if (quarters.size === 1) return "self";
-    return "children";
+    if (desc.length === 0) return { choice: "self" };
+    const shared = sharedChildQuarter(node);
+    if (!shared) return { choice: "children" };
+    // If the parent has its own quarter and it disagrees with the shared
+    // child quarter, render the children to avoid placing the parent in the
+    // wrong column.
+    if (node.quarter && node.quarter !== shared) return { choice: "children" };
+    return { choice: "self", quarter: shared };
   };
 
   const walk = (node: RoadmapItem) => {
@@ -316,9 +331,9 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
       out.push({ item: node, quarter: q, rolledUp: false });
       return;
     }
-    const choice = decide(node);
-    if (choice === "self") {
-      const q = effectiveQuarter(node, items);
+    const decision = decide(node);
+    if (decision.choice === "self") {
+      const q = decision.quarter ?? effectiveQuarter(node, items);
       out.push({ item: node, quarter: q, rolledUp: childrenOf(node, items).length > 0 });
       // mark descendants as visited so we don't render them too
       allDescendants(node).forEach((d) => visited.add(d.uid));
