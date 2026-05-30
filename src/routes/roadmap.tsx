@@ -526,10 +526,10 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                   const cov = top ? roadmapCoverage(top, items) : null;
                   const showParent = !!top && cov !== null && cov.pct < 100 - 0.5;
                   return (
-                    <div key={it.uid} className={`rounded-md border p-2 text-xs ${typeColor(it.type)}`}>
+                    <div key={it.uid} className={`rounded-md border p-2 text-xs ${WORK_ITEM_ICONS[it.type].badgeClass}`}>
                       <div className="flex items-start justify-between gap-2">
                         <span className="flex items-center gap-1 font-semibold">
-                          <TypeIcon type={it.type} className="h-3.5 w-3.5" />
+                          <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
                           {it.id}
                         </span>
                         {it.priority && (
@@ -569,7 +569,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
           <h4 className="font-semibold text-foreground mb-2">{t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})</h4>
           <div className="flex flex-wrap gap-2">
             {byQuarter[""].map((v) => (
-              <Badge key={v.item.uid} variant="outline" className={typeColor(v.item.type)}>
+              <Badge key={v.item.uid} variant="outline" className={WORK_ITEM_ICONS[v.item.type].badgeClass}>
                 {v.item.id} · {v.item.title}
               </Badge>
             ))}
