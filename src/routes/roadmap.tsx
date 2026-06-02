@@ -457,11 +457,13 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
   );
 }
 
-function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig }) {
+function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: CapacityConfig; onMove: (uid: string, quarter: Quarter) => void }) {
   const { t } = useI18n();
   const view = useMemo(() => buildRoadmapView(items), [items]);
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
   const capSprint = capacityPerSprint(cfg);
+  const [dragUid, setDragUid] = useState<string | null>(null);
+  const [overQ, setOverQ] = useState<Quarter | null>(null);
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
@@ -469,6 +471,12 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
     view.forEach((v) => map[v.quarter].push(v));
     return map;
   }, [view]);
+
+  const handleDrop = (q: Quarter) => {
+    if (dragUid) onMove(dragUid, q);
+    setDragUid(null);
+    setOverQ(null);
+  };
 
   const priorityColor = (p?: Priority) =>
     p === "1-High" ? "bg-destructive/15 text-destructive border-destructive/30"
