@@ -140,7 +140,7 @@ function RoadmapPage() {
           </TabsContent>
 
           <TabsContent value="roadmap" className="mt-6">
-            <RoadmapView items={items} cfg={cfg} />
+            <RoadmapView items={items} cfg={cfg} onMove={moveQuarter} />
           </TabsContent>
 
           <TabsContent value="capacity" className="mt-6">
@@ -457,11 +457,13 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
   );
 }
 
-function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig }) {
+function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: CapacityConfig; onMove: (uid: string, quarter: Quarter) => void }) {
   const { t } = useI18n();
   const view = useMemo(() => buildRoadmapView(items), [items]);
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
   const capSprint = capacityPerSprint(cfg);
+  const [dragUid, setDragUid] = useState<string | null>(null);
+  const [overQ, setOverQ] = useState<Quarter | null>(null);
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
@@ -469,6 +471,12 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
     view.forEach((v) => map[v.quarter].push(v));
     return map;
   }, [view]);
+
+  const handleDrop = (q: Quarter) => {
+    if (dragUid) onMove(dragUid, q);
+    setDragUid(null);
+    setOverQ(null);
+  };
 
   const priorityColor = (p?: Priority) =>
     p === "1-High" ? "bg-destructive/15 text-destructive border-destructive/30"
@@ -497,7 +505,13 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
             : pct < 90 ? { label: t("roadmap.status.under"), cls: "text-amber-600 dark:text-amber-400" }
             : { label: t("roadmap.status.ok"), cls: "text-emerald-600 dark:text-emerald-400" };
           return (
-            <div key={q} className="rounded-xl border border-border bg-card flex flex-col">
+            <div
+              key={q}
+              onDragOver={(e) => { e.preventDefault(); setOverQ(q); }}
+              onDragLeave={() => setOverQ((prev) => (prev === q ? null : prev))}
+              onDrop={() => handleDrop(q)}
+              className={`rounded-xl border bg-card flex flex-col transition-colors ${overQ === q ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
+            >
               <div className="p-4 border-b border-border">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-foreground">{q}</h3>
@@ -516,7 +530,7 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                   {pct.toFixed(0)}% {t("roadmap.utilization")} · {cell.length} {t("roadmap.items")}
                 </div>
               </div>
-              <div className="p-3 space-y-2 min-h-[80px]">
+              <div className="p-3 space-y-2 min-h-[80px] flex-1">
                 {cell.length === 0 && (
                   <div className="text-xs text-muted-foreground/60 text-center py-6">—</div>
                 )}
@@ -526,7 +540,13 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
                   const cov = top ? roadmapCoverage(top, items) : null;
                   const showParent = !!top && cov !== null && cov.pct < 100 - 0.5;
                   return (
-                    <div key={it.uid} className={`rounded-md border p-2 text-xs ${WORK_ITEM_ICONS[it.type].badgeClass}`}>
+                    <div
+                      key={it.uid}
+                      draggable
+                      onDragStart={(e) => { setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; }}
+                      onDragEnd={() => { setDragUid(null); setOverQ(null); }}
+                      className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""}`}
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <span className="flex items-center gap-1 font-semibold">
                           <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
@@ -565,13 +585,26 @@ function RoadmapView({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityConfig
 
 
       {byQuarter[""].length > 0 && (
-        <div className="rounded-xl border border-dashed border-border bg-card/60 p-4">
+        <div
+          onDragOver={(e) => { e.preventDefault(); setOverQ(""); }}
+          onDragLeave={() => setOverQ((prev) => (prev === "" ? null : prev))}
+          onDrop={() => handleDrop("")}
+          className={`rounded-xl border border-dashed bg-card/60 p-4 transition-colors ${overQ === "" ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
+        >
           <h4 className="font-semibold text-foreground mb-2">{t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})</h4>
           <div className="flex flex-wrap gap-2">
             {byQuarter[""].map((v) => (
-              <Badge key={v.item.uid} variant="outline" className={WORK_ITEM_ICONS[v.item.type].badgeClass}>
-                {v.item.id} · {v.item.title}
-              </Badge>
+              <div
+                key={v.item.uid}
+                draggable
+                onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
+                onDragEnd={() => { setDragUid(null); setOverQ(null); }}
+                className={`cursor-grab active:cursor-grabbing ${dragUid === v.item.uid ? "opacity-40" : ""}`}
+              >
+                <Badge variant="outline" className={WORK_ITEM_ICONS[v.item.type].badgeClass}>
+                  {v.item.id} · {v.item.title}
+                </Badge>
+              </div>
             ))}
           </div>
         </div>
