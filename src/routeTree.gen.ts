@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as RegisterRouteImport } from './routes/register'
-import { Route as Login_2RouteImport } from './routes/login_2'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
@@ -35,11 +34,6 @@ const RoadmapRoute = RoadmapRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Login_2Route = Login_2RouteImport.update({
-  id: '/login_2',
-  path: '/login_2',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -87,7 +81,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
-  '/login_2': typeof Login_2Route
   '/register': typeof RegisterRoute
   '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRouteWithChildren
@@ -101,7 +94,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
-  '/login_2': typeof Login_2Route
   '/register': typeof RegisterRoute
   '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRouteWithChildren
@@ -116,7 +108,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
-  '/login_2': typeof Login_2Route
   '/register': typeof RegisterRoute
   '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRouteWithChildren
@@ -132,7 +123,6 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/login'
-    | '/login_2'
     | '/register'
     | '/roadmap'
     | '/settings'
@@ -146,7 +136,6 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/login'
-    | '/login_2'
     | '/register'
     | '/roadmap'
     | '/settings'
@@ -160,7 +149,6 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/login'
-    | '/login_2'
     | '/register'
     | '/roadmap'
     | '/settings'
@@ -175,7 +163,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRoute
   LoginRoute: typeof LoginRoute
-  Login_2Route: typeof Login_2Route
   RegisterRoute: typeof RegisterRoute
   RoadmapRoute: typeof RoadmapRoute
   SettingsRoute: typeof SettingsRouteWithChildren
@@ -202,13 +189,6 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login_2': {
-      id: '/login_2'
-      path: '/login_2'
-      fullPath: '/login_2'
-      preLoaderRoute: typeof Login_2RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -294,7 +274,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRoute,
   LoginRoute: LoginRoute,
-  Login_2Route: Login_2Route,
   RegisterRoute: RegisterRoute,
   RoadmapRoute: RoadmapRoute,
   SettingsRoute: SettingsRouteWithChildren,
