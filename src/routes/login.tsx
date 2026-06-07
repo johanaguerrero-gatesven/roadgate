@@ -266,13 +266,10 @@ function SignUpForm() {
         <div className="flex items-center gap-2">
           <div
             aria-label="Captcha code"
-            className="select-none font-mono text-lg tracking-[0.4em] px-3 py-2 rounded-md bg-background border border-border flex-1 text-center"
+            className="select-none font-mono text-lg font-semibold tracking-[0.4em] px-3 py-2 rounded-md bg-background border border-border flex-1 text-center text-foreground"
             style={{
               backgroundImage:
                 "repeating-linear-gradient(45deg, transparent 0 6px, hsl(var(--muted-foreground)/0.08) 6px 7px)",
-              textDecoration: "line-through",
-              textDecorationStyle: "wavy",
-              textDecorationColor: "hsl(var(--muted-foreground)/0.4)",
             }}
           >
             {captchaChallenge.answer}
@@ -286,8 +283,14 @@ function SignUpForm() {
           <Input
             value={captchaInput}
             onChange={(e) => setCaptchaInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                verifyCaptcha();
+              }
+            }}
             placeholder="Type the code above"
-            className="font-mono"
+            className="font-mono uppercase"
           />
           <Button type="button" variant="secondary" onClick={verifyCaptcha}>
             Verify
