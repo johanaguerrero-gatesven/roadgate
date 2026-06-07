@@ -179,21 +179,29 @@ function SignUpForm() {
     password: z.string().min(6, "At least 6 characters").max(100),
   });
 
-  const verifyCaptcha = () => {
-    if (captchaInput.trim().toUpperCase() === captchaChallenge.answer && notRobot) {
-      setCaptchaOk(true);
-      toast.success("Captcha verified");
-    } else {
-      setCaptchaOk(false);
-      toast.error("Captcha incorrect — try again");
-      refreshCaptcha();
-    }
-  };
-
   const refreshCaptcha = () => {
     setCaptchaChallenge(makeCaptcha());
     setCaptchaInput("");
     setCaptchaOk(false);
+  };
+
+  const verifyCaptcha = () => {
+    const input = captchaInput.trim().toUpperCase();
+    if (!input) {
+      toast.error("Type the captcha code first");
+      return;
+    }
+    if (!notRobot) {
+      toast.error('Please check "I\'m not a robot" first');
+      return;
+    }
+    if (input !== captchaChallenge.answer) {
+      toast.error("Captcha incorrect — try again");
+      refreshCaptcha();
+      return;
+    }
+    setCaptchaOk(true);
+    toast.success("Captcha verified");
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -258,13 +266,10 @@ function SignUpForm() {
         <div className="flex items-center gap-2">
           <div
             aria-label="Captcha code"
-            className="select-none font-mono text-lg tracking-[0.4em] px-3 py-2 rounded-md bg-background border border-border flex-1 text-center"
+            className="select-none font-mono text-lg font-semibold tracking-[0.4em] px-3 py-2 rounded-md bg-background border border-border flex-1 text-center text-foreground"
             style={{
               backgroundImage:
                 "repeating-linear-gradient(45deg, transparent 0 6px, hsl(var(--muted-foreground)/0.08) 6px 7px)",
-              textDecoration: "line-through",
-              textDecorationStyle: "wavy",
-              textDecorationColor: "hsl(var(--muted-foreground)/0.4)",
             }}
           >
             {captchaChallenge.answer}
@@ -278,8 +283,14 @@ function SignUpForm() {
           <Input
             value={captchaInput}
             onChange={(e) => setCaptchaInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                verifyCaptcha();
+              }
+            }}
             placeholder="Type the code above"
-            className="font-mono"
+            className="font-mono uppercase"
           />
           <Button type="button" variant="secondary" onClick={verifyCaptcha}>
             Verify
