@@ -179,21 +179,29 @@ function SignUpForm() {
     password: z.string().min(6, "At least 6 characters").max(100),
   });
 
-  const verifyCaptcha = () => {
-    if (captchaInput.trim().toUpperCase() === captchaChallenge.answer && notRobot) {
-      setCaptchaOk(true);
-      toast.success("Captcha verified");
-    } else {
-      setCaptchaOk(false);
-      toast.error("Captcha incorrect — try again");
-      refreshCaptcha();
-    }
-  };
-
   const refreshCaptcha = () => {
     setCaptchaChallenge(makeCaptcha());
     setCaptchaInput("");
     setCaptchaOk(false);
+  };
+
+  const verifyCaptcha = () => {
+    const input = captchaInput.trim().toUpperCase();
+    if (!input) {
+      toast.error("Type the captcha code first");
+      return;
+    }
+    if (!notRobot) {
+      toast.error('Please check "I\'m not a robot" first');
+      return;
+    }
+    if (input !== captchaChallenge.answer) {
+      toast.error("Captcha incorrect — try again");
+      refreshCaptcha();
+      return;
+    }
+    setCaptchaOk(true);
+    toast.success("Captcha verified");
   };
 
   const onSubmit = async (e: React.FormEvent) => {
