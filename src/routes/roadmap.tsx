@@ -470,7 +470,7 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
   );
 }
 
-function RoadmapView({ items, cfg, onMove, onRestore }: { items: RoadmapItem[]; cfg: CapacityConfig; onMove: (uid: string, quarter: Quarter) => void; onRestore: (next: RoadmapItem[]) => void }) {
+function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: RoadmapItem[]; cfg: CapacityConfig; onMove: (uid: string, quarter: Quarter) => void; onRestore: (next: RoadmapItem[]) => void; onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void }) {
   const { t } = useI18n();
   const view = useMemo(() => buildRoadmapView(items), [items]);
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
@@ -478,6 +478,9 @@ function RoadmapView({ items, cfg, onMove, onRestore }: { items: RoadmapItem[]; 
   const [dragUid, setDragUid] = useState<string | null>(null);
   const [overQ, setOverQ] = useState<Quarter | null>(null);
   const [lastSnapshot, setLastSnapshot] = useState<{ items: RoadmapItem[]; fromQ: Quarter; toQ: Quarter; id: string } | null>(null);
+  const [pending, setPending] = useState<{ uid: string; q: Quarter } | null>(null);
+  const [pendPriority, setPendPriority] = useState<Priority>("");
+  const [pendEffort, setPendEffort] = useState<string>("");
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
@@ -486,18 +489,59 @@ function RoadmapView({ items, cfg, onMove, onRestore }: { items: RoadmapItem[]; 
     return map;
   }, [view]);
 
+  const commitMove = (uidKey: string, q: Quarter) => {
+    const target = items.find((i) => i.uid === uidKey);
+    const fromQ = (target?.quarter ?? "") as Quarter;
+    if (target && fromQ !== q) {
+      setLastSnapshot({ items, fromQ, toQ: q, id: target.id });
+    }
+    onMove(uidKey, q);
+  };
+
   const handleDrop = (q: Quarter) => {
     if (dragUid) {
       const target = items.find((i) => i.uid === dragUid);
-      const fromQ = (target?.quarter ?? "") as Quarter;
-      if (target && fromQ !== q) {
-        setLastSnapshot({ items, fromQ, toQ: q, id: target.id });
+      if (target && q !== "") {
+        const hasKids = items.some((c) => c.parentId === target.id);
+        const effVal = hasKids ? rolledUpEffort(target, items) : (target.effort ?? 0);
+        const missingPrio = !target.priority;
+        const missingEff = effVal <= 0;
+        if (missingPrio || missingEff) {
+          setPending({ uid: dragUid, q });
+          setPendPriority(target.priority || "");
+          setPendEffort(effVal > 0 ? String(effVal) : "");
+          setDragUid(null);
+          setOverQ(null);
+          return;
+        }
       }
-      onMove(dragUid, q);
+      commitMove(dragUid, q);
     }
     setDragUid(null);
     setOverQ(null);
   };
+
+  const confirmPending = () => {
+    if (!pending) return;
+    const target = items.find((i) => i.uid === pending.uid);
+    if (!target) { setPending(null); return; }
+    const hasKids = items.some((c) => c.parentId === target.id);
+    const patch: Partial<RoadmapItem> = {};
+    if (!target.priority && pendPriority) patch.priority = pendPriority;
+    if (!hasKids) {
+      const n = Number(pendEffort);
+      if (n > 0) patch.effort = n;
+    }
+    if (Object.keys(patch).length) onUpdate(pending.uid, patch);
+    commitMove(pending.uid, pending.q);
+    setPending(null);
+  };
+
+  const pendingItem = pending ? items.find((i) => i.uid === pending.uid) : null;
+  const pendingHasKids = pendingItem ? items.some((c) => c.parentId === pendingItem.id) : false;
+  const pendingValid =
+    !!pendPriority &&
+    (pendingHasKids ? rolledUpEffort(pendingItem!, items) > 0 : Number(pendEffort) > 0);
 
   const undo = () => {
     if (!lastSnapshot) return;
