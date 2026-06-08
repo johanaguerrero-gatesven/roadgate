@@ -140,8 +140,9 @@ function RoadmapPage() {
           </TabsContent>
 
           <TabsContent value="roadmap" className="mt-6">
-            <RoadmapView items={items} cfg={cfg} onMove={moveQuarter} />
+            <RoadmapView items={items} cfg={cfg} onMove={moveQuarter} onUpdate={updateOne} />
           </TabsContent>
+
 
           <TabsContent value="capacity" className="mt-6">
             <CapacityPanel cfg={cfg} onChange={(c) => { setCfg(c); saveCapacity(c); }} />
