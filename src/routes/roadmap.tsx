@@ -636,27 +636,138 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
           onDrop={() => handleDrop("")}
           className={`rounded-xl border border-dashed bg-card/60 p-4 transition-colors ${overQ === "" ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
         >
-          <h4 className="font-semibold text-foreground mb-2">{t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})</h4>
-          <div className="flex flex-wrap gap-2">
-            {byQuarter[""].map((v) => (
-              <div
-                key={v.item.uid}
-                draggable
-                onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
-                onDragEnd={() => { setDragUid(null); setOverQ(null); }}
-                className={`cursor-grab active:cursor-grabbing ${dragUid === v.item.uid ? "opacity-40" : ""}`}
-              >
-                <Badge variant="outline" className={WORK_ITEM_ICONS[v.item.type].badgeClass}>
-                  {v.item.id} · {v.item.title}
-                </Badge>
-              </div>
-            ))}
+          <h4 className="font-semibold text-foreground mb-3">
+            {t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})
+          </h4>
+          <div className="grid md:grid-cols-3 gap-3">
+            {(["epic", "feature", "story"] as ItemType[]).map((typ) => {
+              const cell = byQuarter[""].filter((v) => v.item.type === typ);
+              const label = typ === "epic" ? "Epics" : typ === "feature" ? "Features" : "User Stories";
+              return (
+                <div key={typ} className="rounded-lg border border-border bg-card/80 p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1.5 text-sm font-semibold">
+                      <WorkItemIcon type={typ} className="h-4 w-4" />
+                      {label}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{cell.length}</span>
+                  </div>
+                  <div className="space-y-1.5 min-h-[40px]">
+                    {cell.length === 0 && (
+                      <div className="text-xs text-muted-foreground/60 text-center py-3">—</div>
+                    )}
+                    {cell.map((v) => {
+                      const ready = isReady(v.item);
+                      return (
+                        <div
+                          key={v.item.uid}
+                          draggable
+                          onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
+                          onDragEnd={() => { setDragUid(null); setOverQ(null); }}
+                          className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[v.item.type].badgeClass} ${dragUid === v.item.uid ? "opacity-40" : ""} ${!ready ? "ring-1 ring-amber-500/40" : ""}`}
+                          title={!ready ? t("roadmap.needsPriorityEffort") : undefined}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold">{v.item.id}</span>
+                            {!ready && (
+                              <span className="text-[10px] text-amber-600 dark:text-amber-400">⚠</span>
+                            )}
+                          </div>
+                          <div className="text-foreground line-clamp-2">{v.item.title}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
+
+      <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("roadmap.completeBeforeMove")}</DialogTitle>
+            <DialogDescription>
+              {pendingItem && (
+                <>
+                  <span className="font-medium">{pendingItem.id}</span> · {pendingItem.title}
+                  <br />
+                  {t("roadmap.requireFields")}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {pendingItem && (
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">
+                  {t("roadmap.col.priority")}
+                </label>
+                <Select
+                  value={pendingItem.priority || ""}
+                  onValueChange={(v) => onUpdate(pendingItem.uid, { priority: v as Priority })}
+                >
+                  <SelectTrigger className="h-9 mt-1">
+                    <SelectValue placeholder="—" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIORITIES.map((p) => (
+                      <SelectItem key={p} value={p as string}>
+                        {PRIORITY_META[p as Exclude<Priority, "">].label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">
+                  {t("roadmap.col.effort") || "Effort (h)"}
+                </label>
+                {pendingHasKids ? (
+                  <div className="h-9 mt-1 flex items-center px-3 text-sm text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border">
+                    Σ {rolledUpEffort(pendingItem, items)}h ({t("roadmap.rollupTitle")})
+                  </div>
+                ) : (
+                  <Input
+                    type="number"
+                    min={0}
+                    value={pendingItem.effort ?? ""}
+                    onChange={(e) => onUpdate(pendingItem.uid, {
+                      effort: e.target.value === "" ? undefined : Number(e.target.value),
+                    })}
+                    className="h-9 mt-1"
+                    placeholder="0"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPending(null)}>
+              {t("common.cancel") || "Cancel"}
+            </Button>
+            <Button
+              disabled={!pendingItem || !isReady(pendingItem)}
+              onClick={() => {
+                if (pending && pendingItem && isReady(pendingItem)) {
+                  onMove(pending.uid, pending.quarter);
+                  setPending(null);
+                }
+              }}
+            >
+              {t("roadmap.addToRoadmap") || "Add to roadmap"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
 
 
