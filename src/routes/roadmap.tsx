@@ -23,7 +23,7 @@ import {
   loadCapacity, saveCapacity, capacityPerQuarter, capacityPerSprint,
   CapacityConfig, buildRoadmapView, effortByQuarter, sprintsForQuarter,
   rolledUpEffort, effortByPriority, countByPriority,
-  descendantsOf, topAncestor, roadmapCoverage,
+  descendantsOf, topAncestor, roadmapCoverage, effectiveQuarter,
 } from "@/lib/roadmap";
 import {
   ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff,
@@ -492,14 +492,19 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
     return map;
   }, [view]);
 
+  const unassignedItems = useMemo(
+    () => items.filter((it) => !it.hiddenFromRoadmap && effectiveQuarter(it, items) === ""),
+    [items],
+  );
+
   const effectiveEffort = (it: RoadmapItem) => {
     const hasKids = items.some((c) => c.parentId === it.id);
     return hasKids ? rolledUpEffort(it, items) : (it.effort ?? 0);
   };
   const isReady = (it: RoadmapItem) => !!it.priority && effectiveEffort(it) > 0;
 
-  const handleDrop = (q: Quarter) => {
-    const id = dragUid;
+  const handleDrop = (q: Quarter, droppedUid?: string) => {
+    const id = droppedUid || dragUid;
     setDragUid(null);
     setOverQ(null);
     if (!id) return;
@@ -550,7 +555,7 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
               key={q}
               onDragOver={(e) => { e.preventDefault(); setOverQ(q); }}
               onDragLeave={() => setOverQ((prev) => (prev === q ? null : prev))}
-              onDrop={() => handleDrop(q)}
+              onDrop={(e) => handleDrop(q, e.dataTransfer.getData("text/plain"))}
               className={`rounded-xl border bg-card flex flex-col transition-colors ${overQ === q ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
             >
               <div className="p-4 border-b border-border">
@@ -584,7 +589,7 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
                     <div
                       key={it.uid}
                       draggable
-                      onDragStart={(e) => { setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; }}
+                      onDragStart={(e) => { setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", it.uid); }}
                       onDragEnd={() => { setDragUid(null); setOverQ(null); }}
                       className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""}`}
                     >
