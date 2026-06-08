@@ -634,19 +634,19 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
       </div>
 
 
-      {byQuarter[""].length > 0 && (
+      {unassignedItems.length > 0 && (
         <div
           onDragOver={(e) => { e.preventDefault(); setOverQ(""); }}
           onDragLeave={() => setOverQ((prev) => (prev === "" ? null : prev))}
-          onDrop={() => handleDrop("")}
+          onDrop={(e) => handleDrop("", e.dataTransfer.getData("text/plain"))}
           className={`rounded-xl border border-dashed bg-card/60 p-4 transition-colors ${overQ === "" ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
         >
           <h4 className="font-semibold text-foreground mb-3">
-            {t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})
+            {t("roadmap.noQuarterAssigned")} ({unassignedItems.length})
           </h4>
           <div className="grid md:grid-cols-3 gap-3">
             {(["epic", "feature", "story"] as ItemType[]).map((typ) => {
-              const cell = byQuarter[""].filter((v) => v.item.type === typ);
+              const cell = unassignedItems.filter((item) => item.type === typ);
               const label = typ === "epic" ? "Epics" : typ === "feature" ? "Features" : "User Stories";
               return (
                 <div key={typ} className="rounded-lg border border-border bg-card/80 p-3">
@@ -661,24 +661,24 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
                     {cell.length === 0 && (
                       <div className="text-xs text-muted-foreground/60 text-center py-3">—</div>
                     )}
-                    {cell.map((v) => {
-                      const ready = isReady(v.item);
+                    {cell.map((item) => {
+                      const ready = isReady(item);
                       return (
                         <div
-                          key={v.item.uid}
+                          key={item.uid}
                           draggable
-                          onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
+                          onDragStart={(e) => { setDragUid(item.uid); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", item.uid); }}
                           onDragEnd={() => { setDragUid(null); setOverQ(null); }}
-                          className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[v.item.type].badgeClass} ${dragUid === v.item.uid ? "opacity-40" : ""} ${!ready ? "ring-1 ring-amber-500/40" : ""}`}
+                          className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[item.type].badgeClass} ${dragUid === item.uid ? "opacity-40" : ""} ${!ready ? "ring-1 ring-amber-500/40" : ""}`}
                           title={!ready ? "Falta prioridad o esfuerzo" : undefined}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-semibold">{v.item.id}</span>
+                            <span className="font-semibold">{item.id}</span>
                             {!ready && (
                               <span className="text-[10px] text-amber-600 dark:text-amber-400">⚠</span>
                             )}
                           </div>
-                          <div className="text-foreground line-clamp-2">{v.item.title}</div>
+                          <div className="text-foreground line-clamp-2">{item.title}</div>
                         </div>
                       );
                     })}
