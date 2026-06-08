@@ -577,13 +577,17 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
                         </div>
                       )}
                       <div className="flex items-center justify-between mt-1">
-                        {(it.effort ?? 0) > 0
-                          ? <span className="text-[10px] text-muted-foreground">{it.effort}h</span>
-                          : <span />}
+                        {(() => {
+                          const eff = v.rolledUp ? rolledUpEffort(it, items) : (it.effort ?? 0);
+                          return eff > 0
+                            ? <span className="text-[10px] text-muted-foreground">{v.rolledUp ? "Σ " : ""}{eff}h</span>
+                            : <span />;
+                        })()}
                         {v.rolledUp && (
                           <span className="text-[10px] text-muted-foreground italic">rollup</span>
                         )}
                       </div>
+
                     </div>
                   );
                 })}
