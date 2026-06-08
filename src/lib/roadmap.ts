@@ -15,6 +15,7 @@ export type RoadmapItem = {
   effort?: number;
   priority?: Priority;
   quarter?: Quarter;
+  quarterOverride?: boolean;
   sprint?: number;       // 1..N within the assigned quarter
   state?: State;
   notes?: string;
@@ -266,6 +267,7 @@ export function roadmapCoverage(item: RoadmapItem, items: RoadmapItem[]): { plan
  */
 export function effectiveQuarter(item: RoadmapItem, items: RoadmapItem[]): Quarter {
   if (item.quarter) return item.quarter;
+  if (item.quarterOverride) return "";
   const parent = findById(items, item.parentId);
   if (!parent) return "";
   return effectiveQuarter(parent, items);
@@ -302,7 +304,9 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
   const sharedChildQuarter = (node: RoadmapItem): Quarter | null => {
     const desc = allDescendants(node);
     if (desc.length === 0) return null;
-    const quarters = new Set(desc.map((d) => effectiveQuarter(d, items)).filter(Boolean));
+    const resolved = desc.map((d) => effectiveQuarter(d, items));
+    if (resolved.some((q) => q === "")) return null;
+    const quarters = new Set(resolved);
     if (quarters.size !== 1) return null;
     return [...quarters][0] as Quarter;
   };
