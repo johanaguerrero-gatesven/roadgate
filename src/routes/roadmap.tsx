@@ -472,13 +472,18 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
   );
 }
 
-function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: CapacityConfig; onMove: (uid: string, quarter: Quarter) => void }) {
+function RoadmapView({ items, cfg, onMove, onUpdate }: {
+  items: RoadmapItem[]; cfg: CapacityConfig;
+  onMove: (uid: string, quarter: Quarter) => void;
+  onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void;
+}) {
   const { t } = useI18n();
   const view = useMemo(() => buildRoadmapView(items), [items]);
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
   const capSprint = capacityPerSprint(cfg);
   const [dragUid, setDragUid] = useState<string | null>(null);
   const [overQ, setOverQ] = useState<Quarter | null>(null);
+  const [pending, setPending] = useState<{ uid: string; quarter: Quarter } | null>(null);
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
@@ -487,11 +492,32 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
     return map;
   }, [view]);
 
+  const effectiveEffort = (it: RoadmapItem) => {
+    const hasKids = items.some((c) => c.parentId === it.id);
+    return hasKids ? rolledUpEffort(it, items) : (it.effort ?? 0);
+  };
+  const isReady = (it: RoadmapItem) => !!it.priority && effectiveEffort(it) > 0;
+
   const handleDrop = (q: Quarter) => {
-    if (dragUid) onMove(dragUid, q);
+    const id = dragUid;
     setDragUid(null);
     setOverQ(null);
+    if (!id) return;
+    const it = items.find((x) => x.uid === id);
+    if (!it) return;
+    // Moving back to "no quarter" never requires validation
+    if (q !== "" && !isReady(it)) {
+      setPending({ uid: id, quarter: q });
+      return;
+    }
+    onMove(id, q);
   };
+
+  const pendingItem = pending ? items.find((x) => x.uid === pending.uid) ?? null : null;
+  const pendingHasKids = pendingItem
+    ? items.some((c) => c.parentId === pendingItem.id)
+    : false;
+
 
   const priorityColor = (p?: Priority) =>
     p === "1-High" ? "bg-destructive/15 text-destructive border-destructive/30"
