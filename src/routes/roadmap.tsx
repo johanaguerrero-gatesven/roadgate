@@ -140,7 +140,7 @@ function RoadmapPage() {
           </TabsContent>
 
           <TabsContent value="roadmap" className="mt-6">
-            <RoadmapView items={items} cfg={cfg} onMove={moveQuarter} />
+            <RoadmapView items={items} cfg={cfg} onMove={moveQuarter} onRestore={update} />
           </TabsContent>
 
           <TabsContent value="capacity" className="mt-6">
@@ -467,13 +467,14 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
   );
 }
 
-function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: CapacityConfig; onMove: (uid: string, quarter: Quarter) => void }) {
+function RoadmapView({ items, cfg, onMove, onRestore }: { items: RoadmapItem[]; cfg: CapacityConfig; onMove: (uid: string, quarter: Quarter) => void; onRestore: (next: RoadmapItem[]) => void }) {
   const { t } = useI18n();
   const view = useMemo(() => buildRoadmapView(items), [items]);
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
   const capSprint = capacityPerSprint(cfg);
   const [dragUid, setDragUid] = useState<string | null>(null);
   const [overQ, setOverQ] = useState<Quarter | null>(null);
+  const [lastSnapshot, setLastSnapshot] = useState<{ items: RoadmapItem[]; fromQ: Quarter; toQ: Quarter; id: string } | null>(null);
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
@@ -483,9 +484,22 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
   }, [view]);
 
   const handleDrop = (q: Quarter) => {
-    if (dragUid) onMove(dragUid, q);
+    if (dragUid) {
+      const target = items.find((i) => i.uid === dragUid);
+      const fromQ = (target?.quarter ?? "") as Quarter;
+      if (target && fromQ !== q) {
+        setLastSnapshot({ items, fromQ, toQ: q, id: target.id });
+      }
+      onMove(dragUid, q);
+    }
     setDragUid(null);
     setOverQ(null);
+  };
+
+  const undo = () => {
+    if (!lastSnapshot) return;
+    onRestore(lastSnapshot.items);
+    setLastSnapshot(null);
   };
 
   const priorityColor = (p?: Priority) =>
@@ -502,6 +516,16 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
 
   return (
     <div className="space-y-6">
+      {lastSnapshot && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
+          <span className="text-muted-foreground">
+            {lastSnapshot.id}: {lastSnapshot.fromQ || "Sin quarter"} → {lastSnapshot.toQ || "Sin quarter"}
+          </span>
+          <Button variant="outline" size="sm" onClick={undo}>
+            <ArrowLeft className="h-3.5 w-3.5" /> Deshacer
+          </Button>
+        </div>
+      )}
       {/* Una sola tarjeta por Quarter: KPI + items */}
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
         {QUARTERS.map((q) => {
