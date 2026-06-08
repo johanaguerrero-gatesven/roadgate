@@ -9,10 +9,6 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-
 
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
@@ -144,9 +140,8 @@ function RoadmapPage() {
           </TabsContent>
 
           <TabsContent value="roadmap" className="mt-6">
-            <RoadmapView items={items} cfg={cfg} onMove={moveQuarter} onUpdate={updateOne} />
+            <RoadmapView items={items} cfg={cfg} onMove={moveQuarter} />
           </TabsContent>
-
 
           <TabsContent value="capacity" className="mt-6">
             <CapacityPanel cfg={cfg} onChange={(c) => { setCfg(c); saveCapacity(c); }} />
@@ -472,18 +467,13 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
   );
 }
 
-function RoadmapView({ items, cfg, onMove, onUpdate }: {
-  items: RoadmapItem[]; cfg: CapacityConfig;
-  onMove: (uid: string, quarter: Quarter) => void;
-  onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void;
-}) {
+function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: CapacityConfig; onMove: (uid: string, quarter: Quarter) => void }) {
   const { t } = useI18n();
   const view = useMemo(() => buildRoadmapView(items), [items]);
   const effortMap = useMemo(() => effortByQuarter(items), [items]);
   const capSprint = capacityPerSprint(cfg);
   const [dragUid, setDragUid] = useState<string | null>(null);
   const [overQ, setOverQ] = useState<Quarter | null>(null);
-  const [pending, setPending] = useState<{ uid: string; quarter: Quarter } | null>(null);
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
@@ -492,32 +482,11 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
     return map;
   }, [view]);
 
-  const effectiveEffort = (it: RoadmapItem) => {
-    const hasKids = items.some((c) => c.parentId === it.id);
-    return hasKids ? rolledUpEffort(it, items) : (it.effort ?? 0);
-  };
-  const isReady = (it: RoadmapItem) => !!it.priority && effectiveEffort(it) > 0;
-
   const handleDrop = (q: Quarter) => {
-    const id = dragUid;
+    if (dragUid) onMove(dragUid, q);
     setDragUid(null);
     setOverQ(null);
-    if (!id) return;
-    const it = items.find((x) => x.uid === id);
-    if (!it) return;
-    // Moving back to "no quarter" never requires validation
-    if (q !== "" && !isReady(it)) {
-      setPending({ uid: id, quarter: q });
-      return;
-    }
-    onMove(id, q);
   };
-
-  const pendingItem = pending ? items.find((x) => x.uid === pending.uid) ?? null : null;
-  const pendingHasKids = pendingItem
-    ? items.some((c) => c.parentId === pendingItem.id)
-    : false;
-
 
   const priorityColor = (p?: Priority) =>
     p === "1-High" ? "bg-destructive/15 text-destructive border-destructive/30"
@@ -636,138 +605,27 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
           onDrop={() => handleDrop("")}
           className={`rounded-xl border border-dashed bg-card/60 p-4 transition-colors ${overQ === "" ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
         >
-          <h4 className="font-semibold text-foreground mb-3">
-            {t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})
-          </h4>
-          <div className="grid md:grid-cols-3 gap-3">
-            {(["epic", "feature", "story"] as ItemType[]).map((typ) => {
-              const cell = byQuarter[""].filter((v) => v.item.type === typ);
-              const label = typ === "epic" ? "Epics" : typ === "feature" ? "Features" : "User Stories";
-              return (
-                <div key={typ} className="rounded-lg border border-border bg-card/80 p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-1.5 text-sm font-semibold">
-                      <WorkItemIcon type={typ} className="h-4 w-4" />
-                      {label}
-                    </div>
-                    <span className="text-xs text-muted-foreground">{cell.length}</span>
-                  </div>
-                  <div className="space-y-1.5 min-h-[40px]">
-                    {cell.length === 0 && (
-                      <div className="text-xs text-muted-foreground/60 text-center py-3">—</div>
-                    )}
-                    {cell.map((v) => {
-                      const ready = isReady(v.item);
-                      return (
-                        <div
-                          key={v.item.uid}
-                          draggable
-                          onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
-                          onDragEnd={() => { setDragUid(null); setOverQ(null); }}
-                          className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[v.item.type].badgeClass} ${dragUid === v.item.uid ? "opacity-40" : ""} ${!ready ? "ring-1 ring-amber-500/40" : ""}`}
-                          title={!ready ? "Falta prioridad o esfuerzo" : undefined}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-semibold">{v.item.id}</span>
-                            {!ready && (
-                              <span className="text-[10px] text-amber-600 dark:text-amber-400">⚠</span>
-                            )}
-                          </div>
-                          <div className="text-foreground line-clamp-2">{v.item.title}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+          <h4 className="font-semibold text-foreground mb-2">{t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})</h4>
+          <div className="flex flex-wrap gap-2">
+            {byQuarter[""].map((v) => (
+              <div
+                key={v.item.uid}
+                draggable
+                onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
+                onDragEnd={() => { setDragUid(null); setOverQ(null); }}
+                className={`cursor-grab active:cursor-grabbing ${dragUid === v.item.uid ? "opacity-40" : ""}`}
+              >
+                <Badge variant="outline" className={WORK_ITEM_ICONS[v.item.type].badgeClass}>
+                  {v.item.id} · {v.item.title}
+                </Badge>
+              </div>
+            ))}
           </div>
         </div>
       )}
-
-      <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{"Completar antes de añadir al roadmap"}</DialogTitle>
-            <DialogDescription>
-              {pendingItem && (
-                <>
-                  <span className="font-medium">{pendingItem.id}</span> · {pendingItem.title}
-                  <br />
-                  {"Este work item necesita prioridad y esfuerzo para entrar en el roadmap."}
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-
-          {pendingItem && (
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">
-                  {t("roadmap.col.priority")}
-                </label>
-                <Select
-                  value={pendingItem.priority || ""}
-                  onValueChange={(v) => onUpdate(pendingItem.uid, { priority: v as Priority })}
-                >
-                  <SelectTrigger className="h-9 mt-1">
-                    <SelectValue placeholder="—" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRIORITIES.map((p) => (
-                      <SelectItem key={p} value={p as string}>
-                        {PRIORITY_META[p as Exclude<Priority, "">].label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">
-                  {"Esfuerzo (h)"}
-                </label>
-                {pendingHasKids ? (
-                  <div className="h-9 mt-1 flex items-center px-3 text-sm text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border">
-                    Σ {rolledUpEffort(pendingItem, items)}h ({t("roadmap.rollupTitle")})
-                  </div>
-                ) : (
-                  <Input
-                    type="number"
-                    min={0}
-                    value={pendingItem.effort ?? ""}
-                    onChange={(e) => onUpdate(pendingItem.uid, {
-                      effort: e.target.value === "" ? undefined : Number(e.target.value),
-                    })}
-                    className="h-9 mt-1"
-                    placeholder="0"
-                  />
-                )}
-              </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setPending(null)}>
-              {"Cancelar"}
-            </Button>
-            <Button
-              disabled={!pendingItem || !isReady(pendingItem)}
-              onClick={() => {
-                if (pending && pendingItem && isReady(pendingItem)) {
-                  onMove(pending.uid, pending.quarter);
-                  setPending(null);
-                }
-              }}
-            >
-              {"Añadir al roadmap"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
-
 
 
 
