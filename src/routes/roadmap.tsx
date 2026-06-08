@@ -294,16 +294,26 @@ function BacklogPanel({
                         </td>
                       )}
                       <td>
-                        <Input
-                          type="number" min={0}
-                          value={it.effort ?? ""}
-                          onChange={(e) => onUpdate(it.uid, {
-                            effort: e.target.value === "" ? undefined : Number(e.target.value),
-                          })}
-                          placeholder="0"
-                          className="h-8 text-xs text-right"
-                        />
+                        {hasKids ? (
+                          <div
+                            className="h-8 flex items-center justify-end px-2 text-xs text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border cursor-not-allowed"
+                            title={t("roadmap.rollupTitle")}
+                          >
+                            Σ {rolledUpEffort(it, items)}h
+                          </div>
+                        ) : (
+                          <Input
+                            type="number" min={0}
+                            value={it.effort ?? ""}
+                            onChange={(e) => onUpdate(it.uid, {
+                              effort: e.target.value === "" ? undefined : Number(e.target.value),
+                            })}
+                            placeholder="0"
+                            className="h-8 text-xs text-right"
+                          />
+                        )}
                       </td>
+
                       <td>
                         <Select
                           value={it.priority || ""}
