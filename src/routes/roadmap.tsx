@@ -538,19 +538,26 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
                   const it = v.item;
                   const top = topAncestor(it, items);
                   const cov = top ? roadmapCoverage(top, items) : null;
-                  const showParent = !!top && cov !== null && cov.pct < 100 - 0.5;
+                  const showParent = !v.rolledUp && !!top && cov !== null && cov.pct < 100 - 0.5;
+                  const descCount = v.rolledUp ? descendantsOf(it, items).length : 0;
+                  const totalEffort = v.rolledUp ? rolledUpEffort(it, items) : (it.effort ?? 0);
                   return (
                     <div
                       key={it.uid}
                       draggable
                       onDragStart={(e) => { setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; }}
                       onDragEnd={() => { setDragUid(null); setOverQ(null); }}
-                      className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""}`}
+                      className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""} ${v.rolledUp ? "ring-1 ring-primary/40 shadow-sm" : ""}`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <span className="flex items-center gap-1 font-semibold">
                           <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
                           {it.id}
+                          {v.rolledUp && (
+                            <span className="ml-1 px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 text-[9px] font-semibold uppercase tracking-wide">
+                              Σ {descCount}
+                            </span>
+                          )}
                         </span>
                         {it.priority && (
                           <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
@@ -567,11 +574,13 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
                         </div>
                       )}
                       <div className="flex items-center justify-between mt-1">
-                        {(it.effort ?? 0) > 0
-                          ? <span className="text-[10px] text-muted-foreground">{it.effort}h</span>
+                        {totalEffort > 0
+                          ? <span className={`text-[10px] ${v.rolledUp ? "font-semibold text-primary" : "text-muted-foreground"}`}>
+                              {v.rolledUp ? `Σ ${totalEffort}h` : `${totalEffort}h`}
+                            </span>
                           : <span />}
                         {v.rolledUp && (
-                          <span className="text-[10px] text-muted-foreground italic">rollup</span>
+                          <span className="text-[10px] text-primary/80 italic">unified ({descCount} {descCount === 1 ? "child" : "children"})</span>
                         )}
                       </div>
                     </div>
