@@ -634,13 +634,12 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
       </div>
 
 
-      {unassignedItems.length > 0 && (
-        <div
-          onDragOver={(e) => { e.preventDefault(); setOverQ(""); }}
-          onDragLeave={() => setOverQ((prev) => (prev === "" ? null : prev))}
-          onDrop={(e) => handleDrop("", e.dataTransfer.getData("text/plain"))}
-          className={`rounded-xl border border-dashed bg-card/60 p-4 transition-colors ${overQ === "" ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
-        >
+      <div
+        onDragOver={(e) => { e.preventDefault(); setOverQ(""); }}
+        onDragLeave={() => setOverQ((prev) => (prev === "" ? null : prev))}
+        onDrop={(e) => handleDrop("", e.dataTransfer.getData("text/plain"))}
+        className={`rounded-xl border border-dashed bg-card/60 p-4 transition-colors ${overQ === "" ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
+      >
           <h4 className="font-semibold text-foreground mb-3">
             {t("roadmap.noQuarterAssigned")} ({unassignedItems.length})
           </h4>
@@ -687,8 +686,7 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
               );
             })}
           </div>
-        </div>
-      )}
+      </div>
 
       <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
         <DialogContent>
