@@ -665,7 +665,7 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
                           onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
                           onDragEnd={() => { setDragUid(null); setOverQ(null); }}
                           className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[v.item.type].badgeClass} ${dragUid === v.item.uid ? "opacity-40" : ""} ${!ready ? "ring-1 ring-amber-500/40" : ""}`}
-                          title={!ready ? t("roadmap.needsPriorityEffort") : undefined}
+                          title={!ready ? "Falta prioridad o esfuerzo" : undefined}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-semibold">{v.item.id}</span>
@@ -688,13 +688,13 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
       <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("roadmap.completeBeforeMove")}</DialogTitle>
+            <DialogTitle>{"Completar antes de añadir al roadmap"}</DialogTitle>
             <DialogDescription>
               {pendingItem && (
                 <>
                   <span className="font-medium">{pendingItem.id}</span> · {pendingItem.title}
                   <br />
-                  {t("roadmap.requireFields")}
+                  {"Este work item necesita prioridad y esfuerzo para entrar en el roadmap."}
                 </>
               )}
             </DialogDescription>
@@ -724,7 +724,7 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground">
-                  {t("roadmap.col.effort") || "Effort (h)"}
+                  {"Esfuerzo (h)"}
                 </label>
                 {pendingHasKids ? (
                   <div className="h-9 mt-1 flex items-center px-3 text-sm text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border">
@@ -748,7 +748,7 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setPending(null)}>
-              {t("common.cancel") || "Cancel"}
+              {"Cancelar"}
             </Button>
             <Button
               disabled={!pendingItem || !isReady(pendingItem)}
@@ -759,7 +759,7 @@ function RoadmapView({ items, cfg, onMove, onUpdate }: {
                 }
               }}
             >
-              {t("roadmap.addToRoadmap") || "Add to roadmap"}
+              {"Añadir al roadmap"}
             </Button>
           </DialogFooter>
         </DialogContent>
