@@ -9,9 +9,6 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
 
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
@@ -477,12 +474,6 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
   const capSprint = capacityPerSprint(cfg);
   const [dragUid, setDragUid] = useState<string | null>(null);
   const [overQ, setOverQ] = useState<Quarter | null>(null);
-  const [overUnassignedType, setOverUnassignedType] = useState<ItemType | null>(null);
-
-  // Validation dialog state
-  const [pendingMove, setPendingMove] = useState<{ uid: string; quarter: Quarter } | null>(null);
-  const [pendingPriority, setPendingPriority] = useState<Priority>("");
-  const [pendingEffort, setPendingEffort] = useState<string>("");
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
@@ -491,58 +482,10 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
     return map;
   }, [view]);
 
-  const unassignedByType = useMemo(() => {
-    const grp: Record<ItemType, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
-      { epic: [], feature: [], story: [] };
-    byQuarter[""].forEach((v) => grp[v.item.type].push(v));
-    return grp;
-  }, [byQuarter]);
-
-  const itemEffectiveEffort = (it: RoadmapItem) => {
-    const hasKids = items.some((c) => c.parentId === it.id);
-    return hasKids ? rolledUpEffort(it, items) : (it.effort || 0);
-  };
-
-  const tryMove = (uidKey: string, q: Quarter) => {
-    const it = items.find((i) => i.uid === uidKey);
-    if (!it) return;
-    // Validation only required when promoting INTO a real quarter
-    if (q !== "") {
-      const eff = itemEffectiveEffort(it);
-      const needsPrio = !it.priority;
-      const needsEffort = eff <= 0;
-      if (needsPrio || needsEffort) {
-        setPendingPriority(it.priority || "");
-        setPendingEffort(eff > 0 ? String(eff) : "");
-        setPendingMove({ uid: uidKey, quarter: q });
-        return;
-      }
-    }
-    onMove(uidKey, q);
-  };
-
   const handleDrop = (q: Quarter) => {
-    if (dragUid) tryMove(dragUid, q);
+    if (dragUid) onMove(dragUid, q);
     setDragUid(null);
     setOverQ(null);
-    setOverUnassignedType(null);
-  };
-
-  const confirmPendingMove = () => {
-    if (!pendingMove) return;
-    const it = items.find((i) => i.uid === pendingMove.uid);
-    if (!it) { setPendingMove(null); return; }
-    const hasKids = items.some((c) => c.parentId === it.id);
-    const patch: Partial<RoadmapItem> = {};
-    if (pendingPriority) patch.priority = pendingPriority;
-    if (!hasKids) {
-      const n = Number(pendingEffort);
-      if (!Number.isNaN(n) && n > 0) patch.effort = n;
-    }
-    // Persist patch + move via storage event chain
-    const next = items.map((x) => (x.uid === it.uid ? { ...x, ...patch, quarter: pendingMove.quarter } : x));
-    saveItems(next);
-    setPendingMove(null);
   };
 
   const priorityColor = (p?: Priority) =>
@@ -556,18 +499,6 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
     pct === 0 ? "bg-muted"
     : pct > 110 ? "bg-destructive"
     : pct < 90 ? "bg-amber-500" : "bg-emerald-500";
-
-  const pendingItem = pendingMove ? items.find((i) => i.uid === pendingMove.uid) : null;
-  const pendingHasKids = pendingItem ? items.some((c) => c.parentId === pendingItem.id) : false;
-  const pendingMissingPrio = !pendingPriority;
-  const pendingMissingEffort = !pendingHasKids && !(Number(pendingEffort) > 0);
-  const pendingValid = !pendingMissingPrio && !pendingMissingEffort;
-
-  const UNASSIGNED_TYPES: { type: ItemType; label: string }[] = [
-    { type: "epic", label: "Epics" },
-    { type: "feature", label: "Features" },
-    { type: "story", label: "User Stories" },
-  ];
 
   return (
     <div className="space-y-6">
@@ -623,7 +554,7 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
                       key={it.uid}
                       draggable
                       onDragStart={(e) => { setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; }}
-                      onDragEnd={() => { setDragUid(null); setOverQ(null); setOverUnassignedType(null); }}
+                      onDragEnd={() => { setDragUid(null); setOverQ(null); }}
                       className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""}`}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -668,114 +599,30 @@ function RoadmapView({ items, cfg, onMove }: { items: RoadmapItem[]; cfg: Capaci
 
 
       {byQuarter[""].length > 0 && (
-        <div className="space-y-3">
-          <h4 className="font-semibold text-foreground">
-            {t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})
-          </h4>
-          <div className="grid md:grid-cols-3 gap-4">
-            {UNASSIGNED_TYPES.map(({ type, label }) => {
-              const list = unassignedByType[type];
-              const isOver = overQ === "" && overUnassignedType === type;
-              return (
-                <div
-                  key={type}
-                  onDragOver={(e) => { e.preventDefault(); setOverQ(""); setOverUnassignedType(type); }}
-                  onDragLeave={() => { setOverUnassignedType((prev) => (prev === type ? null : prev)); }}
-                  onDrop={() => handleDrop("")}
-                  className={`rounded-xl border border-dashed bg-card/60 p-3 min-h-[120px] transition-colors ${isOver ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <WorkItemIcon type={type} className="h-4 w-4" />
-                      <span className="text-sm font-semibold text-foreground">{label}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">{list.length}</span>
-                  </div>
-                  {list.length === 0 ? (
-                    <div className="text-xs text-muted-foreground/60 text-center py-6">—</div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {list.map((v) => (
-                        <div
-                          key={v.item.uid}
-                          draggable
-                          onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
-                          onDragEnd={() => { setDragUid(null); setOverQ(null); setOverUnassignedType(null); }}
-                          className={`cursor-grab active:cursor-grabbing ${dragUid === v.item.uid ? "opacity-40" : ""}`}
-                          title={v.item.title}
-                        >
-                          <Badge variant="outline" className={WORK_ITEM_ICONS[v.item.type].badgeClass}>
-                            {v.item.id} · {v.item.title.slice(0, 40)}{v.item.title.length > 40 ? "…" : ""}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setOverQ(""); }}
+          onDragLeave={() => setOverQ((prev) => (prev === "" ? null : prev))}
+          onDrop={() => handleDrop("")}
+          className={`rounded-xl border border-dashed bg-card/60 p-4 transition-colors ${overQ === "" ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
+        >
+          <h4 className="font-semibold text-foreground mb-2">{t("roadmap.noQuarterAssigned")} ({byQuarter[""].length})</h4>
+          <div className="flex flex-wrap gap-2">
+            {byQuarter[""].map((v) => (
+              <div
+                key={v.item.uid}
+                draggable
+                onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
+                onDragEnd={() => { setDragUid(null); setOverQ(null); }}
+                className={`cursor-grab active:cursor-grabbing ${dragUid === v.item.uid ? "opacity-40" : ""}`}
+              >
+                <Badge variant="outline" className={WORK_ITEM_ICONS[v.item.type].badgeClass}>
+                  {v.item.id} · {v.item.title}
+                </Badge>
+              </div>
+            ))}
           </div>
         </div>
       )}
-
-      <Dialog open={!!pendingMove} onOpenChange={(o) => { if (!o) setPendingMove(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Completar antes de añadir al Roadmap</DialogTitle>
-            <DialogDescription>
-              {pendingItem ? <>
-                <span className="font-mono font-semibold">{pendingItem.id}</span> · {pendingItem.title}
-                <br />Destino: <span className="font-semibold">{pendingMove?.quarter}</span>
-              </> : null}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-medium text-foreground">Prioridad</label>
-              <Select value={pendingPriority || ""} onValueChange={(v) => setPendingPriority(v as Priority)}>
-                <SelectTrigger className="h-9 mt-1">
-                  <SelectValue placeholder="Selecciona prioridad" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRIORITIES.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      <span className="flex items-center gap-2">
-                        <PriorityIcon p={p} />
-                        {PRIORITY_META[p as Exclude<Priority, "">].label}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {pendingMissingPrio && <p className="text-[11px] text-destructive mt-1">Prioridad requerida</p>}
-            </div>
-            <div>
-              <label className="text-xs font-medium text-foreground">Esfuerzo (h)</label>
-              {pendingHasKids ? (
-                <div className="h-9 mt-1 flex items-center px-3 text-sm text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border">
-                  Σ {pendingItem ? rolledUpEffort(pendingItem, items) : 0}h (suma de hijos)
-                </div>
-              ) : (
-                <>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={pendingEffort}
-                    onChange={(e) => setPendingEffort(e.target.value)}
-                    className="h-9 mt-1"
-                    placeholder="0"
-                  />
-                  {pendingMissingEffort && <p className="text-[11px] text-destructive mt-1">Esfuerzo &gt; 0 requerido</p>}
-                </>
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPendingMove(null)}>Cancelar</Button>
-            <Button onClick={confirmPendingMove} disabled={!pendingValid}>Añadir al Roadmap</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

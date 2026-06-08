@@ -14,7 +14,7 @@ export const WORK_ITEM_ICONS: Record<ItemType, WorkItemIconMeta> = {
     colorClass: "text-orange-500",
     label: "Epic",
     badgeClass:
-      "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30",
+      "bg-primary/15 text-primary border-primary/30",
   },
   feature: {
     icon: Bookmark,
@@ -25,10 +25,10 @@ export const WORK_ITEM_ICONS: Record<ItemType, WorkItemIconMeta> = {
   },
   story: {
     icon: FileText,
-    colorClass: "text-sky-500",
+    colorClass: "text-blue-500",
     label: "User Story",
     badgeClass:
-      "bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-500/30",
+      "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
   },
 };
 
