@@ -70,7 +70,7 @@ function RoadmapPage() {
     const target = items.find((i) => i.uid === uidKey);
     if (!target) return;
     const ids = new Set<string>([target.uid, ...descendantsOf(target, items).map((d) => d.uid)]);
-    update(items.map((it) => (ids.has(it.uid) ? { ...it, quarter } : it)));
+    update(items.map((it) => (ids.has(it.uid) ? { ...it, quarter, quarterOverride: quarter === "" } : it)));
   };
   const remove = (uidKey: string) => update(items.filter((it) => it.uid !== uidKey));
   const add = (type: ItemType) => {
