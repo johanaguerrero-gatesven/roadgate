@@ -1,19 +1,27 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "@tanstack/react-router";
-import { loginWithProvider } from "@/lib/auth";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 
 type Provider = "google" | "microsoft";
 
+/**
+ * OAuth provider buttons.
+ *
+ * NOTE: These are UI stubs. Real OAuth is not configured yet, so clicking a
+ * provider MUST NOT log the user in as a demo/fake account — doing so would
+ * bypass the email/password form and silently drop the user into a fake
+ * session. Instead, we show a toast explaining the provider is coming soon.
+ *
+ * The demo mode is opt-in only via the "Try Demo" button rendered by the
+ * login page.
+ */
 export function AuthProviders({ providers = ["google", "microsoft"] }: { providers?: Provider[] } = {}) {
-  const navigate = useNavigate();
   const { t } = useI18n();
 
   const handle = (provider: Provider) => {
-    toast.info(`${provider === "google" ? "Google" : "Microsoft"} — ${t("auth.providers.toast")}`);
-    loginWithProvider(provider);
-    navigate({ to: "/app" });
+    toast.info(
+      `${provider === "google" ? "Google" : "Microsoft"} sign-in is not configured yet. Please use email & password.`,
+    );
   };
 
   return (
