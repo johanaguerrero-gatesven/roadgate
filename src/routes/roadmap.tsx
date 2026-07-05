@@ -72,6 +72,16 @@ function RoadmapPage() {
   const [items, setItems] = useState<RoadmapItem[]>([]);
   const [cfg, setCfg] = useState<CapacityConfig>(loadCapacity());
   const [tab, setTab] = useState<ItemType>("epic");
+  const [enabledTypes, setEnabledTypesState] = useState<ItemType[]>(ALL_TYPES);
+  useEffect(() => { setEnabledTypesState(loadEnabledTypes()); }, []);
+  useEffect(() => {
+    if (!enabledTypes.includes(tab) && enabledTypes.length) setTab(enabledTypes[0]);
+  }, [enabledTypes, tab]);
+  const setEnabledTypes = (types: ItemType[]) => {
+    const next = types.length ? types : ALL_TYPES;
+    setEnabledTypesState(next);
+    saveEnabledTypes(next);
+  };
 
   useEffect(() => {
     if (ready && !session) navigate({ to: "/login" });
