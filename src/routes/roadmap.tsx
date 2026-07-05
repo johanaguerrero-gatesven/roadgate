@@ -238,7 +238,7 @@ function ParentPicker({
 }
 
 
-
+function BacklogPanel({
   type, items, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
 }: {
   type: ItemType;
