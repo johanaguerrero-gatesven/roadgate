@@ -328,19 +328,19 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
 
   const decide = (node: RoadmapItem): { choice: "self" | "children"; quarter?: Quarter } => {
     const mode = node.displayMode ?? "auto";
-    if (mode === "self") return { choice: "self" };
+    if (mode === "self") {
+      const shared = sharedChildQuarter(node);
+      return { choice: "self", quarter: shared ?? undefined };
+    }
     if (mode === "children") return { choice: "children" };
-    // auto
+    // auto: never absorb children into the parent card. If the node has
+    // descendants, render each descendant on its own quarter so the item the
+    // user placed stays visible as itself (and keeps its own type/icon).
     const desc = allDescendants(node);
     if (desc.length === 0) return { choice: "self" };
-    const shared = sharedChildQuarter(node);
-    if (!shared) return { choice: "children" };
-    // If the parent has its own quarter and it disagrees with the shared
-    // child quarter, render the children to avoid placing the parent in the
-    // wrong column.
-    if (node.quarter && node.quarter !== shared) return { choice: "children" };
-    return { choice: "self", quarter: shared };
+    return { choice: "children" };
   };
+
 
   const walk = (node: RoadmapItem) => {
     if (visited.has(node.uid)) return;
