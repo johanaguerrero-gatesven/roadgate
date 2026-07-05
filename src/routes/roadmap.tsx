@@ -716,7 +716,7 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                     key={g.type}
                     onDragOver={(e) => { e.preventDefault(); setOverQ(""); }}
                     onDragLeave={() => setOverQ((prev) => (prev === "" ? null : prev))}
-                    onDrop={() => handleDrop("")}
+                    onDrop={() => handleDrop("", g.type)}
                     className={`rounded-xl border border-dashed bg-card/60 p-3 min-h-[120px] transition-colors ${overQ === "" ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
                   >
                     <div className="flex items-center justify-between mb-2">
