@@ -65,7 +65,28 @@ function RoadmapPage() {
 
   const update = (next: RoadmapItem[]) => { setItems(next); saveItems(next); };
   const updateOne = (uidKey: string, patch: Partial<RoadmapItem>) => {
-    update(items.map((it) => (it.uid === uidKey ? { ...it, ...patch } : it)));
+    const current = items.find((i) => i.uid === uidKey);
+    if (!current) return;
+    const safePatch = { ...patch };
+    // Nunca permitir sobrescribir el tipo original
+    if ("type" in safePatch) delete (safePatch as { type?: ItemType }).type;
+    // Validar parentId según el tipo
+    if ("parentId" in safePatch) {
+      const pid = safePatch.parentId;
+      if (pid) {
+        const parent = items.find((i) => i.id === pid);
+        const allowed =
+          current.type === "feature" ? parent?.type === "epic"
+          : current.type === "story" ? (parent?.type === "epic" || parent?.type === "feature")
+          : false;
+        if (!allowed) {
+          toast.error("Padre no permitido para este tipo de tarea");
+          delete safePatch.parentId;
+        }
+      }
+    }
+    if (Object.keys(safePatch).length === 0) return;
+    update(items.map((it) => (it.uid === uidKey ? { ...it, ...safePatch } : it)));
   };
   /** Move an item to a quarter and cascade the same quarter to ALL its descendants. */
   const moveQuarter = (uidKey: string, quarter: Quarter) => {
