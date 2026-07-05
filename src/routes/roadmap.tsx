@@ -46,6 +46,24 @@ type RealQuarter = Exclude<Quarter, "">;
 const QUARTERS: RealQuarter[] = ["Q1", "Q2", "Q3", "Q4"];
 const PRIORITIES: Priority[] = ["1-High", "2-Medium", "3-Low", "4-Lowest"];
 
+const ENABLED_TYPES_KEY = "roadgate.roadmap.enabledTypes";
+const ALL_TYPES: ItemType[] = ["epic", "feature", "story"];
+const TYPE_LABEL: Record<ItemType, string> = { epic: "Epics", feature: "Features", story: "User Stories" };
+function loadEnabledTypes(): ItemType[] {
+  if (typeof window === "undefined") return ALL_TYPES;
+  try {
+    const raw = localStorage.getItem(ENABLED_TYPES_KEY);
+    if (!raw) return ALL_TYPES;
+    const parsed = JSON.parse(raw) as ItemType[];
+    const filtered = parsed.filter((t) => ALL_TYPES.includes(t));
+    return filtered.length ? filtered : ALL_TYPES;
+  } catch { return ALL_TYPES; }
+}
+function saveEnabledTypes(types: ItemType[]) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(ENABLED_TYPES_KEY, JSON.stringify(types));
+}
+
 
 function RoadmapPage() {
   const { session, ready } = useAuth();
