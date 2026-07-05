@@ -158,6 +158,19 @@ function SignInForm({ onChallenge }: { onChallenge: () => void }) {
       <Button type="submit" className="w-full h-11" disabled={loading}>
         {loading ? "Signing in…" : "Sign in"}
       </Button>
+      <button
+        type="button"
+        onClick={() => {
+          const s = { userId: "demo-user", email: "demo@roadgate.app", name: "Demo" };
+          localStorage.setItem("roadgate.session", JSON.stringify(s));
+          window.dispatchEvent(new Event("roadgate:auth"));
+          toast.info("Entraste en modo Demo");
+          navigate({ to: "/app" });
+        }}
+        className="w-full text-center text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
+      >
+        Probar Demo (sin cuenta)
+      </button>
     </form>
   );
 }
