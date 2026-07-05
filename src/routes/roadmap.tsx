@@ -189,7 +189,11 @@ function BacklogPanel({
   const fileRef = useRef<HTMLInputElement>(null);
 
   const list = items.filter((i) => i.type === type);
-  const parents = items.filter((i) => i.type === (type === "story" ? "feature" : type === "feature" ? "epic" : ""));
+  const parents = items.filter((i) =>
+    type === "feature" ? i.type === "epic"
+    : type === "story" ? (i.type === "epic" || i.type === "feature")
+    : false
+  );
 
   const handleFile = (f: File) => {
     const reader = new FileReader();
