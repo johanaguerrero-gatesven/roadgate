@@ -1,27 +1,51 @@
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 type Provider = "google" | "microsoft";
 
-/**
- * OAuth provider buttons.
- *
- * NOTE: These are UI stubs. Real OAuth is not configured yet, so clicking a
- * provider MUST NOT log the user in as a demo/fake account — doing so would
- * bypass the email/password form and silently drop the user into a fake
- * session. Instead, we show a toast explaining the provider is coming soon.
- *
- * The demo mode is opt-in only via the "Try Demo" button rendered by the
- * login page.
- */
 export function AuthProviders({ providers = ["google", "microsoft"] }: { providers?: Provider[] } = {}) {
   const { t } = useI18n();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState<Provider | null>(null);
 
-  const handle = (provider: Provider) => {
-    toast.info(
-      `${provider === "google" ? "Google" : "Microsoft"} sign-in is not configured yet. Please use email & password.`,
-    );
+  const handle = async (provider: Provider) => {
+    if (provider === "microsoft") {
+      toast.info("Microsoft sign-in is not enabled yet.");
+      return;
+    }
+    setLoading(provider);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast.error(result.error.message || "Google sign-in failed");
+        return;
+      }
+      if (result.redirected) return; // browser navigates away
+      // Popup flow (editor preview): confirm session then go to /app
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        const u = data.session.user;
+        const name = (u.user_metadata?.full_name as string) || (u.user_metadata?.name as string) || (u.email?.split("@")[0] ?? "User");
+        localStorage.setItem(
+          "roadgate.session",
+          JSON.stringify({ userId: u.id, email: u.email ?? "", name }),
+        );
+        window.dispatchEvent(new Event("roadgate:auth"));
+        toast.success("Signed in with Google");
+        navigate({ to: "/app" });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Google sign-in failed");
+    } finally {
+      setLoading(null);
+    }
   };
 
   return (
@@ -30,11 +54,12 @@ export function AuthProviders({ providers = ["google", "microsoft"] }: { provide
         <Button
           type="button"
           variant="outline"
+          disabled={loading === "google"}
           onClick={() => handle("google")}
           className="relative h-11 w-full justify-center rounded-md border-border/70 bg-card font-medium text-foreground/90 shadow-sm transition-all hover:-translate-y-px hover:bg-accent/40 hover:shadow-md"
         >
           <GoogleIcon className="absolute left-4 h-[18px] w-[18px]" />
-          <span className="truncate">{t("auth.providers.google")}</span>
+          <span className="truncate">{loading === "google" ? "Connecting…" : t("auth.providers.google")}</span>
         </Button>
       )}
       {providers.includes("microsoft") && (
