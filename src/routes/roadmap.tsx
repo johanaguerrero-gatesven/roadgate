@@ -286,21 +286,11 @@ function BacklogPanel({
                       </td>
                       {type !== "epic" && (
                         <td>
-                          <Select
-                            value={it.parentId || ""}
-                            onValueChange={(v) => onUpdate(it.uid, { parentId: v || undefined })}
-                          >
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="—" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {parents.map((p) => (
-                                <SelectItem key={p.uid} value={p.id} className="text-xs">
-                                  {p.id} · {p.title.slice(0, 40)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <ParentPicker
+                            value={it.parentId}
+                            parents={parents}
+                            onChange={(v) => onUpdate(it.uid, { parentId: v || undefined })}
+                          />
                         </td>
                       )}
                       <td>
