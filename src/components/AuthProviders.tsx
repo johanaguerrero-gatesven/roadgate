@@ -30,7 +30,14 @@ export function AuthProviders({ providers = ["google", "microsoft"] }: { provide
       if (result.redirected) return; // browser navigates away
       // Popup flow (editor preview): confirm session then go to /app
       const { data } = await supabase.auth.getSession();
-      if (data.session) {
+      if (data.session?.user) {
+        const u = data.session.user;
+        const name = (u.user_metadata?.full_name as string) || (u.user_metadata?.name as string) || (u.email?.split("@")[0] ?? "User");
+        localStorage.setItem(
+          "roadgate.session",
+          JSON.stringify({ userId: u.id, email: u.email ?? "", name }),
+        );
+        window.dispatchEvent(new Event("roadgate:auth"));
         toast.success("Signed in with Google");
         navigate({ to: "/app" });
       }
