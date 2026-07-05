@@ -667,8 +667,8 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                             : <span />;
                         })()}
                         <Select
-                          value={it.quarter || ""}
-                          onValueChange={(val) => commitMove(it.uid, (val.trim() as Quarter) || "")}
+                          value={it.quarter || "__bl"}
+                          onValueChange={(val) => commitMove(it.uid, (val === "__bl" ? "" : val) as Quarter)}
                         >
                           <SelectTrigger
                             className="h-6 w-[74px] text-[10px] px-1.5"
@@ -678,12 +678,13 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                             <SelectValue placeholder="Q?" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value=" " className="text-xs">Sin Q</SelectItem>
+                            <SelectItem value="__bl" className="text-xs">Sin Q</SelectItem>
                             {QUARTERS.map((qq) => (
                               <SelectItem key={qq} value={qq} className="text-xs">{qq}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+
                       </div>
 
                     </div>
