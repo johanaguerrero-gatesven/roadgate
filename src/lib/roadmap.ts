@@ -283,11 +283,12 @@ export function roadmapCoverage(item: RoadmapItem, items: RoadmapItem[]): { plan
  * Effective quarter for an item, walking up the hierarchy:
  *   US.quarter > Feature.quarter > Epic.quarter
  */
-export function effectiveQuarter(item: RoadmapItem, items: RoadmapItem[]): Quarter {
-  if (item.quarter) return item.quarter;
-  const parent = findById(items, item.parentId);
-  if (!parent) return "";
-  return effectiveQuarter(parent, items);
+export function effectiveQuarter(item: RoadmapItem, _items: RoadmapItem[]): Quarter {
+  // Each item respects its own quarter. Cascading to descendants happens
+  // explicitly in moveQuarter, so we no longer inherit from ancestors —
+  // otherwise setting a child to "Backlog" would still render it under the
+  // parent's quarter.
+  return item.quarter || "";
 }
 
 function childrenOf(parent: RoadmapItem, items: RoadmapItem[]) {
