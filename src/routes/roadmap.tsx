@@ -30,7 +30,10 @@ import {
 import {
   ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff,
   ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Minus, CornerDownRight,
+  Settings2,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { WORK_ITEM_ICONS, WorkItemIcon } from "@/lib/work-item-icons";
 
 
@@ -43,6 +46,24 @@ type RealQuarter = Exclude<Quarter, "">;
 const QUARTERS: RealQuarter[] = ["Q1", "Q2", "Q3", "Q4"];
 const PRIORITIES: Priority[] = ["1-High", "2-Medium", "3-Low", "4-Lowest"];
 
+const ENABLED_TYPES_KEY = "roadgate.roadmap.enabledTypes";
+const ALL_TYPES: ItemType[] = ["epic", "feature", "story"];
+const TYPE_LABEL: Record<ItemType, string> = { epic: "Epics", feature: "Features", story: "User Stories" };
+function loadEnabledTypes(): ItemType[] {
+  if (typeof window === "undefined") return ALL_TYPES;
+  try {
+    const raw = localStorage.getItem(ENABLED_TYPES_KEY);
+    if (!raw) return ALL_TYPES;
+    const parsed = JSON.parse(raw) as ItemType[];
+    const filtered = parsed.filter((t) => ALL_TYPES.includes(t));
+    return filtered.length ? filtered : ALL_TYPES;
+  } catch { return ALL_TYPES; }
+}
+function saveEnabledTypes(types: ItemType[]) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(ENABLED_TYPES_KEY, JSON.stringify(types));
+}
+
 
 function RoadmapPage() {
   const { session, ready } = useAuth();
@@ -51,6 +72,16 @@ function RoadmapPage() {
   const [items, setItems] = useState<RoadmapItem[]>([]);
   const [cfg, setCfg] = useState<CapacityConfig>(loadCapacity());
   const [tab, setTab] = useState<ItemType>("epic");
+  const [enabledTypes, setEnabledTypesState] = useState<ItemType[]>(ALL_TYPES);
+  useEffect(() => { setEnabledTypesState(loadEnabledTypes()); }, []);
+  useEffect(() => {
+    if (!enabledTypes.includes(tab) && enabledTypes.length) setTab(enabledTypes[0]);
+  }, [enabledTypes, tab]);
+  const setEnabledTypes = (types: ItemType[]) => {
+    const next = types.length ? types : ALL_TYPES;
+    setEnabledTypesState(next);
+    saveEnabledTypes(next);
+  };
 
   useEffect(() => {
     if (ready && !session) navigate({ to: "/login" });
@@ -145,26 +176,71 @@ function RoadmapPage() {
 
           <TabsContent value="backlog" className="mt-6">
             <Tabs value={tab} onValueChange={(v) => setTab(v as ItemType)}>
-              <TabsList>
-                <TabsTrigger value="epic">Epics ({items.filter((i) => i.type === "epic").length})</TabsTrigger>
-                <TabsTrigger value="feature">Features ({items.filter((i) => i.type === "feature").length})</TabsTrigger>
-                <TabsTrigger value="story">User Stories ({items.filter((i) => i.type === "story").length})</TabsTrigger>
-              </TabsList>
-              {(["epic", "feature", "story"] as ItemType[]).map((t) => (
-                <TabsContent key={t} value={t} className="mt-4">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <TabsList>
+                  {enabledTypes.map((ty) => (
+                    <TabsTrigger key={ty} value={ty}>
+                      {TYPE_LABEL[ty]} ({items.filter((i) => i.type === ty).length})
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-1.5">
+                      <Settings2 className="h-4 w-4" /> Tipos de work item
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-64">
+                    <div className="text-xs font-medium text-muted-foreground mb-2">
+                      Elige los tipos que quieres usar
+                    </div>
+                    <div className="space-y-2">
+                      {ALL_TYPES.map((ty) => {
+                        const checked = enabledTypes.includes(ty);
+                        const isLastEnabled = checked && enabledTypes.length === 1;
+                        return (
+                          <div key={ty} className="flex items-center gap-2">
+                            <Checkbox
+                              id={`et-${ty}`}
+                              checked={checked}
+                              disabled={isLastEnabled}
+                              onCheckedChange={(v) => {
+                                const next = v
+                                  ? [...enabledTypes, ty].filter((x, i, a) => a.indexOf(x) === i)
+                                  : enabledTypes.filter((x) => x !== ty);
+                                setEnabledTypes(next.length ? next.sort((a, b) => ALL_TYPES.indexOf(a) - ALL_TYPES.indexOf(b)) : enabledTypes);
+                              }}
+                            />
+                            <Label htmlFor={`et-${ty}`} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                              <WorkItemIcon type={ty} className="h-4 w-4" />
+                              {TYPE_LABEL[ty]}
+                            </Label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-3">
+                      Debe quedar al menos un tipo activo.
+                    </p>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              {enabledTypes.map((ty) => (
+                <TabsContent key={ty} value={ty} className="mt-4">
                   <BacklogPanel
-                    type={t}
+                    type={ty}
                     items={items}
-                    onAdd={() => add(t)}
+                    onAdd={() => add(ty)}
                     onUpdate={updateOne}
                     onMoveQuarter={moveQuarter}
                     onRemove={remove}
-                    onImport={(csv) => update(importCSV(csv, t, items))}
+                    onImport={(csv) => update(importCSV(csv, ty, items))}
                   />
                 </TabsContent>
               ))}
             </Tabs>
           </TabsContent>
+
 
           <TabsContent value="roadmap" className="mt-6">
             <RoadmapView items={items} cfg={cfg} onMove={moveQuarter} onRestore={update} onUpdate={updateOne} />
