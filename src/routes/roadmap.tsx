@@ -30,7 +30,10 @@ import {
 import {
   ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff,
   ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Minus, CornerDownRight,
+  Settings2,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { WORK_ITEM_ICONS, WorkItemIcon } from "@/lib/work-item-icons";
 
 
