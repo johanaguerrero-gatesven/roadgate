@@ -647,16 +647,31 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                           <span>· {cov.pct.toFixed(0)}% in roadmap</span>
                         </div>
                       )}
-                      <div className="flex items-center justify-between mt-1">
+                      <div className="flex items-center justify-between mt-1 gap-2">
                         {(() => {
                           const eff = v.rolledUp ? rolledUpEffort(it, items) : (it.effort ?? 0);
                           return eff > 0
                             ? <span className="text-[10px] text-muted-foreground">{v.rolledUp ? "Σ " : ""}{eff}h</span>
                             : <span />;
                         })()}
-                        {v.rolledUp && (
-                          <span className="text-[10px] text-muted-foreground italic">rollup</span>
-                        )}
+                        <Select
+                          value={it.quarter || ""}
+                          onValueChange={(val) => commitMove(it.uid, (val.trim() as Quarter) || "")}
+                        >
+                          <SelectTrigger
+                            className="h-6 w-[74px] text-[10px] px-1.5"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <SelectValue placeholder="Q?" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value=" " className="text-xs">Sin Q</SelectItem>
+                            {QUARTERS.map((qq) => (
+                              <SelectItem key={qq} value={qq} className="text-xs">{qq}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                     </div>
