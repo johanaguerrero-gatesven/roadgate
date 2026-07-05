@@ -123,8 +123,12 @@ function RoadmapPage() {
   const moveQuarter = (uidKey: string, quarter: Quarter) => {
     const target = items.find((i) => i.uid === uidKey);
     if (!target) return;
+    if (target.quarter === quarter) return;
     const ids = new Set<string>([target.uid, ...descendantsOf(target, items).map((d) => d.uid)]);
     update(items.map((it) => (ids.has(it.uid) ? { ...it, quarter } : it)));
+    toast.success(quarter ? `Movido a ${quarter}` : "Movido a Backlog", {
+      description: `${target.id}: ${target.title}`,
+    });
   };
   const remove = (uidKey: string) => update(items.filter((it) => it.uid !== uidKey));
   const add = (type: ItemType) => {
