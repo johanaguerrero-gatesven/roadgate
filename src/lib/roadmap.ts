@@ -375,6 +375,20 @@ export function rolledUpEffort(item: RoadmapItem, items: RoadmapItem[]): number 
   return kids.reduce((s, k) => s + rolledUpEffort(k, items), 0);
 }
 
+/**
+ * Normalize parent efforts so `parent.effort === Σ(children rolled-up effort)`.
+ * Leaves (items without children) keep their own `effort` untouched.
+ * Called from `saveItems` to keep stored data consistent with the display rule.
+ */
+export function syncParentEfforts(items: RoadmapItem[]): RoadmapItem[] {
+  return items.map((it) => {
+    const hasKids = items.some((c) => c.parentId === it.id);
+    if (!hasKids) return it;
+    const sum = rolledUpEffort(it, items);
+    return it.effort === sum ? it : { ...it, effort: sum };
+  });
+}
+
 export function countByPriority(items: RoadmapItem[]): Record<string, number> {
   const acc: Record<string, number> = { "1-High": 0, "2-Medium": 0, "3-Low": 0, "Sin prioridad": 0 };
   items.forEach((it) => {
