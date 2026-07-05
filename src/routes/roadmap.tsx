@@ -499,21 +499,32 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
     onMove(uidKey, q);
   };
 
-  const handleDrop = (q: Quarter) => {
+  const handleDrop = (q: Quarter, restrictType?: ItemType) => {
     if (dragUid) {
       const target = items.find((i) => i.uid === dragUid);
-      if (target && q !== "") {
-        const hasKids = items.some((c) => c.parentId === target.id);
-        const effVal = hasKids ? rolledUpEffort(target, items) : (target.effort ?? 0);
-        const missingPrio = !target.priority;
-        const missingEff = effVal <= 0;
-        if (missingPrio || missingEff) {
-          setPending({ uid: dragUid, q });
-          setPendPriority(target.priority || "");
-          setPendEffort(effVal > 0 ? String(effVal) : "");
+      if (target) {
+        if (restrictType && target.type !== restrictType) {
+          const labels: Record<ItemType, string> = { epic: "Epics", feature: "Features", story: "User Stories" };
+          toast.error("Movimiento no permitido", {
+            description: `Solo puedes soltar ${labels[restrictType]} en esta columna.`,
+          });
           setDragUid(null);
           setOverQ(null);
           return;
+        }
+        if (q !== "") {
+          const hasKids = items.some((c) => c.parentId === target.id);
+          const effVal = hasKids ? rolledUpEffort(target, items) : (target.effort ?? 0);
+          const missingPrio = !target.priority;
+          const missingEff = effVal <= 0;
+          if (missingPrio || missingEff) {
+            setPending({ uid: dragUid, q });
+            setPendPriority(target.priority || "");
+            setPendEffort(effVal > 0 ? String(effVal) : "");
+            setDragUid(null);
+            setOverQ(null);
+            return;
+          }
         }
       }
       commitMove(dragUid, q);
