@@ -60,8 +60,27 @@ export function loadItems(): RoadmapItem[] {
 
 export function saveItems(items: RoadmapItem[]) {
   if (!isBrowser()) return;
-  localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
+  // Enforce the invariant: parent.effort = Σ(children).
+  // Done here (single write path) so every mutation stays consistent,
+  // including CSV export and dashboards.
+  const normalized = syncParentEffortsInternal(items);
+  localStorage.setItem(ITEMS_KEY, JSON.stringify(normalized));
   window.dispatchEvent(new Event("roadgate:roadmap"));
+}
+
+// Local copy to avoid forward reference (syncParentEfforts is exported below).
+function syncParentEffortsInternal(items: RoadmapItem[]): RoadmapItem[] {
+  const rollup = (item: RoadmapItem): number => {
+    const kids = items.filter((c) => c.parentId === item.id);
+    if (kids.length === 0) return item.effort || 0;
+    return kids.reduce((s, k) => s + rollup(k), 0);
+  };
+  return items.map((it) => {
+    const hasKids = items.some((c) => c.parentId === it.id);
+    if (!hasKids) return it;
+    const sum = rollup(it);
+    return it.effort === sum ? it : { ...it, effort: sum };
+  });
 }
 
 export function loadCapacity(): CapacityConfig {
@@ -373,6 +392,20 @@ export function rolledUpEffort(item: RoadmapItem, items: RoadmapItem[]): number 
   const kids = items.filter((c) => c.parentId === item.id);
   if (kids.length === 0) return item.effort || 0;
   return kids.reduce((s, k) => s + rolledUpEffort(k, items), 0);
+}
+
+/**
+ * Normalize parent efforts so `parent.effort === Σ(children rolled-up effort)`.
+ * Leaves (items without children) keep their own `effort` untouched.
+ * Called from `saveItems` to keep stored data consistent with the display rule.
+ */
+export function syncParentEfforts(items: RoadmapItem[]): RoadmapItem[] {
+  return items.map((it) => {
+    const hasKids = items.some((c) => c.parentId === it.id);
+    if (!hasKids) return it;
+    const sum = rolledUpEffort(it, items);
+    return it.effort === sum ? it : { ...it, effort: sum };
+  });
 }
 
 export function countByPriority(items: RoadmapItem[]): Record<string, number> {
