@@ -656,7 +656,7 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                         })()}
                         <Select
                           value={it.quarter || ""}
-                          onValueChange={(val) => commitMove(it.uid, val as Quarter)}
+                          onValueChange={(val) => commitMove(it.uid, (val.trim() as Quarter) || "")}
                         >
                           <SelectTrigger
                             className="h-6 w-[74px] text-[10px] px-1.5"
