@@ -756,9 +756,10 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
           const cell = byQuarter[q];
           const status =
             pct === 0 ? { label: t("roadmap.status.empty"), cls: "text-muted-foreground" }
-            : pct > 110 ? { label: t("roadmap.status.overload"), cls: "text-destructive" }
-            : pct < 90 ? { label: t("roadmap.status.under"), cls: "text-amber-600 dark:text-amber-400" }
+            : pct > 100 ? { label: t("roadmap.status.overload"), cls: "text-destructive" }
+            : pct < 50 ? { label: t("roadmap.status.under"), cls: "text-amber-600 dark:text-amber-400" }
             : { label: t("roadmap.status.ok"), cls: "text-emerald-600 dark:text-emerald-400" };
+
           return (
             <div
               key={q}
