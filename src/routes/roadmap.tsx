@@ -691,19 +691,14 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
           setOverQ(null);
           return;
         }
-        if (q !== "") {
-          const hasKids = items.some((c) => c.parentId === target.id);
-          const effVal = hasKids ? rolledUpEffort(target, items) : (target.effort ?? 0);
-          const missingPrio = !target.priority;
-          const missingEff = effVal <= 0;
-          if (missingPrio || missingEff) {
-            setPending({ uid: dragUid, q });
-            setPendPriority(target.priority || "");
-            setPendEffort(effVal > 0 ? String(effVal) : "");
-            setDragUid(null);
-            setOverQ(null);
-            return;
-          }
+        // Gate estricto de priorización: bloquear el movimiento a un Quarter sin prioridad
+        if (q !== "" && !target.priority) {
+          toast.error("No se puede añadir al Roadmap sin prioridad", {
+            description: `${target.id}: define la prioridad en la vista de Backlog antes de mover a ${q}.`,
+          });
+          setDragUid(null);
+          setOverQ(null);
+          return;
         }
       }
       commitMove(dragUid, q);
