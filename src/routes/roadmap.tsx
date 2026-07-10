@@ -101,6 +101,13 @@ function RoadmapPage() {
     const safePatch = { ...patch };
     // Nunca permitir sobrescribir el tipo original
     if ("type" in safePatch) delete (safePatch as { type?: ItemType }).type;
+    // Gate de priorización: no permitir asignar Quarter sin prioridad definida
+    if ("quarter" in safePatch && safePatch.quarter && !current.priority) {
+      toast.error("No se puede añadir al Roadmap sin prioridad", {
+        description: "Define la prioridad antes de asignar un Quarter.",
+      });
+      delete safePatch.quarter;
+    }
     // Validar parentId según el tipo
     if ("parentId" in safePatch) {
       const pid = safePatch.parentId;
@@ -119,13 +126,24 @@ function RoadmapPage() {
     if (Object.keys(safePatch).length === 0) return;
     update(items.map((it) => (it.uid === uidKey ? { ...it, ...safePatch } : it)));
   };
-  /** Move an item to a quarter and cascade the same quarter to ALL its descendants. */
+  /** Move an item to a quarter. Cascade non-destructive: solo desciende a hijos que compartían el Q previo. */
   const moveQuarter = (uidKey: string, quarter: Quarter) => {
     const target = items.find((i) => i.uid === uidKey);
     if (!target) return;
     if (target.quarter === quarter) return;
-    const ids = new Set<string>([target.uid, ...descendantsOf(target, items).map((d) => d.uid)]);
-    update(items.map((it) => (ids.has(it.uid) ? { ...it, quarter } : it)));
+    // Gate de priorización
+    if (quarter && !target.priority) {
+      toast.error("No se puede añadir al Roadmap sin prioridad", {
+        description: `${target.id}: define la prioridad antes de asignar un Quarter.`,
+      });
+      return;
+    }
+    const prevQ = target.quarter ?? "";
+    const cascadeUids = new Set<string>([target.uid]);
+    descendantsOf(target, items).forEach((d) => {
+      if ((d.quarter ?? "") === prevQ) cascadeUids.add(d.uid);
+    });
+    update(items.map((it) => (cascadeUids.has(it.uid) ? { ...it, quarter } : it)));
     toast.success(quarter ? `Movido a ${quarter}` : "Movido a Backlog", {
       description: `${target.id}: ${target.title}`,
     });
