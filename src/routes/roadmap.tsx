@@ -731,8 +731,9 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
 
   const barColor = (pct: number) =>
     pct === 0 ? "bg-muted"
-    : pct > 110 ? "bg-destructive"
-    : pct < 90 ? "bg-amber-500" : "bg-emerald-500";
+    : pct > 100 ? "bg-destructive"
+    : pct < 50 ? "bg-amber-500" : "bg-emerald-500";
+
 
   return (
     <div className="space-y-6">
