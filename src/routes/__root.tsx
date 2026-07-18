@@ -12,7 +12,7 @@ import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 
-function NotFoundInner() {
+function NotFoundComponent() {
   const { t } = useI18n();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -33,15 +33,7 @@ function NotFoundInner() {
   );
 }
 
-function NotFoundComponent() {
-  return (
-    <I18nProvider>
-      <NotFoundInner />
-    </I18nProvider>
-  );
-}
-
-function ErrorInner({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   const { t } = useI18n();
@@ -70,14 +62,6 @@ function ErrorInner({ error, reset }: { error: Error; reset: () => void }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function ErrorComponent(props: { error: Error; reset: () => void }) {
-  return (
-    <I18nProvider>
-      <ErrorInner {...props} />
-    </I18nProvider>
   );
 }
 
