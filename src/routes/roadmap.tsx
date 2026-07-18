@@ -206,12 +206,31 @@ function RoadmapPage() {
                     </TabsTrigger>
                   ))}
                 </TabsList>
+                <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-destructive hover:text-destructive"
+                  onClick={() => {
+                    if (!window.confirm("¿Borrar todos los datos de demo (backlog, roadmap y capacidad)? Esta acción no se puede deshacer.")) return;
+                    try {
+                      localStorage.removeItem("roadgate.roadmap.items");
+                      localStorage.removeItem("roadgate.roadmap.capacity");
+                    } catch {}
+                    window.dispatchEvent(new Event("roadgate:roadmap"));
+                    toast.success("Datos de demo borrados");
+                    setTimeout(() => window.location.reload(), 400);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" /> Reset demo data
+                </Button>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm" className="gap-1.5">
                       <Settings2 className="h-4 w-4" /> Tipos de work item
                     </Button>
                   </PopoverTrigger>
+
                   <PopoverContent align="end" className="w-64">
                     <div className="text-xs font-medium text-muted-foreground mb-2">
                       Elige los tipos que quieres usar
@@ -246,7 +265,9 @@ function RoadmapPage() {
                     </p>
                   </PopoverContent>
                 </Popover>
+                </div>
               </div>
+
               {enabledTypes.map((ty) => (
                 <TabsContent key={ty} value={ty} className="mt-4">
                   <BacklogPanel
