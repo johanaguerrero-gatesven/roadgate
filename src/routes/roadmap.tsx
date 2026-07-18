@@ -1060,8 +1060,13 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                               className={`cursor-grab active:cursor-grabbing ${dragUid === v.item.uid ? "opacity-40" : ""}`}
                               title={incomplete ? "Falta prioridad o esfuerzo" : ""}
                             >
-                              <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${incomplete ? "ring-1 ring-amber-500/60" : ""}`}>
-                                {v.item.id} · {v.item.title}
+                              <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${incomplete ? "ring-1 ring-amber-500/60" : ""} flex items-center gap-1`}>
+                                <PriorityPicker
+                                  value={v.item.priority}
+                                  onChange={(p) => onUpdate(v.item.uid, { priority: p })}
+                                  size="md"
+                                />
+                                <span>{v.item.id} · {v.item.title}</span>
                                 {incomplete && <span className="ml-1 text-amber-600 dark:text-amber-400">⚠</span>}
                               </Badge>
                             </div>
