@@ -73,7 +73,7 @@ function RoadmapPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [items, setItems] = useState<RoadmapItem[]>([]);
-  const [cfg, setCfg] = useState<CapacityConfig>(loadCapacity());
+  const [cfg, setCfg] = useState<CapacityConfig>(defaultCapacity);
   const [tab, setTab] = useState<ItemType>("epic");
   const [enabledTypes, setEnabledTypesState] = useState<ItemType[]>(ALL_TYPES);
   useEffect(() => { setEnabledTypesState(loadEnabledTypes()); }, []);
@@ -90,18 +90,39 @@ function RoadmapPage() {
     if (ready && !session) navigate({ to: "/login" });
   }, [ready, session, navigate]);
 
-  useEffect(() => { setItems(loadItems()); setCfg(loadCapacity()); }, [session?.userId]);
-  useEffect(() => {
-    const h = () => { setItems(loadItems()); setCfg(loadCapacity()); };
-    window.addEventListener("roadgate:roadmap", h);
-    window.addEventListener("roadgate:auth", h);
-    return () => {
-      window.removeEventListener("roadgate:roadmap", h);
-      window.removeEventListener("roadgate:auth", h);
-    };
-  }, []);
+  const fetchRoadmapFn = useServerFn(fetchRoadmap);
+  const persistItemsFn = useServerFn(persistItems);
+  const persistCapacityFn = useServerFn(persistCapacity);
+  const resetRoadmapFn = useServerFn(resetRoadmap);
 
-  const update = (next: RoadmapItem[]) => { setItems(next); saveItems(next); };
+  // Hydrate from Supabase whenever the session identity changes.
+  useEffect(() => {
+    if (!session?.userId) { setItems([]); setCfg(defaultCapacity); return; }
+    let cancelled = false;
+    fetchRoadmapFn()
+      .then((r) => { if (!cancelled) { setItems(r.items); setCfg(r.capacity); } })
+      .catch((e) => { console.error(e); toast.error("No se pudieron cargar los datos"); });
+    return () => { cancelled = true; };
+  }, [session?.userId, fetchRoadmapFn]);
+
+  // Debounced persistence so bursts of edits collapse into a single write.
+  const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const schedulePersist = (next: RoadmapItem[]) => {
+    if (persistTimer.current) clearTimeout(persistTimer.current);
+    persistTimer.current = setTimeout(() => {
+      persistItemsFn({ data: { items: next } }).catch((e) => {
+        console.error(e); toast.error("Error al guardar en Lovable Cloud");
+      });
+    }, 350);
+  };
+  useEffect(() => () => { if (persistTimer.current) clearTimeout(persistTimer.current); }, []);
+
+  const update = (next: RoadmapItem[]) => {
+    const normalized = normalizeItems(next);
+    setItems(normalized);
+    schedulePersist(normalized);
+  };
+
   const updateOne = (uidKey: string, patch: Partial<RoadmapItem>) => {
     const current = items.find((i) => i.uid === uidKey);
     if (!current) return;
