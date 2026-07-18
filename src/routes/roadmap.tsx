@@ -468,10 +468,9 @@ function BacklogPanel({
                         <WorkItemIcon type={it.type} className="h-4 w-4 inline" />
                       </td>
                       <td>
-                        <Input
+                        <IdInput
                           value={it.id}
-                          onChange={(e) => onUpdate(it.uid, { id: e.target.value })}
-                          className="h-8 px-2 text-xs font-mono font-semibold"
+                          onCommit={(v) => onUpdate(it.uid, { id: v })}
                         />
                       </td>
                       <td>
