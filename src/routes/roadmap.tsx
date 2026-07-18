@@ -364,7 +364,16 @@ function PriorityPicker({
   className?: string;
   size?: "sm" | "md";
 }) {
+  const { t } = useI18n();
   const current = value ? PRIORITY_META[value as Exclude<Priority, "">] : null;
+  const priorityLabel = (p: Exclude<Priority, "">) => {
+    switch (p) {
+      case "1-High": return t("roadmap.priority.high");
+      case "2-Medium": return t("roadmap.priority.medium");
+      case "3-Low": return t("roadmap.priority.low");
+      case "4-Lowest": return t("roadmap.priority.lowest");
+    }
+  };
   return (
     <Select
       value={value || "__none"}
@@ -379,7 +388,7 @@ function PriorityPicker({
         }`}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
-        aria-label="Cambiar prioridad"
+        aria-label={t("roadmap.priority.none")}
       >
         {current ? (
           <span className="flex items-center gap-0.5">
@@ -394,7 +403,7 @@ function PriorityPicker({
         <SelectItem value="__none" className="text-xs">
           <span className="flex items-center gap-2">
             <Minus className="h-3.5 w-3.5 text-muted-foreground/60" />
-            Sin prioridad
+            {t("roadmap.priority.none")}
           </span>
         </SelectItem>
         {PRIORITIES.map((p) => {
@@ -404,7 +413,7 @@ function PriorityPicker({
             <SelectItem key={p} value={p} className="text-xs">
               <span className="flex items-center gap-2">
                 <Icon className={`h-3.5 w-3.5 ${m.cls}`} />
-                {m.label}
+                {priorityLabel(p)}
               </span>
             </SelectItem>
           );
