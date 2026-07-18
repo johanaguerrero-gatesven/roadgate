@@ -88,11 +88,15 @@ function RoadmapPage() {
     if (ready && !session) navigate({ to: "/login" });
   }, [ready, session, navigate]);
 
-  useEffect(() => { setItems(loadItems()); }, []);
+  useEffect(() => { setItems(loadItems()); setCfg(loadCapacity()); }, [session?.userId]);
   useEffect(() => {
     const h = () => { setItems(loadItems()); setCfg(loadCapacity()); };
     window.addEventListener("roadgate:roadmap", h);
-    return () => window.removeEventListener("roadgate:roadmap", h);
+    window.addEventListener("roadgate:auth", h);
+    return () => {
+      window.removeEventListener("roadgate:roadmap", h);
+      window.removeEventListener("roadgate:auth", h);
+    };
   }, []);
 
   const update = (next: RoadmapItem[]) => { setItems(next); saveItems(next); };
