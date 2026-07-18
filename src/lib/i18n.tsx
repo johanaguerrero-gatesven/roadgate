@@ -559,6 +559,11 @@ const dict = {
     "roadmap.dash.effortVsCap": "Effort vs Capacity per Quarter",
     "roadmap.dash.distItems": "Priority distribution (items)",
     "roadmap.dash.effortByPrio": "Effort by priority (hours)",
+    "roadmap.priority.none": "No priority",
+    "roadmap.priority.high": "High",
+    "roadmap.priority.medium": "Medium",
+    "roadmap.priority.low": "Low",
+    "roadmap.priority.lowest": "Lowest",
   },
 } as const;
 
