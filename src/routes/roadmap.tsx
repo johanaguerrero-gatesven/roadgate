@@ -1257,7 +1257,11 @@ function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: CapacityCon
               return (
                 <div key={p}>
                   <div className="flex justify-between text-xs">
-                    <span>{p}</span><span className="text-muted-foreground">{h.toFixed(0)} h</span>
+                    <span className="flex items-center gap-1.5">
+                      <PriorityIcon p={p as Priority} className="h-3.5 w-3.5" />
+                      {PRIORITY_META[p as Exclude<Priority, "">]?.label ?? p}
+                    </span>
+                    <span className="text-muted-foreground">{h.toFixed(0)} h</span>
                   </div>
                   <div className="mt-1 h-2 rounded-full bg-muted overflow-hidden">
                     <div className={`h-full ${prioColor(p)}`} style={{ width: `${pct}%` }} />
