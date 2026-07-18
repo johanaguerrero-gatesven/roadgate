@@ -683,20 +683,30 @@ function BacklogPanel({
 
                       <td>
                         <Select
-                          value={it.priority || ""}
-                          onValueChange={(v) => onUpdate(it.uid, { priority: v as Priority })}
+                          value={it.priority || "__none"}
+                          onValueChange={(v) => onUpdate(it.uid, { priority: (v === "__none" ? "" : v) as Priority })}
                         >
                           <SelectTrigger className="h-8 text-xs gap-1 [&>span]:flex [&>span]:items-center [&>span]:gap-1.5">
-                            <SelectValue placeholder="—">
-                              {it.priority && (
+                            <SelectValue>
+                              {it.priority ? (
                                 <span className="flex items-center gap-1.5">
                                   <PriorityIcon p={it.priority} />
                                   {PRIORITY_META[it.priority as Exclude<Priority, "">].label}
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1.5 text-muted-foreground">
+                                  <Minus className="h-4 w-4" />
+                                  {t("roadmap.priority.none")}
                                 </span>
                               )}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="__none" className="text-xs">
+                              <span className="flex items-center gap-2 text-muted-foreground">
+                                <Minus className="h-4 w-4" /> {t("roadmap.priority.none")}
+                              </span>
+                            </SelectItem>
                             {PRIORITIES.map((p) => {
                               const m = PRIORITY_META[p as Exclude<Priority, "">];
                               return (
@@ -710,6 +720,7 @@ function BacklogPanel({
                           </SelectContent>
                         </Select>
                       </td>
+
                       <td>
                         <Select
                           value={it.quarter || "__bl"}
