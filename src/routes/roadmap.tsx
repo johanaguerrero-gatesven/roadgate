@@ -383,7 +383,7 @@ function PriorityPicker({
       }}
     >
       <SelectTrigger
-        className={`border-0 bg-transparent hover:bg-muted/40 rounded shrink-0 p-0 px-1 flex flex-row items-center justify-center cursor-pointer ${
+        className={`border-0 bg-transparent hover:bg-muted/40 rounded shrink-0 p-0 px-1 flex flex-row items-center justify-center cursor-pointer [&>span]:line-clamp-none ${
           size === "md" ? "h-7 w-auto min-w-7" : "h-6 w-auto min-w-6"
         }`}
         onPointerDown={(e) => e.stopPropagation()}
@@ -391,7 +391,7 @@ function PriorityPicker({
         aria-label={t("roadmap.priority.none")}
       >
         {current ? (
-          <span className="flex flex-row items-center gap-1">
+          <span className="!flex flex-row items-center gap-1">
             <current.icon className={`${className} ${current.cls} shrink-0`} />
             <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap leading-none">{current.short}</span>
           </span>
