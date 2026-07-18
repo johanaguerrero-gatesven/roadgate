@@ -378,6 +378,20 @@ function ParentPicker({
 }
 
 
+function IdInput({ value, onCommit }: { value: string; onCommit: (v: string) => void }) {
+  const [local, setLocal] = useState(value);
+  useEffect(() => { setLocal(value); }, [value]);
+  return (
+    <Input
+      value={local}
+      onChange={(e) => setLocal(e.target.value)}
+      onBlur={() => { if (local !== value) onCommit(local); }}
+      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+      className="h-8 px-2 text-xs font-mono font-semibold"
+    />
+  );
+}
+
 function BacklogPanel({
   type, items, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
 }: {
