@@ -151,9 +151,12 @@ function RoadmapPage() {
   const remove = (uidKey: string) => update(items.filter((it) => it.uid !== uidKey));
   const add = (type: ItemType) => {
     const prefix = type === "epic" ? "EPIC" : type === "feature" ? "FEAT" : "US";
-    const n = items.filter((i) => i.type === type).length + 1;
+    const used = new Set(items.filter((i) => i.type === type).map((i) => i.id));
+    let n = items.filter((i) => i.type === type).length + 1;
+    let newId = `${prefix}-${String(n).padStart(2, "0")}`;
+    while (used.has(newId)) { n += 1; newId = `${prefix}-${String(n).padStart(2, "0")}`; }
     update([...items, {
-      uid: uid(), id: `${prefix}-${String(n).padStart(2, "0")}`, type,
+      uid: uid(), id: newId, type,
       title: `${t("roadmap.new")} ${type}`, state: "Backlog",
     }]);
   };
@@ -381,12 +384,18 @@ function ParentPicker({
 function IdInput({ value, onCommit }: { value: string; onCommit: (v: string) => void }) {
   const [local, setLocal] = useState(value);
   useEffect(() => { setLocal(value); }, [value]);
+  const commit = () => {
+    const trimmed = local.trim();
+    if (!trimmed) { setLocal(value); return; } // no permitir ID vacío: revertir
+    if (trimmed !== value) onCommit(trimmed);
+  };
   return (
     <Input
       value={local}
       onChange={(e) => setLocal(e.target.value)}
-      onBlur={() => { if (local !== value) onCommit(local); }}
+      onBlur={commit}
       onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+      placeholder="ID"
       className="h-8 px-2 text-xs font-mono font-semibold"
     />
   );
