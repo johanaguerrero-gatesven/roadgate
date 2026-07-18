@@ -295,11 +295,17 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
       return { choice: "self", quarter: shared ?? undefined };
     }
     if (mode === "children") return { choice: "children" };
-    // auto: never absorb children into the parent card. If the node has
-    // descendants, render each descendant on its own quarter so the item the
-    // user placed stays visible as itself (and keeps its own type/icon).
+    // auto: prefer rendering the node itself while nothing has been placed
+    // on the roadmap yet. Only expand into children once the node or any of
+    // its descendants has been assigned to a quarter — otherwise a parent
+    // in the Backlog would be replaced by its children and disappear from
+    // the "No Quarter" column, making the counts not match the Backlog tab.
     const desc = allDescendants(node);
     if (desc.length === 0) return { choice: "self" };
+    const anyPlaced =
+      !!effectiveQuarter(node, items) ||
+      desc.some((d) => !!effectiveQuarter(d, items));
+    if (!anyPlaced) return { choice: "self" };
     return { choice: "children" };
   };
 
