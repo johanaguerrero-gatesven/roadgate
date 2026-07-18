@@ -962,11 +962,10 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                           <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
                           {it.id}
                         </span>
-                        {it.priority && (
-                          <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
-                            {it.priority.split("-")[0]}
-                          </span>
-                        )}
+                        <PriorityPicker
+                          value={it.priority}
+                          onChange={(p) => onUpdate(it.uid, { priority: p })}
+                        />
                       </div>
                       <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
                       {showParent && top && cov && (
