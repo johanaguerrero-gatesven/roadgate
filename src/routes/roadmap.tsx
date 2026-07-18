@@ -365,7 +365,6 @@ function PriorityPicker({
   size?: "sm" | "md";
 }) {
   const current = value ? PRIORITY_META[value as Exclude<Priority, "">] : null;
-  const safeValue = value as Exclude<Priority, "">;
   return (
     <Select
       value={value || "__none"}
