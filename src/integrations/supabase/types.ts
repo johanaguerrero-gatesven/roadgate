@@ -14,7 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      roadmap_capacity: {
+        Row: {
+          created_at: string
+          days_per_sprint: number
+          dedication_pct: number
+          developers: number
+          hours_per_day: number
+          sprints_by_quarter: Json
+          sprints_per_quarter: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          days_per_sprint?: number
+          dedication_pct?: number
+          developers?: number
+          hours_per_day?: number
+          sprints_by_quarter?: Json
+          sprints_per_quarter?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          days_per_sprint?: number
+          dedication_pct?: number
+          developers?: number
+          hours_per_day?: number
+          sprints_by_quarter?: Json
+          sprints_per_quarter?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      roadmap_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_mode: string | null
+          effort: number | null
+          hidden_from_roadmap: boolean
+          id: string
+          item_code: string
+          item_uid: string
+          notes: string | null
+          parent_id: string | null
+          priority: string | null
+          quarter: string | null
+          sprint: number | null
+          state: string | null
+          tags: string | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_mode?: string | null
+          effort?: number | null
+          hidden_from_roadmap?: boolean
+          id?: string
+          item_code: string
+          item_uid: string
+          notes?: string | null
+          parent_id?: string | null
+          priority?: string | null
+          quarter?: string | null
+          sprint?: number | null
+          state?: string | null
+          tags?: string | null
+          title?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_mode?: string | null
+          effort?: number | null
+          hidden_from_roadmap?: boolean
+          id?: string
+          item_code?: string
+          item_uid?: string
+          notes?: string | null
+          parent_id?: string | null
+          priority?: string | null
+          quarter?: string | null
+          sprint?: number | null
+          state?: string | null
+          tags?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
