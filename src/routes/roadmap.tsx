@@ -1091,8 +1091,8 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                           const hasKids = items.some((c) => c.parentId === v.item.id);
                           const eff = hasKids ? rolledUpEffort(v.item, items) : (v.item.effort ?? 0);
                           const incomplete = !v.item.priority || eff <= 0;
-                          // Quarter selector habilitado solo con prioridad Alta o Media
-                          const canAssignQuarter = v.item.priority === "1-High" || v.item.priority === "2-Medium";
+                          // Quarter selector habilitado con cualquier prioridad asignada
+                          const canAssignQuarter = !!v.item.priority;
                           return (
                             <div
                               key={v.item.uid}
@@ -1120,7 +1120,7 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                                   className="h-6 w-[68px] text-[10px] px-1.5 shrink-0"
                                   onPointerDown={(e) => e.stopPropagation()}
                                   onClick={(e) => e.stopPropagation()}
-                                  title={canAssignQuarter ? "Asignar Quarter" : "Sube la prioridad a Media o Alta para asignar Quarter"}
+                                  title={canAssignQuarter ? "Asignar Quarter" : "Asigna una prioridad para poder mover al Roadmap"}
                                 >
                                   <SelectValue placeholder="Q?" />
                                 </SelectTrigger>
