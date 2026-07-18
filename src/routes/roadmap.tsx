@@ -1120,7 +1120,7 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                                   className="h-6 w-[68px] text-[10px] px-1.5 shrink-0"
                                   onPointerDown={(e) => e.stopPropagation()}
                                   onClick={(e) => e.stopPropagation()}
-                                  title={canAssignQuarter ? "Asignar Quarter" : "Sube la prioridad a Media o Alta para asignar Quarter"}
+                                  title={canAssignQuarter ? "Asignar Quarter" : "Asigna una prioridad para poder mover al Roadmap"}
                                 >
                                   <SelectValue placeholder="Q?" />
                                 </SelectTrigger>
