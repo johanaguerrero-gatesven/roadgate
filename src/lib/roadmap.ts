@@ -32,22 +32,6 @@ export type CapacityConfig = {
   sprintsByQuarter?: Partial<Record<Exclude<Quarter, "">, number>>; // per-Q override
 };
 
-// Storage keys are scoped per authenticated user so signed-in users never
-// share a backlog with anonymous demo users on the same browser. When there
-// is no session we fall back to a "guest" scope.
-const SESSION_KEY = "roadgate.session";
-function currentUserScope(): string {
-  if (typeof window === "undefined") return "guest";
-  try {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return "guest";
-    const s = JSON.parse(raw) as { userId?: string };
-    return s?.userId ? `u:${s.userId}` : "guest";
-  } catch { return "guest"; }
-}
-export function itemsKey() { return `roadgate.roadmap.items.${currentUserScope()}`; }
-export function capacityKey() { return `roadgate.roadmap.capacity.${currentUserScope()}`; }
-
 export const defaultCapacity: CapacityConfig = {
   developers: 7,
   dedicationPct: 30,
@@ -57,32 +41,11 @@ export const defaultCapacity: CapacityConfig = {
   sprintsByQuarter: {},
 };
 
-function isBrowser() {
-  return typeof window !== "undefined";
-}
-
-export function loadItems(): RoadmapItem[] {
-  if (!isBrowser()) return [];
-  try {
-    const raw = localStorage.getItem(itemsKey());
-    return raw ? (JSON.parse(raw) as RoadmapItem[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function saveItems(items: RoadmapItem[]) {
-  if (!isBrowser()) return;
-  // Enforce the invariant: parent.effort = Σ(children).
-  // Done here (single write path) so every mutation stays consistent,
-  // including CSV export and dashboards.
-  const normalized = syncParentEffortsInternal(items);
-  localStorage.setItem(itemsKey(), JSON.stringify(normalized));
-  window.dispatchEvent(new Event("roadgate:roadmap"));
-}
-
-// Local copy to avoid forward reference (syncParentEfforts is exported below).
-function syncParentEffortsInternal(items: RoadmapItem[]): RoadmapItem[] {
+/**
+ * Enforce the invariant: parent.effort = Σ(children rolled-up effort).
+ * Callers should run this before persisting so stored data stays consistent.
+ */
+export function normalizeItems(items: RoadmapItem[]): RoadmapItem[] {
   const rollup = (item: RoadmapItem): number => {
     const kids = items.filter((c) => c.parentId === item.id);
     if (kids.length === 0) return item.effort || 0;
@@ -96,21 +59,6 @@ function syncParentEffortsInternal(items: RoadmapItem[]): RoadmapItem[] {
   });
 }
 
-export function loadCapacity(): CapacityConfig {
-  if (!isBrowser()) return defaultCapacity;
-  try {
-    const raw = localStorage.getItem(capacityKey());
-    return raw ? { ...defaultCapacity, ...JSON.parse(raw) } : defaultCapacity;
-  } catch {
-    return defaultCapacity;
-  }
-}
-
-export function saveCapacity(cfg: CapacityConfig) {
-  if (!isBrowser()) return;
-  localStorage.setItem(capacityKey(), JSON.stringify(cfg));
-  window.dispatchEvent(new Event("roadgate:roadmap"));
-}
 
 export function sprintsForQuarter(c: CapacityConfig, q: Exclude<Quarter, "">) {
   const v = c.sprintsByQuarter?.[q];
