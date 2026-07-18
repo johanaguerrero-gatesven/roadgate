@@ -151,9 +151,12 @@ function RoadmapPage() {
   const remove = (uidKey: string) => update(items.filter((it) => it.uid !== uidKey));
   const add = (type: ItemType) => {
     const prefix = type === "epic" ? "EPIC" : type === "feature" ? "FEAT" : "US";
-    const n = items.filter((i) => i.type === type).length + 1;
+    const used = new Set(items.filter((i) => i.type === type).map((i) => i.id));
+    let n = items.filter((i) => i.type === type).length + 1;
+    let newId = `${prefix}-${String(n).padStart(2, "0")}`;
+    while (used.has(newId)) { n += 1; newId = `${prefix}-${String(n).padStart(2, "0")}`; }
     update([...items, {
-      uid: uid(), id: `${prefix}-${String(n).padStart(2, "0")}`, type,
+      uid: uid(), id: newId, type,
       title: `${t("roadmap.new")} ${type}`, state: "Backlog",
     }]);
   };
