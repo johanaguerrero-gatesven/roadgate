@@ -136,11 +136,11 @@ function RoadmapPage() {
       });
       delete safePatch.quarter;
     }
-    // Regla de negocio: al bajar la prioridad a "Low" o "Sin prioridad",
-    // el item se devuelve al Backlog (se limpia su Quarter y el de sus hijos que compartían Q).
+    // Regla de negocio: solo se devuelve al Backlog si se quita la prioridad ("Sin prioridad").
+    // Baja y Muy baja pueden permanecer en el Roadmap.
     if ("priority" in safePatch) {
       const nextPriority = safePatch.priority ?? "";
-      const demote = nextPriority === "" || nextPriority === "3-Low" || nextPriority === "4-Lowest";
+      const demote = nextPriority === "";
       if (demote && (current.quarter ?? "") !== "") {
         safePatch.quarter = "";
         const prevQ = current.quarter ?? "";
@@ -156,11 +156,12 @@ function RoadmapPage() {
           ),
         );
         toast.info("Movido al Backlog", {
-          description: `${current.id}: prioridad ${nextPriority || "sin definir"} — se quitó del Roadmap.`,
+          description: `${current.id}: sin prioridad — se quitó del Roadmap.`,
         });
         return;
       }
     }
+
     // Validar parentId según el tipo
     if ("parentId" in safePatch) {
       const pid = safePatch.parentId;
