@@ -216,13 +216,13 @@ function RoadmapPage() {
                   size="sm"
                   className="gap-1.5 text-destructive hover:text-destructive"
                   onClick={() => {
-                    if (!window.confirm("¿Borrar todos los datos de demo (backlog, roadmap y capacidad)? Esta acción no se puede deshacer.")) return;
+                    if (!window.confirm("¿Borrar todos los datos de demo (backlog, roadmap y capacidad) DE TU USUARIO? Esta acción no se puede deshacer.")) return;
                     try {
-                      localStorage.removeItem("roadgate.roadmap.items");
-                      localStorage.removeItem("roadgate.roadmap.capacity");
+                      localStorage.removeItem(itemsKey());
+                      localStorage.removeItem(capacityKey());
                     } catch {}
                     window.dispatchEvent(new Event("roadgate:roadmap"));
-                    toast.success("Datos de demo borrados");
+                    toast.success("Tus datos han sido borrados");
                     setTimeout(() => window.location.reload(), 400);
                   }}
                 >
