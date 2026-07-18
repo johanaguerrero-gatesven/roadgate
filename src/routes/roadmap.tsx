@@ -33,7 +33,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff,
   ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Minus, CornerDownRight,
-  Settings2,
+  Settings2, AlertTriangle,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -1126,7 +1126,7 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                                         : `Effort = 0.\n\nEste ${WORK_ITEM_ICONS[v.item.type].label} no tiene hijos, así que su esfuerzo viene de su propio campo 'effort' (leaf). Actualmente está vacío o en 0.\n\nSolución: asigna un valor de 'effort' desde la vista Backlog.`
                                     }
                                   >
-                                    ⚠
+                                    <AlertTriangle className="h-3.5 w-3.5" />
                                   </span>
                                 )}
                               </Badge>
