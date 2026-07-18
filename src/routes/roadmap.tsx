@@ -1091,8 +1091,8 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                           const hasKids = items.some((c) => c.parentId === v.item.id);
                           const eff = hasKids ? rolledUpEffort(v.item, items) : (v.item.effort ?? 0);
                           const incomplete = !v.item.priority || eff <= 0;
-                          // Quarter selector habilitado solo con prioridad Alta o Media
-                          const canAssignQuarter = v.item.priority === "1-High" || v.item.priority === "2-Medium";
+                          // Quarter selector habilitado con cualquier prioridad asignada
+                          const canAssignQuarter = !!v.item.priority;
                           return (
                             <div
                               key={v.item.uid}
