@@ -49,6 +49,9 @@ type RealQuarter = Exclude<Quarter, "">;
 const QUARTERS: RealQuarter[] = ["Q1", "Q2", "Q3", "Q4"];
 const PRIORITIES: Exclude<Priority, "">[] = ["1-High", "2-Medium", "3-Low", "4-Lowest"];
 
+const hasAssignedPriority = (priority?: Priority): priority is Exclude<Priority, ""> =>
+  PRIORITIES.includes(priority as Exclude<Priority, "">);
+
 const ENABLED_TYPES_KEY = "roadgate.roadmap.enabledTypes";
 const ALL_TYPES: ItemType[] = ["epic", "feature", "story"];
 const TYPE_LABEL: Record<ItemType, string> = { epic: "Epics", feature: "Features", story: "User Stories" };
@@ -130,7 +133,7 @@ function RoadmapPage() {
     // Nunca permitir sobrescribir el tipo original
     if ("type" in safePatch) delete (safePatch as { type?: ItemType }).type;
     // Gate de priorización: no permitir asignar Quarter sin prioridad definida
-    if ("quarter" in safePatch && safePatch.quarter && !current.priority && !safePatch.priority) {
+    if ("quarter" in safePatch && safePatch.quarter && !hasAssignedPriority(current.priority) && !hasAssignedPriority(safePatch.priority)) {
       toast.error("No se puede añadir al Roadmap sin prioridad", {
         description: "Define la prioridad antes de asignar un Quarter.",
       });
@@ -187,7 +190,7 @@ function RoadmapPage() {
     if (!target) return;
     if (target.quarter === quarter) return;
     // Gate de priorización
-    if (quarter && !target.priority) {
+    if (quarter && !hasAssignedPriority(target.priority)) {
       toast.error("No se puede añadir al Roadmap sin prioridad", {
         description: `${target.id}: define la prioridad antes de asignar un Quarter.`,
       });
@@ -873,7 +876,7 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
           return;
         }
         // Gate estricto de priorización: bloquear el movimiento a un Quarter sin prioridad
-        if (q !== "" && !target.priority) {
+        if (q !== "" && !hasAssignedPriority(target.priority)) {
           toast.error("No se puede añadir al Roadmap sin prioridad", {
             description: `${target.id}: define la prioridad en la vista de Backlog antes de mover a ${q}.`,
           });
@@ -894,7 +897,7 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
     if (!target) { setPending(null); return; }
     const hasKids = items.some((c) => c.parentId === target.id);
     const patch: Partial<RoadmapItem> = {};
-    if (!target.priority && pendPriority) patch.priority = pendPriority;
+    if (!hasAssignedPriority(target.priority) && hasAssignedPriority(pendPriority)) patch.priority = pendPriority;
     if (!hasKids) {
       const n = Number(pendEffort);
       if (n > 0) patch.effort = n;
@@ -907,7 +910,7 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
   const pendingItem = pending ? items.find((i) => i.uid === pending.uid) : null;
   const pendingHasKids = pendingItem ? items.some((c) => c.parentId === pendingItem.id) : false;
   const pendingValid =
-    !!pendPriority &&
+    hasAssignedPriority(pendPriority) &&
     (pendingHasKids ? rolledUpEffort(pendingItem!, items) > 0 : Number(pendEffort) > 0);
 
   const undo = () => {
@@ -1090,9 +1093,10 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                         {list.map((v) => {
                           const hasKids = items.some((c) => c.parentId === v.item.id);
                           const eff = hasKids ? rolledUpEffort(v.item, items) : (v.item.effort ?? 0);
-                          const incomplete = !v.item.priority || eff <= 0;
-                          // Quarter selector habilitado con cualquier prioridad asignada
-                          const canAssignQuarter = !!v.item.priority;
+                          const missingPriority = !hasAssignedPriority(v.item.priority);
+                          const missingEffort = eff <= 0;
+                          // Quarter selector habilitado con cualquier prioridad válida asignada
+                          const canAssignQuarter = hasAssignedPriority(v.item.priority);
                           return (
                             <div
                               key={v.item.uid}
@@ -1100,16 +1104,16 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                               onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
                               onDragEnd={() => { setDragUid(null); setOverQ(null); }}
                               className={`cursor-grab active:cursor-grabbing flex items-center gap-1 ${dragUid === v.item.uid ? "opacity-40" : ""}`}
-                              title={incomplete ? "Falta prioridad o esfuerzo" : ""}
+                              title={missingPriority ? "Falta prioridad" : missingEffort ? "Falta esfuerzo" : ""}
                             >
-                              <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${incomplete ? "ring-1 ring-amber-500/60" : ""} flex items-center gap-1 flex-1 min-w-0`}>
+                              <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${missingPriority ? "ring-1 ring-amber-500/60" : ""} flex items-center gap-1 flex-1 min-w-0`}>
                                 <PriorityPicker
                                   value={v.item.priority}
                                   onChange={(p) => onUpdate(v.item.uid, { priority: p })}
                                   size="md"
                                 />
                                 <span className="truncate">{v.item.id} · {v.item.title}</span>
-                                {incomplete && <span className="ml-1 text-amber-600 dark:text-amber-400 shrink-0">⚠</span>}
+                                {(missingPriority || missingEffort) && <span className="ml-1 text-amber-600 dark:text-amber-400 shrink-0">⚠</span>}
                               </Badge>
                               <Select
                                 value={v.item.quarter || "__bl"}
