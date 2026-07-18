@@ -47,7 +47,7 @@ export const Route = createFileRoute("/roadmap")({
 
 type RealQuarter = Exclude<Quarter, "">;
 const QUARTERS: RealQuarter[] = ["Q1", "Q2", "Q3", "Q4"];
-const PRIORITIES: Priority[] = ["1-High", "2-Medium", "3-Low", "4-Lowest"];
+const PRIORITIES: Exclude<Priority, "">[] = ["1-High", "2-Medium", "3-Low", "4-Lowest"];
 
 const ENABLED_TYPES_KEY = "roadgate.roadmap.enabledTypes";
 const ALL_TYPES: ItemType[] = ["epic", "feature", "story"];
@@ -339,11 +339,11 @@ function RoadmapPage() {
 }
 
 // --- Priority visuals (Jira-style icons) ---
-const PRIORITY_META: Record<Exclude<Priority, "">, { icon: typeof ChevronsUp; cls: string; label: string }> = {
-  "1-High":   { icon: ChevronsUp,   cls: "text-red-600",     label: "High" },
-  "2-Medium": { icon: ChevronUp,    cls: "text-amber-600",   label: "Medium" },
-  "3-Low":    { icon: ChevronDown,  cls: "text-sky-600",     label: "Low" },
-  "4-Lowest": { icon: ChevronsDown, cls: "text-slate-500",   label: "Lowest" },
+const PRIORITY_META: Record<Exclude<Priority, "">, { icon: typeof ChevronsUp; cls: string; label: string; short: string }> = {
+  "1-High":   { icon: ChevronsUp,   cls: "text-red-600",     label: "High",   short: "1" },
+  "2-Medium": { icon: ChevronUp,    cls: "text-amber-600",   label: "Medium", short: "2" },
+  "3-Low":    { icon: ChevronDown,  cls: "text-sky-600",     label: "Low",    short: "3" },
+  "4-Lowest": { icon: ChevronsDown, cls: "text-slate-500",   label: "Lowest", short: "4" },
 };
 
 function PriorityIcon({ p, className = "h-4 w-4" }: { p?: Priority; className?: string }) {
@@ -351,6 +351,76 @@ function PriorityIcon({ p, className = "h-4 w-4" }: { p?: Priority; className?: 
   const m = PRIORITY_META[p as Exclude<Priority, "">];
   const Icon = m.icon;
   return <Icon className={`${className} ${m.cls}`} />;
+}
+
+function PriorityPicker({
+  value,
+  onChange,
+  className = "h-4 w-4",
+  size = "sm",
+}: {
+  value?: Priority;
+  onChange: (p: Priority) => void;
+  className?: string;
+  size?: "sm" | "md";
+}) {
+  const { t } = useI18n();
+  const current = value ? PRIORITY_META[value as Exclude<Priority, "">] : null;
+  const priorityLabel = (p: Exclude<Priority, "">) => {
+    switch (p) {
+      case "1-High": return t("roadmap.priority.high");
+      case "2-Medium": return t("roadmap.priority.medium");
+      case "3-Low": return t("roadmap.priority.low");
+      case "4-Lowest": return t("roadmap.priority.lowest");
+    }
+  };
+  return (
+    <Select
+      value={value || "__none"}
+      onValueChange={(v) => {
+        const next = v === "__none" ? "" : (v as Priority);
+        if (next !== value) onChange(next);
+      }}
+    >
+      <SelectTrigger
+        className={`border-0 bg-transparent hover:bg-muted/40 rounded shrink-0 p-0 flex items-center justify-center cursor-pointer ${
+          size === "md" ? "h-7 w-7" : "h-6 w-6"
+        }`}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+        aria-label={t("roadmap.priority.none")}
+      >
+        {current ? (
+          <span className="flex items-center gap-0.5">
+            <current.icon className={`${className} ${current.cls}`} />
+            <span className="text-[10px] font-medium text-muted-foreground">{current.short}</span>
+          </span>
+        ) : (
+          <Minus className={`${className} text-muted-foreground/60`} />
+        )}
+      </SelectTrigger>
+      <SelectContent align="end">
+        <SelectItem value="__none" className="text-xs">
+          <span className="flex items-center gap-2">
+            <Minus className="h-3.5 w-3.5 text-muted-foreground/60" />
+            {t("roadmap.priority.none")}
+          </span>
+        </SelectItem>
+        {PRIORITIES.map((p) => {
+          const m = PRIORITY_META[p];
+          const Icon = m.icon;
+          return (
+            <SelectItem key={p} value={p} className="text-xs">
+              <span className="flex items-center gap-2">
+                <Icon className={`h-3.5 w-3.5 ${m.cls}`} />
+                {priorityLabel(p)}
+              </span>
+            </SelectItem>
+          );
+        })}
+      </SelectContent>
+    </Select>
+  );
 }
 
 
@@ -901,11 +971,10 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                           <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
                           {it.id}
                         </span>
-                        {it.priority && (
-                          <span className={`px-1.5 py-0.5 rounded border text-[10px] ${priorityColor(it.priority)}`}>
-                            {it.priority.split("-")[0]}
-                          </span>
-                        )}
+                        <PriorityPicker
+                          value={it.priority}
+                          onChange={(p) => onUpdate(it.uid, { priority: p })}
+                        />
                       </div>
                       <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
                       {showParent && top && cov && (
@@ -1000,8 +1069,13 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                               className={`cursor-grab active:cursor-grabbing ${dragUid === v.item.uid ? "opacity-40" : ""}`}
                               title={incomplete ? "Falta prioridad o esfuerzo" : ""}
                             >
-                              <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${incomplete ? "ring-1 ring-amber-500/60" : ""}`}>
-                                {v.item.id} · {v.item.title}
+                              <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${incomplete ? "ring-1 ring-amber-500/60" : ""} flex items-center gap-1`}>
+                                <PriorityPicker
+                                  value={v.item.priority}
+                                  onChange={(p) => onUpdate(v.item.uid, { priority: p })}
+                                  size="md"
+                                />
+                                <span>{v.item.id} · {v.item.title}</span>
                                 {incomplete && <span className="ml-1 text-amber-600 dark:text-amber-400">⚠</span>}
                               </Badge>
                             </div>
