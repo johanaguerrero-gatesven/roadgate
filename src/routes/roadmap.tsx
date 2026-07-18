@@ -422,8 +422,12 @@ function PriorityPicker({
             <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap leading-none">{current.short}</span>
           </span>
         ) : (
-          <Minus className={`${className} text-muted-foreground/60`} />
+          <span className="!flex flex-row items-center gap-1" title={t("roadmap.priority.none")}>
+            <Minus className={`${className} text-muted-foreground/50 shrink-0`} />
+            <span className="text-[10px] font-medium text-muted-foreground/60 whitespace-nowrap leading-none">--</span>
+          </span>
         )}
+
       </SelectTrigger>
       <SelectContent align="end">
         <SelectItem value="__none" className="text-xs">
