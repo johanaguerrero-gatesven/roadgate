@@ -64,7 +64,7 @@ function isBrowser() {
 export function loadItems(): RoadmapItem[] {
   if (!isBrowser()) return [];
   try {
-    const raw = localStorage.getItem(ITEMS_KEY);
+    const raw = localStorage.getItem(itemsKey());
     return raw ? (JSON.parse(raw) as RoadmapItem[]) : [];
   } catch {
     return [];
@@ -77,7 +77,7 @@ export function saveItems(items: RoadmapItem[]) {
   // Done here (single write path) so every mutation stays consistent,
   // including CSV export and dashboards.
   const normalized = syncParentEffortsInternal(items);
-  localStorage.setItem(ITEMS_KEY, JSON.stringify(normalized));
+  localStorage.setItem(itemsKey(), JSON.stringify(normalized));
   window.dispatchEvent(new Event("roadgate:roadmap"));
 }
 
@@ -99,7 +99,7 @@ function syncParentEffortsInternal(items: RoadmapItem[]): RoadmapItem[] {
 export function loadCapacity(): CapacityConfig {
   if (!isBrowser()) return defaultCapacity;
   try {
-    const raw = localStorage.getItem(CFG_KEY);
+    const raw = localStorage.getItem(capacityKey());
     return raw ? { ...defaultCapacity, ...JSON.parse(raw) } : defaultCapacity;
   } catch {
     return defaultCapacity;
@@ -108,7 +108,7 @@ export function loadCapacity(): CapacityConfig {
 
 export function saveCapacity(cfg: CapacityConfig) {
   if (!isBrowser()) return;
-  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  localStorage.setItem(capacityKey(), JSON.stringify(cfg));
   window.dispatchEvent(new Event("roadgate:roadmap"));
 }
 
