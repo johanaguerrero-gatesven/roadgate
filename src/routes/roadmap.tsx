@@ -1113,8 +1113,24 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                                   size="md"
                                 />
                                 <span className="truncate">{v.item.id} · {v.item.title}</span>
-                                {(missingPriority || missingEffort) && <span className="ml-1 text-amber-600 dark:text-amber-400 shrink-0">⚠</span>}
+                                {(missingPriority || missingEffort) && (
+                                  <span
+                                    className="ml-1 text-amber-600 dark:text-amber-400 shrink-0 cursor-help"
+                                    title={
+                                      missingPriority && missingEffort
+                                        ? `Falta prioridad y esfuerzo.\n\nEsfuerzo: ${hasKids ? `rolled-up de ${items.filter(c => c.parentId === v.item.id).length} hijo(s) = 0` : "no asignado en este item (leaf)"}.\nFuente: rolledUpEffort() en src/lib/roadmap.ts — suma recursiva del effort de los descendientes leaf.`
+                                        : missingPriority
+                                        ? "Falta prioridad. Asigna Alta/Media/Baja/Muy baja en el selector de prioridad."
+                                        : hasKids
+                                        ? `Effort rolled-up = 0.\n\nEste ${WORK_ITEM_ICONS[v.item.type].label} tiene ${items.filter(c => c.parentId === v.item.id).length} hijo(s) y ninguno tiene 'effort' > 0.\n\nCálculo: rolledUpEffort() en src/lib/roadmap.ts recorre los descendientes hasta las hojas y suma su campo 'effort'. Como todos son 0 (o vacío), la suma es 0.\n\nSolución: asigna 'effort' a los hijos (Features/User Stories) desde la vista Backlog. El padre heredará la suma automáticamente.`
+                                        : `Effort = 0.\n\nEste ${WORK_ITEM_ICONS[v.item.type].label} no tiene hijos, así que su esfuerzo viene de su propio campo 'effort' (leaf). Actualmente está vacío o en 0.\n\nSolución: asigna un valor de 'effort' desde la vista Backlog.`
+                                    }
+                                  >
+                                    ⚠
+                                  </span>
+                                )}
                               </Badge>
+
                               <Select
                                 value={v.item.quarter || "__bl"}
                                 disabled={!canAssignQuarter}
