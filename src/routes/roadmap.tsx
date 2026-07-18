@@ -26,6 +26,7 @@ import {
   CapacityConfig, buildRoadmapView, effortByQuarter, sprintsForQuarter,
   rolledUpEffort, effortByPriority, countByPriority,
   descendantsOf, topAncestor, roadmapCoverage,
+  itemsKey, capacityKey,
 } from "@/lib/roadmap";
 import {
   ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff,
