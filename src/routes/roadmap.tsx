@@ -21,13 +21,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import {
   RoadmapItem, ItemType, Quarter, Priority,
-  loadItems, saveItems, importCSV, toCSV, uid,
-  loadCapacity, saveCapacity, capacityPerQuarter, capacityPerSprint,
+  importCSV, toCSV, uid, defaultCapacity,
+  capacityPerQuarter, capacityPerSprint,
   CapacityConfig, buildRoadmapView, effortByQuarter, sprintsForQuarter,
   rolledUpEffort, effortByPriority, countByPriority,
-  descendantsOf, topAncestor, roadmapCoverage,
-  itemsKey, capacityKey,
+  descendantsOf, topAncestor, roadmapCoverage, normalizeItems,
 } from "@/lib/roadmap";
+import { fetchRoadmap, persistItems, persistCapacity, resetRoadmap } from "@/lib/roadmap.functions";
+import { useServerFn } from "@tanstack/react-start";
+
 import {
   ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff,
   ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Minus, CornerDownRight,
