@@ -32,8 +32,21 @@ export type CapacityConfig = {
   sprintsByQuarter?: Partial<Record<Exclude<Quarter, "">, number>>; // per-Q override
 };
 
-const ITEMS_KEY = "roadgate.roadmap.items";
-const CFG_KEY = "roadgate.roadmap.capacity";
+// Storage keys are scoped per authenticated user so signed-in users never
+// share a backlog with anonymous demo users on the same browser. When there
+// is no session we fall back to a "guest" scope.
+const SESSION_KEY = "roadgate.session";
+function currentUserScope(): string {
+  if (typeof window === "undefined") return "guest";
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return "guest";
+    const s = JSON.parse(raw) as { userId?: string };
+    return s?.userId ? `u:${s.userId}` : "guest";
+  } catch { return "guest"; }
+}
+export function itemsKey() { return `roadgate.roadmap.items.${currentUserScope()}`; }
+export function capacityKey() { return `roadgate.roadmap.capacity.${currentUserScope()}`; }
 
 export const defaultCapacity: CapacityConfig = {
   developers: 7,
@@ -51,7 +64,7 @@ function isBrowser() {
 export function loadItems(): RoadmapItem[] {
   if (!isBrowser()) return [];
   try {
-    const raw = localStorage.getItem(ITEMS_KEY);
+    const raw = localStorage.getItem(itemsKey());
     return raw ? (JSON.parse(raw) as RoadmapItem[]) : [];
   } catch {
     return [];
@@ -64,7 +77,7 @@ export function saveItems(items: RoadmapItem[]) {
   // Done here (single write path) so every mutation stays consistent,
   // including CSV export and dashboards.
   const normalized = syncParentEffortsInternal(items);
-  localStorage.setItem(ITEMS_KEY, JSON.stringify(normalized));
+  localStorage.setItem(itemsKey(), JSON.stringify(normalized));
   window.dispatchEvent(new Event("roadgate:roadmap"));
 }
 
@@ -86,7 +99,7 @@ function syncParentEffortsInternal(items: RoadmapItem[]): RoadmapItem[] {
 export function loadCapacity(): CapacityConfig {
   if (!isBrowser()) return defaultCapacity;
   try {
-    const raw = localStorage.getItem(CFG_KEY);
+    const raw = localStorage.getItem(capacityKey());
     return raw ? { ...defaultCapacity, ...JSON.parse(raw) } : defaultCapacity;
   } catch {
     return defaultCapacity;
@@ -95,7 +108,7 @@ export function loadCapacity(): CapacityConfig {
 
 export function saveCapacity(cfg: CapacityConfig) {
   if (!isBrowser()) return;
-  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  localStorage.setItem(capacityKey(), JSON.stringify(cfg));
   window.dispatchEvent(new Event("roadgate:roadmap"));
 }
 

@@ -26,6 +26,7 @@ import {
   CapacityConfig, buildRoadmapView, effortByQuarter, sprintsForQuarter,
   rolledUpEffort, effortByPriority, countByPriority,
   descendantsOf, topAncestor, roadmapCoverage,
+  itemsKey, capacityKey,
 } from "@/lib/roadmap";
 import {
   ArrowLeft, Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff,
@@ -87,11 +88,15 @@ function RoadmapPage() {
     if (ready && !session) navigate({ to: "/login" });
   }, [ready, session, navigate]);
 
-  useEffect(() => { setItems(loadItems()); }, []);
+  useEffect(() => { setItems(loadItems()); setCfg(loadCapacity()); }, [session?.userId]);
   useEffect(() => {
     const h = () => { setItems(loadItems()); setCfg(loadCapacity()); };
     window.addEventListener("roadgate:roadmap", h);
-    return () => window.removeEventListener("roadgate:roadmap", h);
+    window.addEventListener("roadgate:auth", h);
+    return () => {
+      window.removeEventListener("roadgate:roadmap", h);
+      window.removeEventListener("roadgate:auth", h);
+    };
   }, []);
 
   const update = (next: RoadmapItem[]) => { setItems(next); saveItems(next); };
@@ -215,13 +220,13 @@ function RoadmapPage() {
                   size="sm"
                   className="gap-1.5 text-destructive hover:text-destructive"
                   onClick={() => {
-                    if (!window.confirm("¿Borrar todos los datos de demo (backlog, roadmap y capacidad)? Esta acción no se puede deshacer.")) return;
+                    if (!window.confirm("¿Borrar todos los datos de demo (backlog, roadmap y capacidad) DE TU USUARIO? Esta acción no se puede deshacer.")) return;
                     try {
-                      localStorage.removeItem("roadgate.roadmap.items");
-                      localStorage.removeItem("roadgate.roadmap.capacity");
+                      localStorage.removeItem(itemsKey());
+                      localStorage.removeItem(capacityKey());
                     } catch {}
                     window.dispatchEvent(new Event("roadgate:roadmap"));
-                    toast.success("Datos de demo borrados");
+                    toast.success("Tus datos han sido borrados");
                     setTimeout(() => window.location.reload(), 400);
                   }}
                 >
