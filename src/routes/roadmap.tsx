@@ -1086,33 +1086,56 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                     {list.length === 0 ? (
                       <div className="text-xs text-muted-foreground/60 text-center py-4">—</div>
                     ) : (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-col gap-2">
                         {list.map((v) => {
                           const hasKids = items.some((c) => c.parentId === v.item.id);
                           const eff = hasKids ? rolledUpEffort(v.item, items) : (v.item.effort ?? 0);
                           const incomplete = !v.item.priority || eff <= 0;
+                          // Quarter selector habilitado solo con prioridad Alta o Media
+                          const canAssignQuarter = v.item.priority === "1-High" || v.item.priority === "2-Medium";
                           return (
                             <div
                               key={v.item.uid}
                               draggable
                               onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
                               onDragEnd={() => { setDragUid(null); setOverQ(null); }}
-                              className={`cursor-grab active:cursor-grabbing ${dragUid === v.item.uid ? "opacity-40" : ""}`}
+                              className={`cursor-grab active:cursor-grabbing flex items-center gap-1 ${dragUid === v.item.uid ? "opacity-40" : ""}`}
                               title={incomplete ? "Falta prioridad o esfuerzo" : ""}
                             >
-                              <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${incomplete ? "ring-1 ring-amber-500/60" : ""} flex items-center gap-1`}>
+                              <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${incomplete ? "ring-1 ring-amber-500/60" : ""} flex items-center gap-1 flex-1 min-w-0`}>
                                 <PriorityPicker
                                   value={v.item.priority}
                                   onChange={(p) => onUpdate(v.item.uid, { priority: p })}
                                   size="md"
                                 />
-                                <span>{v.item.id} · {v.item.title}</span>
-                                {incomplete && <span className="ml-1 text-amber-600 dark:text-amber-400">⚠</span>}
+                                <span className="truncate">{v.item.id} · {v.item.title}</span>
+                                {incomplete && <span className="ml-1 text-amber-600 dark:text-amber-400 shrink-0">⚠</span>}
                               </Badge>
+                              <Select
+                                value={v.item.quarter || "__bl"}
+                                disabled={!canAssignQuarter}
+                                onValueChange={(val) => commitMove(v.item.uid, (val === "__bl" ? "" : val) as Quarter)}
+                              >
+                                <SelectTrigger
+                                  className="h-6 w-[68px] text-[10px] px-1.5 shrink-0"
+                                  onPointerDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => e.stopPropagation()}
+                                  title={canAssignQuarter ? "Asignar Quarter" : "Sube la prioridad a Media o Alta para asignar Quarter"}
+                                >
+                                  <SelectValue placeholder="Q?" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="__bl" className="text-xs">Sin Q</SelectItem>
+                                  {QUARTERS.map((qq) => (
+                                    <SelectItem key={qq} value={qq} className="text-xs">{qq}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
                           );
                         })}
                       </div>
+
                     )}
                   </div>
                 );
