@@ -265,7 +265,9 @@ function RoadmapPage() {
                     </p>
                   </PopoverContent>
                 </Popover>
+                </div>
               </div>
+
               {enabledTypes.map((ty) => (
                 <TabsContent key={ty} value={ty} className="mt-4">
                   <BacklogPanel
