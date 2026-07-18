@@ -32,8 +32,21 @@ export type CapacityConfig = {
   sprintsByQuarter?: Partial<Record<Exclude<Quarter, "">, number>>; // per-Q override
 };
 
-const ITEMS_KEY = "roadgate.roadmap.items";
-const CFG_KEY = "roadgate.roadmap.capacity";
+// Storage keys are scoped per authenticated user so signed-in users never
+// share a backlog with anonymous demo users on the same browser. When there
+// is no session we fall back to a "guest" scope.
+const SESSION_KEY = "roadgate.session";
+function currentUserScope(): string {
+  if (typeof window === "undefined") return "guest";
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return "guest";
+    const s = JSON.parse(raw) as { userId?: string };
+    return s?.userId ? `u:${s.userId}` : "guest";
+  } catch { return "guest"; }
+}
+export function itemsKey() { return `roadgate.roadmap.items.${currentUserScope()}`; }
+export function capacityKey() { return `roadgate.roadmap.capacity.${currentUserScope()}`; }
 
 export const defaultCapacity: CapacityConfig = {
   developers: 7,
