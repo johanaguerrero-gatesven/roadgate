@@ -130,11 +130,36 @@ function RoadmapPage() {
     // Nunca permitir sobrescribir el tipo original
     if ("type" in safePatch) delete (safePatch as { type?: ItemType }).type;
     // Gate de priorización: no permitir asignar Quarter sin prioridad definida
-    if ("quarter" in safePatch && safePatch.quarter && !current.priority) {
+    if ("quarter" in safePatch && safePatch.quarter && !current.priority && !safePatch.priority) {
       toast.error("No se puede añadir al Roadmap sin prioridad", {
         description: "Define la prioridad antes de asignar un Quarter.",
       });
       delete safePatch.quarter;
+    }
+    // Regla de negocio: al bajar la prioridad a "Low" o "Sin prioridad",
+    // el item se devuelve al Backlog (se limpia su Quarter y el de sus hijos que compartían Q).
+    if ("priority" in safePatch) {
+      const nextPriority = safePatch.priority ?? "";
+      const demote = nextPriority === "" || nextPriority === "3-Low" || nextPriority === "4-Lowest";
+      if (demote && (current.quarter ?? "") !== "") {
+        safePatch.quarter = "";
+        const prevQ = current.quarter ?? "";
+        const cascadeUids = new Set<string>([current.uid]);
+        descendantsOf(current, items).forEach((d) => {
+          if ((d.quarter ?? "") === prevQ) cascadeUids.add(d.uid);
+        });
+        update(
+          items.map((it) =>
+            cascadeUids.has(it.uid)
+              ? { ...it, ...(it.uid === current.uid ? safePatch : {}), quarter: "" as Quarter }
+              : it,
+          ),
+        );
+        toast.info("Movido al Backlog", {
+          description: `${current.id}: prioridad ${nextPriority || "sin definir"} — se quitó del Roadmap.`,
+        });
+        return;
+      }
     }
     // Validar parentId según el tipo
     if ("parentId" in safePatch) {
@@ -154,6 +179,7 @@ function RoadmapPage() {
     if (Object.keys(safePatch).length === 0) return;
     update(items.map((it) => (it.uid === uidKey ? { ...it, ...safePatch } : it)));
   };
+
   /** Move an item to a quarter. Cascade non-destructive: solo desciende a hijos que compartían el Q previo. */
   const moveQuarter = (uidKey: string, quarter: Quarter) => {
     const target = items.find((i) => i.uid === uidKey);
@@ -396,8 +422,12 @@ function PriorityPicker({
             <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap leading-none">{current.short}</span>
           </span>
         ) : (
-          <Minus className={`${className} text-muted-foreground/60`} />
+          <span className="!flex flex-row items-center gap-1" title={t("roadmap.priority.none")}>
+            <Minus className={`${className} text-muted-foreground/50 shrink-0`} />
+            <span className="text-[10px] font-medium text-muted-foreground/60 whitespace-nowrap leading-none">--</span>
+          </span>
         )}
+
       </SelectTrigger>
       <SelectContent align="end">
         <SelectItem value="__none" className="text-xs">
