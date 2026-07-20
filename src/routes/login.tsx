@@ -196,12 +196,18 @@ function SignInForm({ onChallenge }: { onChallenge: () => void }) {
         type="button"
         variant="outline"
         className="w-full h-11 border-dashed"
-        onClick={() => {
-          const s = { userId: "demo-user", email: "demo@roadgate.app", name: "Demo" };
-          localStorage.setItem("roadgate.session", JSON.stringify(s));
-          window.dispatchEvent(new Event("roadgate:auth"));
-          toast.info("Entraste en modo Demo");
-          navigate({ to: "/app" });
+        disabled={loading}
+        onClick={async () => {
+          setLoading(true);
+          try {
+            await ensureDemoUser();
+            toast.success("Sesión demo iniciada 🚀");
+            navigate({ to: "/app" });
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "No se pudo iniciar la demo");
+          } finally {
+            setLoading(false);
+          }
         }}
       >
         🚀 Probar Demo (sin cuenta)
