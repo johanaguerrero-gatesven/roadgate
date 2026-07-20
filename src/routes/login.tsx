@@ -158,8 +158,18 @@ function SignInForm({ onChallenge }: { onChallenge: () => void }) {
       <Button type="submit" className="w-full h-11" disabled={loading}>
         {loading ? "Signing in…" : "Sign in"}
       </Button>
-      <button
+      <div className="relative py-1">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-dashed border-border" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-background px-2 text-[10px] uppercase tracking-wider text-muted-foreground">o</span>
+        </div>
+      </div>
+      <Button
         type="button"
+        variant="outline"
+        className="w-full h-11 border-dashed"
         onClick={() => {
           const s = { userId: "demo-user", email: "demo@roadgate.app", name: "Demo" };
           localStorage.setItem("roadgate.session", JSON.stringify(s));
@@ -167,10 +177,9 @@ function SignInForm({ onChallenge }: { onChallenge: () => void }) {
           toast.info("Entraste en modo Demo");
           navigate({ to: "/app" });
         }}
-        className="w-full text-center text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
       >
-        Probar Demo (sin cuenta)
-      </button>
+        🚀 Probar Demo (sin cuenta)
+      </Button>
     </form>
   );
 }
