@@ -10,6 +10,32 @@ import { AuthProviders } from "@/components/AuthProviders";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { login, register, getSession, clearSession } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+
+const DEMO_EMAIL = "demo@roadgate.app";
+const DEMO_PASSWORD = "demo1234";
+
+async function ensureDemoUser() {
+  const { error } = await supabase.auth.signInWithPassword({
+    email: DEMO_EMAIL,
+    password: DEMO_PASSWORD,
+  });
+  if (!error) return;
+  // First time: create the shared demo account, then sign in.
+  const { error: signUpError } = await supabase.auth.signUp({
+    email: DEMO_EMAIL,
+    password: DEMO_PASSWORD,
+    options: { emailRedirectTo: window.location.origin },
+  });
+  if (signUpError && !/registered|exists/i.test(signUpError.message)) {
+    throw signUpError;
+  }
+  const { error: retryError } = await supabase.auth.signInWithPassword({
+    email: DEMO_EMAIL,
+    password: DEMO_PASSWORD,
+  });
+  if (retryError) throw retryError;
+}
 import {
   getTwoFA,
   generateCode,
@@ -117,7 +143,16 @@ function SignInForm({ onChallenge }: { onChallenge: () => void }) {
     }
     setLoading(true);
     try {
-      await login(parsed.data.email, parsed.data.password);
+      // Special-case demo credentials: auto-provision the account if it doesn't exist yet.
+      if (parsed.data.email === DEMO_EMAIL && parsed.data.password === DEMO_PASSWORD) {
+        await ensureDemoUser();
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: parsed.data.email,
+          password: parsed.data.password,
+        });
+        if (error) throw new Error(error.message);
+      }
 
       // Check 2FA
       const twofa = getTwoFA(parsed.data.email);
@@ -170,12 +205,18 @@ function SignInForm({ onChallenge }: { onChallenge: () => void }) {
         type="button"
         variant="outline"
         className="w-full h-11 border-dashed"
-        onClick={() => {
-          const s = { userId: "demo-user", email: "demo@roadgate.app", name: "Demo" };
-          localStorage.setItem("roadgate.session", JSON.stringify(s));
-          window.dispatchEvent(new Event("roadgate:auth"));
-          toast.info("Entraste en modo Demo");
-          navigate({ to: "/app" });
+        disabled={loading}
+        onClick={async () => {
+          setLoading(true);
+          try {
+            await ensureDemoUser();
+            toast.success("Sesión demo iniciada 🚀");
+            navigate({ to: "/app" });
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "No se pudo iniciar la demo");
+          } finally {
+            setLoading(false);
+          }
         }}
       >
         🚀 Probar Demo (sin cuenta)
