@@ -180,6 +180,25 @@ function SignInForm({ onChallenge }: { onChallenge: () => void }) {
       >
         🚀 Probar Demo (sin cuenta)
       </Button>
+      <div className="rounded-md border border-dashed border-border bg-muted/40 p-3 text-xs space-y-1.5">
+        <p className="font-medium text-foreground">Credenciales demo</p>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-muted-foreground">Email</span>
+          <code className="font-mono text-foreground">demo@roadgate.app</code>
+          <button
+            type="button"
+            className="text-primary hover:underline"
+            onClick={() => { setEmail("demo@roadgate.app"); setPassword("demo1234"); toast.success("Credenciales rellenadas"); }}
+          >
+            usar
+          </button>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-muted-foreground">Password</span>
+          <code className="font-mono text-foreground">demo1234</code>
+        </div>
+      </div>
+
     </form>
   );
 }
