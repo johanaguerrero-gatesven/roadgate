@@ -143,7 +143,16 @@ function SignInForm({ onChallenge }: { onChallenge: () => void }) {
     }
     setLoading(true);
     try {
-      await login(parsed.data.email, parsed.data.password);
+      // Special-case demo credentials: auto-provision the account if it doesn't exist yet.
+      if (parsed.data.email === DEMO_EMAIL && parsed.data.password === DEMO_PASSWORD) {
+        await ensureDemoUser();
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: parsed.data.email,
+          password: parsed.data.password,
+        });
+        if (error) throw new Error(error.message);
+      }
 
       // Check 2FA
       const twofa = getTwoFA(parsed.data.email);
