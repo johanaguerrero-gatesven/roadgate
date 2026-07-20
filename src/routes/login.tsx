@@ -10,6 +10,32 @@ import { AuthProviders } from "@/components/AuthProviders";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { login, register, getSession, clearSession } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+
+const DEMO_EMAIL = "demo@roadgate.app";
+const DEMO_PASSWORD = "demo1234";
+
+async function ensureDemoUser() {
+  const { error } = await supabase.auth.signInWithPassword({
+    email: DEMO_EMAIL,
+    password: DEMO_PASSWORD,
+  });
+  if (!error) return;
+  // First time: create the shared demo account, then sign in.
+  const { error: signUpError } = await supabase.auth.signUp({
+    email: DEMO_EMAIL,
+    password: DEMO_PASSWORD,
+    options: { emailRedirectTo: window.location.origin },
+  });
+  if (signUpError && !/registered|exists/i.test(signUpError.message)) {
+    throw signUpError;
+  }
+  const { error: retryError } = await supabase.auth.signInWithPassword({
+    email: DEMO_EMAIL,
+    password: DEMO_PASSWORD,
+  });
+  if (retryError) throw retryError;
+}
 import {
   getTwoFA,
   generateCode,
