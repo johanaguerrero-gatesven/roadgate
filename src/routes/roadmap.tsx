@@ -1110,8 +1110,9 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
           { type: "story", label: "User Stories" },
         ];
         return (
-          <div>
+          <div id="unassigned-section" className="scroll-mt-4">
             <h4 className="font-semibold text-foreground mb-2">
+
               {t("roadmap.noQuarterAssigned")} ({unassigned.length})
             </h4>
             <div className="grid md:grid-cols-3 gap-4">
