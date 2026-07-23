@@ -306,6 +306,14 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
       !!effectiveQuarter(node, items) ||
       desc.some((d) => !!effectiveQuarter(d, items));
     if (!anyPlaced) return { choice: "self" };
+    // If every descendant resolves to the same quarter, render the parent
+    // rolled-up in that quarter (matches parent's own quarter when set, or
+    // simply groups the children when the parent has no quarter yet).
+    const shared = sharedChildQuarter(node);
+    const own = effectiveQuarter(node, items);
+    if (shared && (!own || own === shared)) {
+      return { choice: "self", quarter: shared };
+    }
     return { choice: "children" };
   };
 
