@@ -52,6 +52,10 @@ export function getSession(): Session | null {
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
   window.dispatchEvent(new Event("roadgate:auth"));
+  // Also sign out from Supabase so useAuth doesn't restore the session.
+  import("@/integrations/supabase/client")
+    .then(({ supabase }) => supabase.auth.signOut())
+    .catch(() => { /* ignore */ });
 }
 
 function setSession(s: Session) {
