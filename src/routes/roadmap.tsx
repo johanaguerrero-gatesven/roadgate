@@ -28,6 +28,7 @@ import {
   descendantsOf, topAncestor, roadmapCoverage, normalizeItems,
 } from "@/lib/roadmap";
 import { fetchRoadmap, persistItems, persistCapacity, resetRoadmap } from "@/lib/roadmap.functions";
+import { exportRoadmapXlsx } from "@/lib/export-xlsx";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
