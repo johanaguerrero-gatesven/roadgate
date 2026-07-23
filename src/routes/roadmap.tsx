@@ -28,6 +28,7 @@ import {
   descendantsOf, topAncestor, roadmapCoverage, normalizeItems,
 } from "@/lib/roadmap";
 import { fetchRoadmap, persistItems, persistCapacity, resetRoadmap } from "@/lib/roadmap.functions";
+import { exportRoadmapXlsx } from "@/lib/export-xlsx";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
@@ -287,6 +288,22 @@ function RoadmapPage() {
 
                 >
                   <Trash2 className="h-4 w-4" /> Reset demo data
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => {
+                    try {
+                      exportRoadmapXlsx(items, cfg);
+                      toast.success("Excel generado");
+                    } catch (e) {
+                      console.error(e);
+                      toast.error("Error al exportar Excel");
+                    }
+                  }}
+                >
+                  <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
                 </Button>
                 <Popover>
                   <PopoverTrigger asChild>
