@@ -955,7 +955,42 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
           </Button>
         </div>
       )}
+
+      {(() => {
+        const unassignedEpics = (byQuarter[""] || []).filter((v) => v.item.type === "epic");
+        if (unassignedEpics.length === 0) return null;
+        return (
+          <div className="flex items-start justify-between gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <div>
+                <div className="font-medium text-amber-800 dark:text-amber-300">
+                  {unassignedEpics.length} Epic{unassignedEpics.length === 1 ? "" : "s"} sin quarter asignado
+                </div>
+                <div className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-0.5">
+                  Asigna un Quarter (Q1–Q4) para incluirlos en el Roadmap. Requieren prioridad definida.
+                </div>
+                <div className="text-xs text-amber-700/70 dark:text-amber-400/70 mt-1 truncate max-w-[60ch]">
+                  {unassignedEpics.slice(0, 5).map((v) => v.item.id).join(", ")}
+                  {unassignedEpics.length > 5 ? ` … (+${unassignedEpics.length - 5})` : ""}
+                </div>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                document.getElementById("unassigned-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              Ver y asignar
+            </Button>
+          </div>
+        );
+      })()}
+
       {/* Una sola tarjeta por Quarter: KPI + items */}
+
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
         {QUARTERS.map((q) => {
           const eff = effortMap[q];
