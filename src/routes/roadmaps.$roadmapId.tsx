@@ -41,7 +41,7 @@ import { Label } from "@/components/ui/label";
 import { WORK_ITEM_ICONS, WorkItemIcon } from "@/lib/work-item-icons";
 
 
-export const Route = createFileRoute("/roadmaps/")({
+export const Route = createFileRoute("/roadmaps/$roadmapId")({
   head: () => ({ meta: [{ title: "Roadmap — RoadGate" }] }),
   component: RoadmapPage,
 });
