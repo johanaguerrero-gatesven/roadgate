@@ -137,8 +137,9 @@ function AppHome() {
           </div>
           <div className="flex items-center gap-2">
             <Button size="lg" variant="outline" asChild>
-              <Link to="/roadmaps">Mis roadmaps</Link>
+              <Link to="/roadmaps">{t("app.myRoadmaps")}</Link>
             </Button>
+
             <Button size="lg" asChild>
               <Link to="/roadmaps/new"><Plus className="h-4 w-4" /> {t("app.new")}</Link>
             </Button>
