@@ -32,7 +32,7 @@ type RoadmapSummary = { id: string; name: string; createdAt: string; updatedAt: 
 function AppHome() {
   const { session, ready } = useAuth();
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const statsFn = useServerFn(getWorkspaceStats);
   const listFn = useServerFn(listRoadmaps);
   const [stats, setStats] = useState<Stats | null>(null);
