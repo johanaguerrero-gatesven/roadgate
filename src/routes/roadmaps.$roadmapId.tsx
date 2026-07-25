@@ -251,7 +251,8 @@ function RoadmapPage() {
       <main className="mx-auto max-w-[1700px] px-6 py-8">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{t("roadmap.title")}</h1>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">{t("roadmap.title")}</div>
+            <h1 className="text-3xl font-bold text-foreground">{roadmapName || "…"}</h1>
             <p className="text-muted-foreground mt-1">
               {t("roadmap.lead")}
             </p>
