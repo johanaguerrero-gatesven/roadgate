@@ -21,6 +21,7 @@ export type Database = {
           dedication_pct: number
           developers: number
           hours_per_day: number
+          roadmap_id: string
           sprints_by_quarter: Json
           sprints_per_quarter: number
           updated_at: string
@@ -32,6 +33,7 @@ export type Database = {
           dedication_pct?: number
           developers?: number
           hours_per_day?: number
+          roadmap_id: string
           sprints_by_quarter?: Json
           sprints_per_quarter?: number
           updated_at?: string
@@ -43,12 +45,21 @@ export type Database = {
           dedication_pct?: number
           developers?: number
           hours_per_day?: number
+          roadmap_id?: string
           sprints_by_quarter?: Json
           sprints_per_quarter?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_capacity_roadmap_id_fkey"
+            columns: ["roadmap_id"]
+            isOneToOne: true
+            referencedRelation: "roadmaps"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       roadmap_items: {
         Row: {
@@ -64,6 +75,7 @@ export type Database = {
           parent_id: string | null
           priority: string | null
           quarter: string | null
+          roadmap_id: string
           sprint: number | null
           state: string | null
           tags: string | null
@@ -85,6 +97,7 @@ export type Database = {
           parent_id?: string | null
           priority?: string | null
           quarter?: string | null
+          roadmap_id: string
           sprint?: number | null
           state?: string | null
           tags?: string | null
@@ -106,11 +119,44 @@ export type Database = {
           parent_id?: string | null
           priority?: string | null
           quarter?: string | null
+          roadmap_id?: string
           sprint?: number | null
           state?: string | null
           tags?: string | null
           title?: string
           type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_items_roadmap_id_fkey"
+            columns: ["roadmap_id"]
+            isOneToOne: false
+            referencedRelation: "roadmaps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roadmaps: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
           updated_at?: string
           user_id?: string
         }
