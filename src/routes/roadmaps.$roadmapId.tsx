@@ -288,7 +288,7 @@ function RoadmapPage() {
                   onClick={async () => {
                     if (!window.confirm("¿Borrar todos los datos de demo (backlog, roadmap y capacidad) DE TU USUARIO? Esta acción no se puede deshacer.")) return;
                     try {
-                      await resetRoadmapFn();
+                      await resetRoadmapFn({ data: { roadmapId } });
                       setItems([]);
                       setCfg(defaultCapacity);
                       toast.success("Tus datos han sido borrados");
