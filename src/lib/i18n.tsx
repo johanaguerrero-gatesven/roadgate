@@ -114,8 +114,10 @@ const dict = {
 
     "app.greeting": "Hola,",
     "app.h1": "Tu espacio de roadmap",
-    "app.lead": "Próximamente podrás crear y gestionar tus roadmaps aquí.",
+    "app.lead": "Crea, abre y gestiona tus hojas de ruta desde un solo lugar.",
     "app.new": "Nuevo roadmap",
+    "app.myRoadmaps": "Mis roadmaps",
+
     "app.stats.roadmaps": "Roadmaps",
     "app.stats.roadmaps.hint": "Crea tu primer roadmap",
     "app.stats.teams": "Equipos",
@@ -401,8 +403,10 @@ const dict = {
 
     "app.greeting": "Hi,",
     "app.h1": "Your roadmap workspace",
-    "app.lead": "You'll be able to create and manage your roadmaps here soon.",
+    "app.lead": "Create, open and manage your roadmaps from one place.",
     "app.new": "New roadmap",
+    "app.myRoadmaps": "My roadmaps",
+
     "app.stats.roadmaps": "Roadmaps",
     "app.stats.roadmaps.hint": "Create your first roadmap",
     "app.stats.teams": "Teams",
