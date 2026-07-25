@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { clearSession } from "@/lib/auth";
-import { Map, Users, Gauge, Plus, User, Settings, LogOut } from "lucide-react";
+import { Map, Users, Gauge, Plus, User, Settings, LogOut, CalendarDays } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useServerFn } from "@tanstack/react-start";
-import { getWorkspaceStats } from "@/lib/roadmap.functions";
+import { getWorkspaceStats, listRoadmaps } from "@/lib/roadmap.functions";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -26,6 +26,8 @@ export const Route = createFileRoute("/app")({
 });
 
 type Stats = { roadmapsCount: number; teamsCount: number; totalFTE: number; totalDevelopers: number };
+type RoadmapSummary = { id: string; name: string; createdAt: string; updatedAt: string; itemCount: number };
+
 
 function AppHome() {
   const { session, ready } = useAuth();
