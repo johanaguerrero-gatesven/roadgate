@@ -385,7 +385,7 @@ function RoadmapPage() {
           <TabsContent value="capacity" className="mt-6">
             <CapacityPanel cfg={cfg} onChange={(c) => {
               setCfg(c);
-              persistCapacityFn({ data: { capacity: c } }).catch((e) => {
+              persistCapacityFn({ data: { roadmapId, capacity: c } }).catch((e) => {
                 console.error(e); toast.error("Error al guardar capacity");
               });
             }} />
