@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
@@ -20,15 +19,11 @@ import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsIntegrationsRouteImport } from './routes/settings.integrations'
 import { Route as SettingsCompanyRouteImport } from './routes/settings.company'
 import { Route as SettingsBillingRouteImport } from './routes/settings.billing'
+import { Route as RoadmapsRouteImport } from './routes/roadmaps.'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RoadmapRoute = RoadmapRouteImport.update({
-  id: '/roadmap',
-  path: '/roadmap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -76,14 +71,19 @@ const SettingsBillingRoute = SettingsBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => SettingsRoute,
 } as any)
+const RoadmapsRoute = RoadmapsRouteImport.update({
+  id: '/roadmaps/',
+  path: '/roadmaps/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/roadmaps/': typeof RoadmapsRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -95,8 +95,8 @@ export interface FileRoutesByTo {
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/roadmaps': typeof RoadmapsRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -109,8 +109,8 @@ export interface FileRoutesById {
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/roadmaps/': typeof RoadmapsRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -124,8 +124,8 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/register'
-    | '/roadmap'
     | '/settings'
+    | '/roadmaps/'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -137,8 +137,8 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/register'
-    | '/roadmap'
     | '/settings'
+    | '/roadmaps'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -150,8 +150,8 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/register'
-    | '/roadmap'
     | '/settings'
+    | '/roadmaps/'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -164,8 +164,8 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
-  RoadmapRoute: typeof RoadmapRoute
   SettingsRoute: typeof SettingsRouteWithChildren
+  RoadmapsRoute: typeof RoadmapsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -175,13 +175,6 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/roadmap': {
-      id: '/roadmap'
-      path: '/roadmap'
-      fullPath: '/roadmap'
-      preLoaderRoute: typeof RoadmapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -247,6 +240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsBillingRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/roadmaps/': {
+      id: '/roadmaps/'
+      path: '/roadmaps'
+      fullPath: '/roadmaps/'
+      preLoaderRoute: typeof RoadmapsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -275,8 +275,8 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
-  RoadmapRoute: RoadmapRoute,
   SettingsRoute: SettingsRouteWithChildren,
+  RoadmapsRoute: RoadmapsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
