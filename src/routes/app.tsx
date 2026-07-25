@@ -34,18 +34,23 @@ function AppHome() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const statsFn = useServerFn(getWorkspaceStats);
+  const listFn = useServerFn(listRoadmaps);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [recent, setRecent] = useState<RoadmapSummary[] | null>(null);
 
   useEffect(() => {
     if (ready && !session) navigate({ to: "/login" });
   }, [ready, session, navigate]);
 
   useEffect(() => {
-    if (!session?.userId) { setStats(null); return; }
+    if (!session?.userId) { setStats(null); setRecent(null); return; }
     statsFn()
       .then((s) => setStats(s as Stats))
       .catch((e) => { console.error(e); setStats({ roadmapsCount: 0, teamsCount: 0, totalFTE: 0, totalDevelopers: 0 }); });
-  }, [session?.userId, statsFn]);
+    listFn()
+      .then((rows) => setRecent((rows as RoadmapSummary[]).slice(0, 5)))
+      .catch((e) => { console.error(e); setRecent([]); });
+  }, [session?.userId, statsFn, listFn]);
 
   if (!ready || !session) return null;
 
@@ -56,6 +61,14 @@ function AppHome() {
         ? `${stats.totalDevelopers}`
         : "—"
     : "…";
+
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
 
   const cards = [
     {
