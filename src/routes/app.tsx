@@ -159,13 +159,62 @@ function AppHome() {
           ))}
         </div>
 
-        <div className="mt-10 rounded-2xl border border-dashed border-border bg-card/60 p-12 text-center">
-          <Map className="h-10 w-10 mx-auto text-primary" />
-          <h2 className="mt-4 text-xl font-semibold text-foreground">{t("app.empty.h2")}</h2>
-          <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-            {t("app.empty.lead")}
-          </p>
-        </div>
+        {stats && stats.roadmapsCount > 0 ? (
+          <div className="mt-10">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">{t("app.recent.h2")}</h2>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/roadmaps">{t("app.recent.viewAll")}</Link>
+              </Button>
+            </div>
+            <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recent === null ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="h-28 rounded-xl border border-border bg-card/60 animate-pulse" />
+                ))
+              ) : (
+                recent.map((r) => (
+                  <div
+                    key={r.id}
+                    className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] hover:border-primary/40 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-foreground truncate">{r.name}</h3>
+                        <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <CalendarDays className="h-3.5 w-3.5" />
+                            {t("app.recent.updated")} {formatDate(r.updatedAt)}
+                          </span>
+                          <span>{r.itemCount} {t("app.recent.items")}</span>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline" asChild>
+                        <Link to="/roadmaps/$roadmapId" params={{ roadmapId: r.id }}>
+                          {t("app.recent.open")}
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-10 rounded-2xl border border-dashed border-border bg-card/60 p-12 text-center">
+            <Map className="h-10 w-10 mx-auto text-primary" />
+            <h2 className="mt-4 text-xl font-semibold text-foreground">{t("app.empty.h2")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+              {t("app.empty.lead")}
+            </p>
+            <div className="mt-6">
+              <Button size="lg" asChild>
+                <Link to="/roadmaps/new"><Plus className="h-4 w-4" /> {t("app.empty.create")}</Link>
+              </Button>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );
