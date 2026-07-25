@@ -124,8 +124,15 @@ const dict = {
     "app.stats.capacity.hint": "Configura FTEs por equipo",
     "app.empty.h2": "Aún no hay roadmaps",
     "app.empty.lead":
-      "En la siguiente iteración podrás crear iniciativas, asignarlas a equipos y validar contra la capacidad real.",
+      "Crea tu primer roadmap para empezar a planificar iniciativas, asignarlas a equipos y validar contra la capacidad real.",
+    "app.empty.create": "Crear mi primer roadmap",
+    "app.recent.h2": "Tus hojas de ruta recientes",
+    "app.recent.viewAll": "Ver todos mis roadmaps",
+    "app.recent.open": "Abrir",
+    "app.recent.items": "items",
+    "app.recent.updated": "Actualizado",
     "app.meta.title": "Mi espacio — RoadGate",
+
 
     "404.h1": "404",
     "404.h2": "Página no encontrada",
@@ -404,8 +411,15 @@ const dict = {
     "app.stats.capacity.hint": "Set FTEs per team",
     "app.empty.h2": "No roadmaps yet",
     "app.empty.lead":
-      "In the next iteration you'll be able to create initiatives, assign them to teams and validate against real capacity.",
+      "Create your first roadmap to start planning initiatives, assigning teams and validating against real capacity.",
+    "app.empty.create": "Create my first roadmap",
+    "app.recent.h2": "Your recent roadmaps",
+    "app.recent.viewAll": "View all my roadmaps",
+    "app.recent.open": "Open",
+    "app.recent.items": "items",
+    "app.recent.updated": "Updated",
     "app.meta.title": "My workspace — RoadGate",
+
 
     "404.h1": "404",
     "404.h2": "Page not found",
