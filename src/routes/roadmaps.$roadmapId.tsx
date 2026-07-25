@@ -76,8 +76,10 @@ function RoadmapPage() {
   const { session, ready } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const { roadmapId } = Route.useParams();
   const [items, setItems] = useState<RoadmapItem[]>([]);
   const [cfg, setCfg] = useState<CapacityConfig>(defaultCapacity);
+  const [roadmapName, setRoadmapName] = useState<string>("");
   const [tab, setTab] = useState<ItemType>("epic");
   const [enabledTypes, setEnabledTypesState] = useState<ItemType[]>(ALL_TYPES);
   useEffect(() => { setEnabledTypesState(loadEnabledTypes()); }, []);
@@ -99,27 +101,37 @@ function RoadmapPage() {
   const persistCapacityFn = useServerFn(persistCapacity);
   const resetRoadmapFn = useServerFn(resetRoadmap);
 
-  // Hydrate from Supabase whenever the session identity changes.
+  // Hydrate from Supabase whenever the session identity or roadmap changes.
   useEffect(() => {
-    if (!session?.userId) { setItems([]); setCfg(defaultCapacity); return; }
+    if (!session?.userId || !roadmapId) { setItems([]); setCfg(defaultCapacity); return; }
     let cancelled = false;
-    fetchRoadmapFn()
-      .then((r) => { if (!cancelled) { setItems(r.items); setCfg(r.capacity); } })
-      .catch((e) => { console.error(e); toast.error("No se pudieron cargar los datos"); });
+    fetchRoadmapFn({ data: { roadmapId } })
+      .then((r) => {
+        if (cancelled) return;
+        setItems(r.items);
+        setCfg(r.capacity);
+        setRoadmapName(r.roadmap.name);
+      })
+      .catch((e) => {
+        console.error(e);
+        toast.error("No se pudo cargar el roadmap");
+        navigate({ to: "/roadmaps" });
+      });
     return () => { cancelled = true; };
-  }, [session?.userId, fetchRoadmapFn]);
+  }, [session?.userId, roadmapId, fetchRoadmapFn, navigate]);
 
   // Debounced persistence so bursts of edits collapse into a single write.
   const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const schedulePersist = (next: RoadmapItem[]) => {
     if (persistTimer.current) clearTimeout(persistTimer.current);
     persistTimer.current = setTimeout(() => {
-      persistItemsFn({ data: { items: next } }).catch((e) => {
+      persistItemsFn({ data: { roadmapId, items: next } }).catch((e) => {
         console.error(e); toast.error("Error al guardar en Lovable Cloud");
       });
     }, 350);
   };
   useEffect(() => () => { if (persistTimer.current) clearTimeout(persistTimer.current); }, []);
+
 
   const update = (next: RoadmapItem[]) => {
     const normalized = normalizeItems(next);
