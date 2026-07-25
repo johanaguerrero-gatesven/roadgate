@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -15,6 +15,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { clearSession } from "@/lib/auth";
 import { Map, Users, Gauge, Plus, User, Settings, LogOut } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { useServerFn } from "@tanstack/react-start";
+import { getWorkspaceStats } from "@/lib/roadmap.functions";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -23,21 +25,55 @@ export const Route = createFileRoute("/app")({
   component: AppHome,
 });
 
+type Stats = { roadmapsCount: number; teamsCount: number; totalFTE: number; totalDevelopers: number };
+
 function AppHome() {
   const { session, ready } = useAuth();
   const navigate = useNavigate();
   const { t } = useI18n();
+  const statsFn = useServerFn(getWorkspaceStats);
+  const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
     if (ready && !session) navigate({ to: "/login" });
   }, [ready, session, navigate]);
 
+  useEffect(() => {
+    if (!session?.userId) { setStats(null); return; }
+    statsFn()
+      .then((s) => setStats(s as Stats))
+      .catch((e) => { console.error(e); setStats({ roadmapsCount: 0, teamsCount: 0, totalFTE: 0, totalDevelopers: 0 }); });
+  }, [session?.userId, statsFn]);
+
   if (!ready || !session) return null;
 
+  const fteLabel = stats
+    ? stats.totalFTE > 0
+      ? `${stats.totalFTE.toFixed(1)} FTE`
+      : stats.totalDevelopers > 0
+        ? `${stats.totalDevelopers}`
+        : "—"
+    : "…";
+
   const cards = [
-    { icon: Map, title: t("app.stats.roadmaps"), value: "0", hint: t("app.stats.roadmaps.hint") },
-    { icon: Users, title: t("app.stats.teams"), value: "0", hint: t("app.stats.teams.hint") },
-    { icon: Gauge, title: t("app.stats.capacity"), value: "—", hint: t("app.stats.capacity.hint") },
+    {
+      icon: Map,
+      title: t("app.stats.roadmaps"),
+      value: stats ? String(stats.roadmapsCount) : "…",
+      hint: t("app.stats.roadmaps.hint"),
+    },
+    {
+      icon: Users,
+      title: t("app.stats.teams"),
+      value: stats ? String(stats.teamsCount) : "…",
+      hint: t("app.stats.teams.hint"),
+    },
+    {
+      icon: Gauge,
+      title: t("app.stats.capacity"),
+      value: fteLabel,
+      hint: t("app.stats.capacity.hint"),
+    },
   ];
 
   return (
