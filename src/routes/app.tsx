@@ -92,6 +92,8 @@ function AppHome() {
               <Link to="/roadmaps/new"><Plus className="h-4 w-4" /> {t("app.new")}</Link>
             </Button>
           </div>
+        </div>
+
 
         <div className="mt-10 grid md:grid-cols-3 gap-5">
           {cards.map((c) => (
