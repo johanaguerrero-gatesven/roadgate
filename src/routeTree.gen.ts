@@ -10,25 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RoadmapsIndexRouteImport } from './routes/roadmaps.index'
 import { Route as SettingsUsersRouteImport } from './routes/settings.users'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsIntegrationsRouteImport } from './routes/settings.integrations'
 import { Route as SettingsCompanyRouteImport } from './routes/settings.company'
 import { Route as SettingsBillingRouteImport } from './routes/settings.billing'
+import { Route as RoadmapsNewRouteImport } from './routes/roadmaps.new'
+import { Route as RoadmapsRoadmapIdRouteImport } from './routes/roadmaps.$roadmapId'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RoadmapRoute = RoadmapRouteImport.update({
-  id: '/roadmap',
-  path: '/roadmap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -49,6 +46,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoadmapsIndexRoute = RoadmapsIndexRouteImport.update({
+  id: '/roadmaps/',
+  path: '/roadmaps/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsUsersRoute = SettingsUsersRouteImport.update({
@@ -76,32 +78,46 @@ const SettingsBillingRoute = SettingsBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => SettingsRoute,
 } as any)
+const RoadmapsNewRoute = RoadmapsNewRouteImport.update({
+  id: '/roadmaps/new',
+  path: '/roadmaps/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoadmapsRoadmapIdRoute = RoadmapsRoadmapIdRouteImport.update({
+  id: '/roadmaps/$roadmapId',
+  path: '/roadmaps/$roadmapId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
+  '/roadmaps/new': typeof RoadmapsNewRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
+  '/roadmaps/': typeof RoadmapsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
+  '/roadmaps/new': typeof RoadmapsNewRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
+  '/roadmaps': typeof RoadmapsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -109,13 +125,15 @@ export interface FileRoutesById {
   '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
+  '/roadmaps/new': typeof RoadmapsNewRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
+  '/roadmaps/': typeof RoadmapsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -124,39 +142,45 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/register'
-    | '/roadmap'
     | '/settings'
+    | '/roadmaps/$roadmapId'
+    | '/roadmaps/new'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
     | '/settings/profile'
     | '/settings/users'
+    | '/roadmaps/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app'
     | '/login'
     | '/register'
-    | '/roadmap'
     | '/settings'
+    | '/roadmaps/$roadmapId'
+    | '/roadmaps/new'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
     | '/settings/profile'
     | '/settings/users'
+    | '/roadmaps'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/login'
     | '/register'
-    | '/roadmap'
     | '/settings'
+    | '/roadmaps/$roadmapId'
+    | '/roadmaps/new'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
     | '/settings/profile'
     | '/settings/users'
+    | '/roadmaps/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -164,8 +188,10 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
-  RoadmapRoute: typeof RoadmapRoute
   SettingsRoute: typeof SettingsRouteWithChildren
+  RoadmapsRoadmapIdRoute: typeof RoadmapsRoadmapIdRoute
+  RoadmapsNewRoute: typeof RoadmapsNewRoute
+  RoadmapsIndexRoute: typeof RoadmapsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -175,13 +201,6 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/roadmap': {
-      id: '/roadmap'
-      path: '/roadmap'
-      fullPath: '/roadmap'
-      preLoaderRoute: typeof RoadmapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -210,6 +229,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roadmaps/': {
+      id: '/roadmaps/'
+      path: '/roadmaps'
+      fullPath: '/roadmaps/'
+      preLoaderRoute: typeof RoadmapsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/users': {
@@ -247,6 +273,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsBillingRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/roadmaps/new': {
+      id: '/roadmaps/new'
+      path: '/roadmaps/new'
+      fullPath: '/roadmaps/new'
+      preLoaderRoute: typeof RoadmapsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roadmaps/$roadmapId': {
+      id: '/roadmaps/$roadmapId'
+      path: '/roadmaps/$roadmapId'
+      fullPath: '/roadmaps/$roadmapId'
+      preLoaderRoute: typeof RoadmapsRoadmapIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -275,19 +315,11 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
-  RoadmapRoute: RoadmapRoute,
   SettingsRoute: SettingsRouteWithChildren,
+  RoadmapsRoadmapIdRoute: RoadmapsRoadmapIdRoute,
+  RoadmapsNewRoute: RoadmapsNewRoute,
+  RoadmapsIndexRoute: RoadmapsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

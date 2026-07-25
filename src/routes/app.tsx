@@ -84,10 +84,16 @@ function AppHome() {
             <h1 className="text-3xl font-bold text-foreground">{t("app.h1")}</h1>
             <p className="text-muted-foreground mt-1">{t("app.lead")}</p>
           </div>
-          <Button size="lg" asChild>
-            <Link to="/roadmap"><Plus className="h-4 w-4" /> {t("app.new")}</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/roadmaps">Mis roadmaps</Link>
+            </Button>
+            <Button size="lg" asChild>
+              <Link to="/roadmaps/new"><Plus className="h-4 w-4" /> {t("app.new")}</Link>
+            </Button>
+          </div>
         </div>
+
 
         <div className="mt-10 grid md:grid-cols-3 gap-5">
           {cards.map((c) => (

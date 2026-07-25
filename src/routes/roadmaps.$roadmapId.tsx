@@ -41,7 +41,7 @@ import { Label } from "@/components/ui/label";
 import { WORK_ITEM_ICONS, WorkItemIcon } from "@/lib/work-item-icons";
 
 
-export const Route = createFileRoute("/roadmap")({
+export const Route = createFileRoute("/roadmaps/$roadmapId")({
   head: () => ({ meta: [{ title: "Roadmap — RoadGate" }] }),
   component: RoadmapPage,
 });
@@ -76,8 +76,10 @@ function RoadmapPage() {
   const { session, ready } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const { roadmapId } = Route.useParams();
   const [items, setItems] = useState<RoadmapItem[]>([]);
   const [cfg, setCfg] = useState<CapacityConfig>(defaultCapacity);
+  const [roadmapName, setRoadmapName] = useState<string>("");
   const [tab, setTab] = useState<ItemType>("epic");
   const [enabledTypes, setEnabledTypesState] = useState<ItemType[]>(ALL_TYPES);
   useEffect(() => { setEnabledTypesState(loadEnabledTypes()); }, []);
@@ -99,27 +101,37 @@ function RoadmapPage() {
   const persistCapacityFn = useServerFn(persistCapacity);
   const resetRoadmapFn = useServerFn(resetRoadmap);
 
-  // Hydrate from Supabase whenever the session identity changes.
+  // Hydrate from Supabase whenever the session identity or roadmap changes.
   useEffect(() => {
-    if (!session?.userId) { setItems([]); setCfg(defaultCapacity); return; }
+    if (!session?.userId || !roadmapId) { setItems([]); setCfg(defaultCapacity); return; }
     let cancelled = false;
-    fetchRoadmapFn()
-      .then((r) => { if (!cancelled) { setItems(r.items); setCfg(r.capacity); } })
-      .catch((e) => { console.error(e); toast.error("No se pudieron cargar los datos"); });
+    fetchRoadmapFn({ data: { roadmapId } })
+      .then((r) => {
+        if (cancelled) return;
+        setItems(r.items);
+        setCfg(r.capacity);
+        setRoadmapName(r.roadmap.name);
+      })
+      .catch((e) => {
+        console.error(e);
+        toast.error("No se pudo cargar el roadmap");
+        navigate({ to: "/roadmaps" });
+      });
     return () => { cancelled = true; };
-  }, [session?.userId, fetchRoadmapFn]);
+  }, [session?.userId, roadmapId, fetchRoadmapFn, navigate]);
 
   // Debounced persistence so bursts of edits collapse into a single write.
   const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const schedulePersist = (next: RoadmapItem[]) => {
     if (persistTimer.current) clearTimeout(persistTimer.current);
     persistTimer.current = setTimeout(() => {
-      persistItemsFn({ data: { items: next } }).catch((e) => {
+      persistItemsFn({ data: { roadmapId, items: next } }).catch((e) => {
         console.error(e); toast.error("Error al guardar en Lovable Cloud");
       });
     }, 350);
   };
   useEffect(() => () => { if (persistTimer.current) clearTimeout(persistTimer.current); }, []);
+
 
   const update = (next: RoadmapItem[]) => {
     const normalized = normalizeItems(next);
@@ -229,7 +241,7 @@ function RoadmapPage() {
           <Logo />
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/app"><ArrowLeft className="h-4 w-4" /> App</Link>
+              <Link to="/roadmaps"><ArrowLeft className="h-4 w-4" /> Mis roadmaps</Link>
             </Button>
             <LanguageSwitcher />
           </div>
@@ -239,7 +251,8 @@ function RoadmapPage() {
       <main className="mx-auto max-w-[1700px] px-6 py-8">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{t("roadmap.title")}</h1>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">{t("roadmap.title")}</div>
+            <h1 className="text-3xl font-bold text-foreground">{roadmapName || "…"}</h1>
             <p className="text-muted-foreground mt-1">
               {t("roadmap.lead")}
             </p>
@@ -276,7 +289,7 @@ function RoadmapPage() {
                   onClick={async () => {
                     if (!window.confirm("¿Borrar todos los datos de demo (backlog, roadmap y capacidad) DE TU USUARIO? Esta acción no se puede deshacer.")) return;
                     try {
-                      await resetRoadmapFn();
+                      await resetRoadmapFn({ data: { roadmapId } });
                       setItems([]);
                       setCfg(defaultCapacity);
                       toast.success("Tus datos han sido borrados");
@@ -373,7 +386,7 @@ function RoadmapPage() {
           <TabsContent value="capacity" className="mt-6">
             <CapacityPanel cfg={cfg} onChange={(c) => {
               setCfg(c);
-              persistCapacityFn({ data: { capacity: c } }).catch((e) => {
+              persistCapacityFn({ data: { roadmapId, capacity: c } }).catch((e) => {
                 console.error(e); toast.error("Error al guardar capacity");
               });
             }} />
