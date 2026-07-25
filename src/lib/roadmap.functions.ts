@@ -114,6 +114,34 @@ export const listRoadmaps = createServerFn({ method: "GET" })
     }));
   });
 
+export const getWorkspaceStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const [rmRes, capRes] = await Promise.all([
+      supabase.from("roadmaps").select("id").eq("user_id", userId),
+      supabase
+        .from("roadmap_capacity")
+        .select("roadmap_id, developers, dedication_pct")
+        .eq("user_id", userId),
+    ]);
+    if (rmRes.error) throw new Error(rmRes.error.message);
+    if (capRes.error) throw new Error(capRes.error.message);
+    const roadmapsCount = (rmRes.data ?? []).length;
+    const caps = (capRes.data ?? []) as Array<{
+      roadmap_id: string;
+      developers: number;
+      dedication_pct: number | string;
+    }>;
+    const teamsCount = caps.length;
+    const totalFTE = caps.reduce(
+      (acc, c) => acc + Number(c.developers ?? 0) * (Number(c.dedication_pct ?? 0) / 100),
+      0,
+    );
+    const totalDevelopers = caps.reduce((acc, c) => acc + Number(c.developers ?? 0), 0);
+    return { roadmapsCount, teamsCount, totalFTE, totalDevelopers };
+  });
+
 export const createRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { name: string }) => d)
