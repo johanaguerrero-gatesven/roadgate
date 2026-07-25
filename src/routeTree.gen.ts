@@ -20,6 +20,7 @@ import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsIntegrationsRouteImport } from './routes/settings.integrations'
 import { Route as SettingsCompanyRouteImport } from './routes/settings.company'
 import { Route as SettingsBillingRouteImport } from './routes/settings.billing'
+import { Route as RoadmapsNewRouteImport } from './routes/roadmaps.new'
 import { Route as RoadmapsRoadmapIdRouteImport } from './routes/roadmaps.$roadmapId'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -77,6 +78,11 @@ const SettingsBillingRoute = SettingsBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => SettingsRoute,
 } as any)
+const RoadmapsNewRoute = RoadmapsNewRouteImport.update({
+  id: '/roadmaps/new',
+  path: '/roadmaps/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoadmapsRoadmapIdRoute = RoadmapsRoadmapIdRouteImport.update({
   id: '/roadmaps/$roadmapId',
   path: '/roadmaps/$roadmapId',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRouteWithChildren
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
+  '/roadmaps/new': typeof RoadmapsNewRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRouteWithChildren
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
+  '/roadmaps/new': typeof RoadmapsNewRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRouteWithChildren
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
+  '/roadmaps/new': typeof RoadmapsNewRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/settings'
     | '/roadmaps/$roadmapId'
+    | '/roadmaps/new'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/settings'
     | '/roadmaps/$roadmapId'
+    | '/roadmaps/new'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/settings'
     | '/roadmaps/$roadmapId'
+    | '/roadmaps/new'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -178,6 +190,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   RoadmapsRoadmapIdRoute: typeof RoadmapsRoadmapIdRoute
+  RoadmapsNewRoute: typeof RoadmapsNewRoute
   RoadmapsIndexRoute: typeof RoadmapsIndexRoute
 }
 
@@ -260,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsBillingRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/roadmaps/new': {
+      id: '/roadmaps/new'
+      path: '/roadmaps/new'
+      fullPath: '/roadmaps/new'
+      preLoaderRoute: typeof RoadmapsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/roadmaps/$roadmapId': {
       id: '/roadmaps/$roadmapId'
       path: '/roadmaps/$roadmapId'
@@ -297,6 +317,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   SettingsRoute: SettingsRouteWithChildren,
   RoadmapsRoadmapIdRoute: RoadmapsRoadmapIdRoute,
+  RoadmapsNewRoute: RoadmapsNewRoute,
   RoadmapsIndexRoute: RoadmapsIndexRoute,
 }
 export const routeTree = rootRouteImport
