@@ -82,6 +82,7 @@ function RoadmapPage() {
   const [roadmapName, setRoadmapName] = useState<string>("");
   const [tab, setTab] = useState<ItemType>("epic");
   const [enabledTypes, setEnabledTypesState] = useState<ItemType[]>(ALL_TYPES);
+  const [wrapText, setWrapText] = useState(false);
   useEffect(() => { setEnabledTypesState(loadEnabledTypes()); }, []);
   useEffect(() => {
     if (!enabledTypes.includes(tab) && enabledTypes.length) setTab(enabledTypes[0]);
@@ -272,56 +273,34 @@ function RoadmapPage() {
           </TabsContent>
 
           <TabsContent value="backlog" className="mt-6">
-            <Tabs value={tab} onValueChange={(v) => setTab(v as ItemType)}>
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <TabsList>
-                  {enabledTypes.map((ty) => (
-                    <TabsTrigger key={ty} value={ty}>
-                      {TYPE_LABEL[ty]} ({items.filter((i) => i.type === ty).length})
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 text-destructive hover:text-destructive"
-                  onClick={async () => {
-                    if (!window.confirm("¿Borrar todos los datos de demo (backlog, roadmap y capacidad) DE TU USUARIO? Esta acción no se puede deshacer.")) return;
-                    try {
-                      await resetRoadmapFn({ data: { roadmapId } });
-                      setItems([]);
-                      setCfg(defaultCapacity);
-                      toast.success("Tus datos han sido borrados");
-                    } catch (e) {
-                      console.error(e);
-                      toast.error("Error al borrar los datos");
-                    }
-                  }}
+            {/* Ajustes globales del Backlog: aplican a Epics, Features y User Stories */}
+            <div className="rounded-xl border border-border bg-muted/30 px-4 py-3 mb-4 flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2 min-w-0">
+                <Settings2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-foreground leading-tight">Ajustes globales del Backlog</div>
+                  <div className="text-[11px] text-muted-foreground leading-tight">
+                    Se aplican a Epics, Features y User Stories
+                  </div>
+                </div>
+              </div>
 
-                >
-                  <Trash2 className="h-4 w-4" /> Reset demo data
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => {
-                    try {
-                      exportRoadmapXlsx(items, cfg);
-                      toast.success("Excel generado");
-                    } catch (e) {
-                      console.error(e);
-                      toast.error("Error al exportar Excel");
-                    }
-                  }}
-                >
-                  <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
-                </Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 h-9">
+                  <Checkbox
+                    id="wrap-global"
+                    checked={wrapText}
+                    onCheckedChange={(v) => setWrapText(v === true)}
+                  />
+                  <Label htmlFor="wrap-global" className="text-xs font-normal cursor-pointer whitespace-nowrap">
+                    Wrap text
+                  </Label>
+                </div>
+
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm" className="gap-1.5">
-                      <Settings2 className="h-4 w-4" /> Tipos de work item
+                      <Settings2 className="h-4 w-4" /> Tipos de work item ({enabledTypes.length}/{ALL_TYPES.length})
                     </Button>
                   </PopoverTrigger>
 
@@ -359,14 +338,61 @@ function RoadmapPage() {
                     </p>
                   </PopoverContent>
                 </Popover>
-                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => {
+                    try {
+                      exportRoadmapXlsx(items, cfg);
+                      toast.success("Excel generado");
+                    } catch (e) {
+                      console.error(e);
+                      toast.error("Error al exportar Excel");
+                    }
+                  }}
+                >
+                  <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-destructive hover:text-destructive"
+                  onClick={async () => {
+                    if (!window.confirm("¿Borrar todos los datos de demo (backlog, roadmap y capacidad) DE TU USUARIO? Esta acción no se puede deshacer.")) return;
+                    try {
+                      await resetRoadmapFn({ data: { roadmapId } });
+                      setItems([]);
+                      setCfg(defaultCapacity);
+                      toast.success("Tus datos han sido borrados");
+                    } catch (e) {
+                      console.error(e);
+                      toast.error("Error al borrar los datos");
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" /> Reset demo data
+                </Button>
               </div>
+            </div>
+
+            <Tabs value={tab} onValueChange={(v) => setTab(v as ItemType)}>
+              <TabsList>
+                {enabledTypes.map((ty) => (
+                  <TabsTrigger key={ty} value={ty}>
+                    {TYPE_LABEL[ty]} ({items.filter((i) => i.type === ty).length})
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
               {enabledTypes.map((ty) => (
                 <TabsContent key={ty} value={ty} className="mt-4">
                   <BacklogPanel
                     type={ty}
                     items={items}
+                    wrapText={wrapText}
                     onAdd={() => add(ty)}
                     onUpdate={updateOne}
                     onMoveQuarter={moveQuarter}
@@ -573,10 +599,11 @@ function IdInput({ value, onCommit }: { value: string; onCommit: (v: string) => 
 }
 
 function BacklogPanel({
-  type, items, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
+  type, items, wrapText, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
 }: {
   type: ItemType;
   items: RoadmapItem[];
+  wrapText: boolean;
   onAdd: () => void;
   onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void;
   onMoveQuarter: (uid: string, quarter: Quarter) => void;
@@ -585,7 +612,6 @@ function BacklogPanel({
 }) {
   const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [wrapText, setWrapText] = useState(false);
   const rowsFor = (v: string, cpl: number) =>
     wrapText
       ? Math.max(1, v.split("\n").reduce((s, l) => s + Math.ceil((l.length || 1) / cpl), 0))
@@ -625,17 +651,7 @@ function BacklogPanel({
           ref={fileRef} type="file" accept=".csv,text/csv" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
-        <div className="flex items-center gap-2 ml-auto">
-          <Checkbox
-            id={`wrap-${type}`}
-            checked={wrapText}
-            onCheckedChange={(v) => setWrapText(v === true)}
-          />
-          <Label htmlFor={`wrap-${type}`} className="text-xs font-normal cursor-pointer">
-            Wrap text
-          </Label>
-        </div>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground ml-auto">
           {list.length} {type === "story" ? "user stories" : `${type}s`}
         </span>
       </div>
