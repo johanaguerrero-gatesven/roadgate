@@ -636,10 +636,17 @@ function BacklogPanel({
         <Button variant="outline" onClick={exportCsv}>
           <Download className="h-4 w-4" /> {t("roadmap.export")}
         </Button>
+        <Button variant="outline" onClick={onExportXlsx}>
+          <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
+        </Button>
+        <Button variant="outline" className="text-destructive hover:text-destructive" onClick={onResetType}>
+          <Trash2 className="h-4 w-4" /> Reset demo data
+        </Button>
         <input
           ref={fileRef} type="file" accept=".csv,text/csv" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
+
         <span className="text-xs text-muted-foreground ml-auto">
           {list.length} {type === "story" ? "user stories" : `${type}s`}
         </span>
