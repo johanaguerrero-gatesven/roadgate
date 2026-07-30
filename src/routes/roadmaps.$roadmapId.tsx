@@ -687,8 +687,8 @@ function BacklogPanel({
                         <Textarea
                           value={it.title}
                           onChange={(e) => onUpdate(it.uid, { title: e.target.value })}
-                          rows={1}
-                          className="min-h-[32px] text-sm leading-snug py-1.5 px-2 resize-y font-medium"
+                          rows={rowsFor(it.title || "", 42)}
+                          className={`min-h-[32px] text-sm leading-snug py-1.5 px-2 font-medium ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                           placeholder={t("roadmap.col.title")}
                         />
                         {hasKids && (
