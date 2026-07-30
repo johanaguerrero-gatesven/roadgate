@@ -363,7 +363,29 @@ function RoadmapPage() {
                     onMoveQuarter={moveQuarter}
                     onRemove={remove}
                     onImport={(csv) => update(importCSV(csv, ty, items))}
+                    onExportXlsx={() => {
+                      try {
+                        exportItemsXlsx(items, ty);
+                        toast.success(`Excel de ${TYPE_LABEL[ty]} generado`);
+                      } catch (e) {
+                        console.error(e);
+                        toast.error("Error al exportar Excel");
+                      }
+                    }}
+                    onResetType={() => {
+                      const count = items.filter((i) => i.type === ty).length;
+                      if (!count) { toast.info(`No hay ${TYPE_LABEL[ty]} que borrar`); return; }
+                      if (!window.confirm(`¿Borrar los ${count} ${TYPE_LABEL[ty]} de este roadmap? Esta acción no se puede deshacer.`)) return;
+                      const removedIds = new Set(items.filter((i) => i.type === ty).map((i) => i.id));
+                      update(
+                        items
+                          .filter((i) => i.type !== ty)
+                          .map((i) => (i.parentId && removedIds.has(i.parentId) ? { ...i, parentId: undefined } : i))
+                      );
+                      toast.success(`${TYPE_LABEL[ty]} borrados`);
+                    }}
                   />
+
                 </TabsContent>
               ))}
             </Tabs>
