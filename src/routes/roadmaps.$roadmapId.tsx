@@ -588,7 +588,7 @@ function BacklogPanel({
   const [wrapText, setWrapText] = useState(false);
   const rowsFor = (v: string, cpl: number) =>
     wrapText
-      ? Math.max(1, ...v.split("\n").map((l) => Math.ceil((l.length || 1) / cpl)), v.split("\n").length)
+      ? Math.max(1, v.split("\n").reduce((s, l) => s + Math.ceil((l.length || 1) / cpl), 0))
       : 1;
 
   const list = items.filter((i) => i.type === type);
