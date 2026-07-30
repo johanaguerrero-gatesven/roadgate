@@ -27,7 +27,7 @@ import {
   rolledUpEffort, effortByPriority, countByPriority,
   descendantsOf, topAncestor, roadmapCoverage, normalizeItems,
 } from "@/lib/roadmap";
-import { fetchRoadmap, persistItems, persistCapacity, resetRoadmap } from "@/lib/roadmap.functions";
+import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/roadmap.functions";
 import { exportItemsXlsx } from "@/lib/export-xlsx";
 import { useServerFn } from "@tanstack/react-start";
 
