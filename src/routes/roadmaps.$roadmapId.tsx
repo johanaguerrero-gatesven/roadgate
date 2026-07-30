@@ -988,7 +988,7 @@ function ItemDetailDialog({
             <div className="space-y-1.5">
               <Label>Quarter</Label>
               <Select
-                value={item.quarter || "__bl"}
+                value={shownQuarter || "__bl"}
                 onValueChange={(val) => onMove(item.uid, (val === "__bl" ? "" : val) as Quarter)}
               >
                 <SelectTrigger><SelectValue placeholder="Q?" /></SelectTrigger>
