@@ -585,6 +585,11 @@ function BacklogPanel({
 }) {
   const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [wrapText, setWrapText] = useState(false);
+  const rowsFor = (v: string, cpl: number) =>
+    wrapText
+      ? Math.max(1, v.split("\n").reduce((s, l) => s + Math.ceil((l.length || 1) / cpl), 0))
+      : 1;
 
   const list = items.filter((i) => i.type === type);
   const parents = items.filter((i) =>
@@ -620,10 +625,21 @@ function BacklogPanel({
           ref={fileRef} type="file" accept=".csv,text/csv" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
-        <span className="text-xs text-muted-foreground ml-auto">
+        <div className="flex items-center gap-2 ml-auto">
+          <Checkbox
+            id={`wrap-${type}`}
+            checked={wrapText}
+            onCheckedChange={(v) => setWrapText(v === true)}
+          />
+          <Label htmlFor={`wrap-${type}`} className="text-xs font-normal cursor-pointer">
+            Wrap text
+          </Label>
+        </div>
+        <span className="text-xs text-muted-foreground">
           {list.length} {type === "story" ? "user stories" : `${type}s`}
         </span>
       </div>
+
 
       {list.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card/60 p-10 text-center">
@@ -671,8 +687,8 @@ function BacklogPanel({
                         <Textarea
                           value={it.title}
                           onChange={(e) => onUpdate(it.uid, { title: e.target.value })}
-                          rows={1}
-                          className="min-h-[32px] text-sm leading-snug py-1.5 px-2 resize-y font-medium"
+                          rows={rowsFor(it.title || "", 42)}
+                          className={`min-h-[32px] text-sm leading-snug py-1.5 px-2 font-medium ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                           placeholder={t("roadmap.col.title")}
                         />
                         {hasKids && (
@@ -771,8 +787,8 @@ function BacklogPanel({
                         <Textarea
                           value={it.notes || ""}
                           onChange={(e) => onUpdate(it.uid, { notes: e.target.value })}
-                          rows={1}
-                          className="min-h-[32px] text-xs leading-snug py-1.5 px-2 resize-y"
+                          rows={rowsFor(it.notes || "", 32)}
+                          className={`min-h-[32px] text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                           placeholder="—"
                         />
                       </td>
