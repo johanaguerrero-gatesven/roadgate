@@ -599,10 +599,11 @@ function IdInput({ value, onCommit }: { value: string; onCommit: (v: string) => 
 }
 
 function BacklogPanel({
-  type, items, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
+  type, items, wrapText, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
 }: {
   type: ItemType;
   items: RoadmapItem[];
+  wrapText: boolean;
   onAdd: () => void;
   onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void;
   onMoveQuarter: (uid: string, quarter: Quarter) => void;
@@ -611,7 +612,6 @@ function BacklogPanel({
 }) {
   const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [wrapText, setWrapText] = useState(false);
   const rowsFor = (v: string, cpl: number) =>
     wrapText
       ? Math.max(1, v.split("\n").reduce((s, l) => s + Math.ceil((l.length || 1) / cpl), 0))
