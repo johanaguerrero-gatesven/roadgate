@@ -585,6 +585,11 @@ function BacklogPanel({
 }) {
   const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [wrapText, setWrapText] = useState(false);
+  const rowsFor = (v: string, cpl: number) =>
+    wrapText
+      ? Math.max(1, ...v.split("\n").map((l) => Math.ceil((l.length || 1) / cpl)), v.split("\n").length)
+      : 1;
 
   const list = items.filter((i) => i.type === type);
   const parents = items.filter((i) =>
