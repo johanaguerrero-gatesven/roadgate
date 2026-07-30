@@ -1101,8 +1101,10 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                       draggable
                       onDragStart={(e) => { setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; }}
                       onDragEnd={() => { setDragUid(null); setOverQ(null); }}
-                      className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""}`}
+                      onClick={() => setDetailUid(it.uid)}
+                      className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity hover:ring-2 hover:ring-primary/40 ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""}`}
                     >
+
                       <div className="flex items-start justify-between gap-2">
                         <span className="flex items-center gap-1 font-semibold">
                           <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
