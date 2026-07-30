@@ -911,6 +911,8 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
   const [overQ, setOverQ] = useState<Quarter | null>(null);
   const [lastSnapshot, setLastSnapshot] = useState<{ items: RoadmapItem[]; fromQ: Quarter; toQ: Quarter; id: string } | null>(null);
   const [pending, setPending] = useState<{ uid: string; q: Quarter } | null>(null);
+  const [detailUid, setDetailUid] = useState<string | null>(null);
+
   const [pendPriority, setPendPriority] = useState<Priority>("");
   const [pendEffort, setPendEffort] = useState<string>("");
 
