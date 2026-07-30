@@ -82,6 +82,7 @@ function RoadmapPage() {
   const [roadmapName, setRoadmapName] = useState<string>("");
   const [tab, setTab] = useState<ItemType>("epic");
   const [enabledTypes, setEnabledTypesState] = useState<ItemType[]>(ALL_TYPES);
+  const [wrapText, setWrapText] = useState(false);
   useEffect(() => { setEnabledTypesState(loadEnabledTypes()); }, []);
   useEffect(() => {
     if (!enabledTypes.includes(tab) && enabledTypes.length) setTab(enabledTypes[0]);
