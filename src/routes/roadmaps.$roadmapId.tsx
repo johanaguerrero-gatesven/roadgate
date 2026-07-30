@@ -28,7 +28,7 @@ import {
   descendantsOf, topAncestor, roadmapCoverage, normalizeItems,
 } from "@/lib/roadmap";
 import { fetchRoadmap, persistItems, persistCapacity, resetRoadmap } from "@/lib/roadmap.functions";
-import { exportRoadmapXlsx, exportItemsXlsx } from "@/lib/export-xlsx";
+import { exportItemsXlsx } from "@/lib/export-xlsx";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
@@ -100,7 +100,6 @@ function RoadmapPage() {
   const fetchRoadmapFn = useServerFn(fetchRoadmap);
   const persistItemsFn = useServerFn(persistItems);
   const persistCapacityFn = useServerFn(persistCapacity);
-  const resetRoadmapFn = useServerFn(resetRoadmap);
 
   // Hydrate from Supabase whenever the session identity or roadmap changes.
   useEffect(() => {
