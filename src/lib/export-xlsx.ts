@@ -154,3 +154,17 @@ export function exportRoadmapXlsx(items: RoadmapItem[], cfg: CapacityConfig, fil
   XLSX.utils.book_append_sheet(wb, sheetItems(items, "story", "📝 USER STORIES"), "US");
   XLSX.writeFile(wb, filename);
 }
+
+const TYPE_SHEET: Record<string, { sheet: string; title: string; file: string }> = {
+  epic: { sheet: "EPICS", title: "🎯 EPICS - Iniciativas Estratégicas", file: "RoadGate-Epics.xlsx" },
+  feature: { sheet: "Features", title: "🔧 FEATURES - Funcionalidades", file: "RoadGate-Features.xlsx" },
+  story: { sheet: "US", title: "📝 USER STORIES", file: "RoadGate-UserStories.xlsx" },
+};
+
+/** Exporta a Excel sólo los work items de un tipo concreto (Epic, Feature o User Story). */
+export function exportItemsXlsx(items: RoadmapItem[], type: "epic" | "feature" | "story", filename?: string) {
+  const meta = TYPE_SHEET[type];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, sheetItems(items, type, meta.title), meta.sheet);
+  XLSX.writeFile(wb, filename ?? meta.file);
+}

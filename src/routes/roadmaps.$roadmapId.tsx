@@ -27,8 +27,8 @@ import {
   rolledUpEffort, effortByPriority, countByPriority,
   descendantsOf, topAncestor, roadmapCoverage, normalizeItems,
 } from "@/lib/roadmap";
-import { fetchRoadmap, persistItems, persistCapacity, resetRoadmap } from "@/lib/roadmap.functions";
-import { exportRoadmapXlsx } from "@/lib/export-xlsx";
+import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/roadmap.functions";
+import { exportItemsXlsx } from "@/lib/export-xlsx";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
@@ -100,7 +100,6 @@ function RoadmapPage() {
   const fetchRoadmapFn = useServerFn(fetchRoadmap);
   const persistItemsFn = useServerFn(persistItems);
   const persistCapacityFn = useServerFn(persistCapacity);
-  const resetRoadmapFn = useServerFn(resetRoadmap);
 
   // Hydrate from Supabase whenever the session identity or roadmap changes.
   useEffect(() => {
@@ -339,44 +338,9 @@ function RoadmapPage() {
                   </PopoverContent>
                 </Popover>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => {
-                    try {
-                      exportRoadmapXlsx(items, cfg);
-                      toast.success("Excel generado");
-                    } catch (e) {
-                      console.error(e);
-                      toast.error("Error al exportar Excel");
-                    }
-                  }}
-                >
-                  <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 text-destructive hover:text-destructive"
-                  onClick={async () => {
-                    if (!window.confirm("¿Borrar todos los datos de demo (backlog, roadmap y capacidad) DE TU USUARIO? Esta acción no se puede deshacer.")) return;
-                    try {
-                      await resetRoadmapFn({ data: { roadmapId } });
-                      setItems([]);
-                      setCfg(defaultCapacity);
-                      toast.success("Tus datos han sido borrados");
-                    } catch (e) {
-                      console.error(e);
-                      toast.error("Error al borrar los datos");
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" /> Reset demo data
-                </Button>
               </div>
             </div>
+
 
             <Tabs value={tab} onValueChange={(v) => setTab(v as ItemType)}>
               <TabsList>
@@ -398,7 +362,29 @@ function RoadmapPage() {
                     onMoveQuarter={moveQuarter}
                     onRemove={remove}
                     onImport={(csv) => update(importCSV(csv, ty, items))}
+                    onExportXlsx={() => {
+                      try {
+                        exportItemsXlsx(items, ty);
+                        toast.success(`Excel de ${TYPE_LABEL[ty]} generado`);
+                      } catch (e) {
+                        console.error(e);
+                        toast.error("Error al exportar Excel");
+                      }
+                    }}
+                    onResetType={() => {
+                      const count = items.filter((i) => i.type === ty).length;
+                      if (!count) { toast.info(`No hay ${TYPE_LABEL[ty]} que borrar`); return; }
+                      if (!window.confirm(`¿Borrar los ${count} ${TYPE_LABEL[ty]} de este roadmap? Esta acción no se puede deshacer.`)) return;
+                      const removedIds = new Set(items.filter((i) => i.type === ty).map((i) => i.id));
+                      update(
+                        items
+                          .filter((i) => i.type !== ty)
+                          .map((i) => (i.parentId && removedIds.has(i.parentId) ? { ...i, parentId: undefined } : i))
+                      );
+                      toast.success(`${TYPE_LABEL[ty]} borrados`);
+                    }}
                   />
+
                 </TabsContent>
               ))}
             </Tabs>
@@ -599,7 +585,7 @@ function IdInput({ value, onCommit }: { value: string; onCommit: (v: string) => 
 }
 
 function BacklogPanel({
-  type, items, wrapText, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
+  type, items, wrapText, onAdd, onUpdate, onMoveQuarter, onRemove, onImport, onExportXlsx, onResetType,
 }: {
   type: ItemType;
   items: RoadmapItem[];
@@ -609,6 +595,8 @@ function BacklogPanel({
   onMoveQuarter: (uid: string, quarter: Quarter) => void;
   onRemove: (uid: string) => void;
   onImport: (csv: string) => void;
+  onExportXlsx: () => void;
+  onResetType: () => void;
 }) {
   const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -647,10 +635,17 @@ function BacklogPanel({
         <Button variant="outline" onClick={exportCsv}>
           <Download className="h-4 w-4" /> {t("roadmap.export")}
         </Button>
+        <Button variant="outline" onClick={onExportXlsx}>
+          <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
+        </Button>
+        <Button variant="outline" className="text-destructive hover:text-destructive" onClick={onResetType}>
+          <Trash2 className="h-4 w-4" /> Reset demo data
+        </Button>
         <input
           ref={fileRef} type="file" accept=".csv,text/csv" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
+
         <span className="text-xs text-muted-foreground ml-auto">
           {list.length} {type === "story" ? "user stories" : `${type}s`}
         </span>
