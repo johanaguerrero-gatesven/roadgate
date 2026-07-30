@@ -651,17 +651,7 @@ function BacklogPanel({
           ref={fileRef} type="file" accept=".csv,text/csv" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
-        <div className="flex items-center gap-2 ml-auto">
-          <Checkbox
-            id={`wrap-${type}`}
-            checked={wrapText}
-            onCheckedChange={(v) => setWrapText(v === true)}
-          />
-          <Label htmlFor={`wrap-${type}`} className="text-xs font-normal cursor-pointer">
-            Wrap text
-          </Label>
-        </div>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground ml-auto">
           {list.length} {type === "story" ? "user stories" : `${type}s`}
         </span>
       </div>
