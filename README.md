@@ -226,6 +226,7 @@ Los cambios de backend (migraciones, funciones de servidor) se aplican de forma 
 
 ---
 
-## Licencia
+##Licencia
 
-Propietario — © GATES · RoadGate. Todos los derechos reservados.
+© 2026 GATES · RoadGate. Todos los derechos reservados. 
+Este software es propietario y no se concede ninguna licencia de uso, copia, modificación o distribución sin autorización expresa por escrito.
