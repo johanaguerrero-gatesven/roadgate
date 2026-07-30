@@ -1220,7 +1220,11 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                                   onChange={(p) => onUpdate(v.item.uid, { priority: p })}
                                   size="md"
                                 />
-                                <span className="truncate">{v.item.id} · {v.item.title}</span>
+                                <span
+                                  className="truncate cursor-pointer hover:underline"
+                                  onClick={(e) => { e.stopPropagation(); setDetailUid(v.item.uid); }}
+                                >{v.item.id} · {v.item.title}</span>
+
                                 {(missingPriority || missingEffort) && (
                                   <span
                                     className="ml-1 text-amber-600 dark:text-amber-400 shrink-0 cursor-help"
