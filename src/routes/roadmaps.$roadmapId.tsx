@@ -902,6 +902,138 @@ function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: C
   );
 }
 
+function ItemDetailDialog({
+  item, items, onClose, onUpdate, onMove,
+}: {
+  item: RoadmapItem | null;
+  items: RoadmapItem[];
+  onClose: () => void;
+  onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void;
+  onMove: (uid: string, quarter: Quarter) => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [effort, setEffort] = useState("");
+
+  useEffect(() => {
+    if (item) {
+      setTitle(item.title ?? "");
+      setEffort(item.effort ? String(item.effort) : "");
+    }
+  }, [item?.uid]);
+
+  if (!item) return null;
+  const kids = items.filter((c) => c.parentId === item.id);
+  const hasKids = kids.length > 0;
+  const rolled = rolledUpEffort(item, items);
+  const meta = WORK_ITEM_ICONS[item.type];
+
+  const save = () => {
+    const patch: Partial<RoadmapItem> = {};
+    if (title.trim() && title !== item.title) patch.title = title.trim();
+    if (!hasKids) {
+      const n = Number(effort);
+      if (!Number.isNaN(n) && n !== (item.effort ?? 0)) patch.effort = n;
+    }
+    if (Object.keys(patch).length) onUpdate(item.uid, patch);
+    onClose();
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <WorkItemIcon type={item.type} className="h-5 w-5" />
+            <span>{item.id}</span>
+            <Badge variant="outline" className={meta.badgeClass}>{meta.label}</Badge>
+          </DialogTitle>
+          <DialogDescription>Edita los datos clave de este work item.</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>ID</Label>
+            <Input value={item.id} disabled />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="detail-title">Título</Label>
+            <Textarea id="detail-title" value={title} onChange={(e) => setTitle(e.target.value)} rows={2} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="detail-effort">Esfuerzo (h)</Label>
+              {hasKids ? (
+                <>
+                  <Input id="detail-effort" value={`Σ ${rolled}`} disabled />
+                  <p className="text-[11px] text-muted-foreground">
+                    Suma de {kids.length} hijo(s). Edita el esfuerzo en cada hijo.
+                  </p>
+                </>
+              ) : (
+                <Input
+                  id="detail-effort"
+                  type="number"
+                  min={0}
+                  value={effort}
+                  onChange={(e) => setEffort(e.target.value)}
+                />
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Quarter</Label>
+              <Select
+                value={item.quarter || "__bl"}
+                onValueChange={(val) => onMove(item.uid, (val === "__bl" ? "" : val) as Quarter)}
+              >
+                <SelectTrigger><SelectValue placeholder="Q?" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__bl">Sin Quarter</SelectItem>
+                  {QUARTERS.map((qq) => <SelectItem key={qq} value={qq}>{qq}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {hasKids && (
+                <p className="text-[11px] text-muted-foreground">
+                  Se aplicará también a sus hijos.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Prioridad</Label>
+            <Select
+              value={item.priority || "__none"}
+              onValueChange={(v) => onUpdate(item.uid, { priority: v === "__none" ? "" : (v as Priority) })}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">Sin prioridad</SelectItem>
+                {PRIORITIES.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    <span className="flex items-center gap-2">
+                      {(() => { const M = PRIORITY_META[p]; return <M.icon className={`h-4 w-4 ${M.cls}`} />; })()}
+                      {p}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button onClick={save}>Guardar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
 function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: RoadmapItem[]; cfg: CapacityConfig; onMove: (uid: string, quarter: Quarter) => void; onRestore: (next: RoadmapItem[]) => void; onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void }) {
   const { t } = useI18n();
   const view = useMemo(() => buildRoadmapView(items), [items]);
@@ -911,6 +1043,8 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
   const [overQ, setOverQ] = useState<Quarter | null>(null);
   const [lastSnapshot, setLastSnapshot] = useState<{ items: RoadmapItem[]; fromQ: Quarter; toQ: Quarter; id: string } | null>(null);
   const [pending, setPending] = useState<{ uid: string; q: Quarter } | null>(null);
+  const [detailUid, setDetailUid] = useState<string | null>(null);
+
   const [pendPriority, setPendPriority] = useState<Priority>("");
   const [pendEffort, setPendEffort] = useState<string>("");
 
@@ -1101,8 +1235,10 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                       draggable
                       onDragStart={(e) => { setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; }}
                       onDragEnd={() => { setDragUid(null); setOverQ(null); }}
-                      className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""}`}
+                      onClick={() => setDetailUid(it.uid)}
+                      className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity hover:ring-2 hover:ring-primary/40 ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""}`}
                     >
+
                       <div className="flex items-start justify-between gap-2">
                         <span className="flex items-center gap-1 font-semibold">
                           <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
@@ -1216,7 +1352,11 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                                   onChange={(p) => onUpdate(v.item.uid, { priority: p })}
                                   size="md"
                                 />
-                                <span className="truncate">{v.item.id} · {v.item.title}</span>
+                                <span
+                                  className="truncate cursor-pointer hover:underline"
+                                  onClick={(e) => { e.stopPropagation(); setDetailUid(v.item.uid); }}
+                                >{v.item.id} · {v.item.title}</span>
+
                                 {(missingPriority || missingEffort) && (
                                   <span
                                     className="ml-1 text-amber-600 dark:text-amber-400 shrink-0 cursor-help"
@@ -1305,6 +1445,15 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ItemDetailDialog
+        item={detailUid ? items.find((i) => i.uid === detailUid) ?? null : null}
+        items={items}
+        onClose={() => setDetailUid(null)}
+        onUpdate={onUpdate}
+        onMove={commitMove}
+      />
+
     </div>
   );
 }
