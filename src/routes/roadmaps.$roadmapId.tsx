@@ -1313,6 +1313,15 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ItemDetailDialog
+        item={detailUid ? items.find((i) => i.uid === detailUid) ?? null : null}
+        items={items}
+        onClose={() => setDetailUid(null)}
+        onUpdate={onUpdate}
+        onMove={commitMove}
+      />
+
     </div>
   );
 }
