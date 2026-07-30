@@ -926,6 +926,9 @@ function ItemDetailDialog({
   const hasKids = kids.length > 0;
   const rolled = rolledUpEffort(item, items);
   const meta = WORK_ITEM_ICONS[item.type];
+  const kidQuarters = new Set(kids.map((k) => k.quarter || "").filter(Boolean));
+  const shownQuarter =
+    item.quarter || (kidQuarters.size === 1 ? ([...kidQuarters][0] as Quarter) : "");
 
   const save = () => {
     const patch: Partial<RoadmapItem> = {};
@@ -985,7 +988,7 @@ function ItemDetailDialog({
             <div className="space-y-1.5">
               <Label>Quarter</Label>
               <Select
-                value={item.quarter || "__bl"}
+                value={shownQuarter || "__bl"}
                 onValueChange={(val) => onMove(item.uid, (val === "__bl" ? "" : val) as Quarter)}
               >
                 <SelectTrigger><SelectValue placeholder="Q?" /></SelectTrigger>
@@ -1265,7 +1268,7 @@ function RoadmapView({ items, cfg, onMove, onRestore, onUpdate }: { items: Roadm
                             : <span />;
                         })()}
                         <Select
-                          value={it.quarter || "__bl"}
+                          value={(it.quarter || v.quarter) || "__bl"}
                           onValueChange={(val) => commitMove(it.uid, (val === "__bl" ? "" : val) as Quarter)}
                         >
                           <SelectTrigger
