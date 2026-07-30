@@ -787,8 +787,8 @@ function BacklogPanel({
                         <Textarea
                           value={it.notes || ""}
                           onChange={(e) => onUpdate(it.uid, { notes: e.target.value })}
-                          rows={1}
-                          className="min-h-[32px] text-xs leading-snug py-1.5 px-2 resize-y"
+                          rows={rowsFor(it.notes || "", 32)}
+                          className={`min-h-[32px] text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                           placeholder="—"
                         />
                       </td>
