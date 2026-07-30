@@ -586,7 +586,7 @@ function IdInput({ value, onCommit }: { value: string; onCommit: (v: string) => 
 }
 
 function BacklogPanel({
-  type, items, wrapText, onAdd, onUpdate, onMoveQuarter, onRemove, onImport,
+  type, items, wrapText, onAdd, onUpdate, onMoveQuarter, onRemove, onImport, onExportXlsx, onResetType,
 }: {
   type: ItemType;
   items: RoadmapItem[];
@@ -596,6 +596,8 @@ function BacklogPanel({
   onMoveQuarter: (uid: string, quarter: Quarter) => void;
   onRemove: (uid: string) => void;
   onImport: (csv: string) => void;
+  onExportXlsx: () => void;
+  onResetType: () => void;
 }) {
   const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
