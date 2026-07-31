@@ -126,7 +126,7 @@ function RoadmapPage() {
     if (persistTimer.current) clearTimeout(persistTimer.current);
     persistTimer.current = setTimeout(() => {
       persistItemsFn({ data: { roadmapId, items: next } }).catch((e) => {
-        console.error(e); toast.error("Error al guardar en Lovable Cloud");
+        console.error(e); toast.error("Error al guardar en el backend");
       });
     }, 350);
   };

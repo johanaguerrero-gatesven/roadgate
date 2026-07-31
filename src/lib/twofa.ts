@@ -1,5 +1,5 @@
 // Client-side 2FA simulation (localStorage).
-// In production replace with Lovable Cloud + Supabase MFA / SMS provider.
+// In production replace with RoadGate backend + Supabase MFA / SMS provider.
 
 export type TwoFAMethod = "off" | "sms" | "totp";
 

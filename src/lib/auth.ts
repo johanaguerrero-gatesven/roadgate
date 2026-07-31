@@ -1,5 +1,5 @@
 // Simple client-side auth using localStorage.
-// NOTE: For production, replace with Lovable Cloud (Supabase) auth.
+// NOTE: For production, replace with RoadGate backend (Supabase) auth.
 
 const USERS_KEY = "roadgate.users";
 const SESSION_KEY = "roadgate.session";
@@ -92,7 +92,7 @@ export async function login(email: string, password: string) {
 }
 
 export function loginWithProvider(provider: "google" | "microsoft") {
-  // Stub — to be wired with Lovable Cloud OAuth later.
+  // Stub — to be wired with RoadGate backend OAuth later.
   const fakeEmail = `demo+${provider}@roadgate.app`;
   setSession({
     userId: `${provider}-demo`,
