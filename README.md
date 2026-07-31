@@ -197,11 +197,7 @@ roadgate/
 - Diseño responsive con tokens semánticos y soporte de tema.
 
 ---
-## 6. URL de Depliegue
-La aplicación ha sido desplegada en una URL real de dominio público
-- **URL de Despliegue:** https://myroadgate.com
-
-## 7. Usuario y contraseña de prueba
+## 6. Usuario y contraseña de prueba
 
 La aplicación incluye una cuenta demo disponible desde la pantalla de login (botón **"🚀 Probar Demo"** o rellenando las credenciales manualmente):
 
@@ -217,7 +213,7 @@ Notas:
 
 ---
 
-## Despliegue
+## 7. Despliegue
 
 El proyecto se despliega sobre Cloudflare Workers a partir del build de producción:
 
@@ -229,13 +225,17 @@ Los cambios de backend (migraciones, funciones de servidor) se aplican de forma 
 
 ---
 
-## 8. Entregables TFM
+## 🎓 Entregables TFM (AI Development)
 
-- **Presentación del Proyecto RoadGate:**
-https://github.com/johanaguerrero-gatesven/roadgate/blob/67243bceef6296c1d000f02dd42b261fbb8b8544/ROADGATE%20Presentaci%C3%B3n%20del%20Proyecto%20TFM.pdf
+Para facilitar la corrección del Trabajo de Fin de Máster, a continuación se adjuntan los enlaces a los entregables requeridos:
+
+- **Despliegue del proyecto:** [https://myroadgate.com](https://myroadgate.com )
+- **Presentación (Slides):** Archivo `ROADGATE Presentación del Proyecto TFM.pdf` del repositorio
+- **Vídeo explicativo:** [Enlace a YouTube / Drive]
+
 ---
 
-## Licencia
+## 8. Licencia
 
 © 2026 GATES · RoadGate. Todos los derechos reservados. 
 Este software es propietario y no se concede ninguna licencia de uso, copia, modificación o distribución sin autorización expresa por escrito.
