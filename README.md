@@ -197,6 +197,9 @@ roadgate/
 - Diseño responsive con tokens semánticos y soporte de tema.
 
 ---
+## 6. URL de Depliegue
+La aplicación ha sido desplegada en una URL real de dominio público
+- **URL de Despliegue:** https://myroadgate.com
 
 ## 6. Usuario y contraseña de prueba
 
