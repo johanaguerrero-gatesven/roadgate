@@ -1,5 +1,5 @@
 // Client-side profile/company/team storage (localStorage).
-// Replace with Lovable Cloud later.
+// Replace with the RoadGate backend later.
 
 const PROFILE_KEY = "roadgate.profile";
 const COMPANY_KEY = "roadgate.company";

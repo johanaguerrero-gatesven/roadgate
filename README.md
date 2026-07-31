@@ -41,7 +41,7 @@ Ideas clave:
 | Gráficos | **Recharts** |
 | Validación | **Zod** + React Hook Form |
 | Notificaciones | **Sonner** |
-| Backend / BaaS | **Supabase** (PostgreSQL + Auth + RLS) vía Lovable Cloud |
+| Backend / BaaS | **Supabase** (PostgreSQL + Auth + RLS) gestionado por RoadGate |
 | Exportación | **SheetJS (`xlsx`)** |
 | Deploy | Cloudflare Workers (`wrangler.jsonc`) |
 

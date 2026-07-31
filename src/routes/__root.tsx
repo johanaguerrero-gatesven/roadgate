@@ -77,7 +77,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Planifica el roadmap de tu producto considerando la capacidad real de tu equipo. Una herramienta de GATES." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@RoadGate" },
       { name: "twitter:title", content: "RoadGate — Roadmap de producto con capacidad real | by GATES" },
       { name: "twitter:description", content: "Planifica el roadmap de tu producto considerando la capacidad real de tu equipo. Una herramienta de GATES." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cf6521be-4505-46c2-9b48-90e61fd650e1/id-preview-343514a1--747ffff3-8ce8-46e4-be3b-058c95cb79a3.lovable.app-1780184987605.png" },
