@@ -223,6 +223,14 @@ npm run build
 
 Los cambios de backend (migraciones, funciones de servidor) se aplican de forma inmediata; los cambios de frontend requieren un nuevo despliegue.
 
+
+---
+
+## 8. Licencia
+
+© 2026 GATES · RoadGate. Todos los derechos reservados. 
+Este software es propietario y no se concede ninguna licencia de uso, copia, modificación o distribución sin autorización expresa por escrito.
+
 ---
 
 ## 🎓 Entregables TFM (AI Development)
@@ -232,10 +240,3 @@ Para facilitar la corrección del Trabajo de Fin de Máster, a continuación se 
 - **Despliegue del proyecto:** [https://myroadgate.com](https://myroadgate.com )
 - **Presentación (Slides):** Archivo `ROADGATE Presentación del Proyecto TFM.pdf` del repositorio
 - **Vídeo explicativo:** [Enlace a YouTube / Drive]
-
----
-
-## 8. Licencia
-
-© 2026 GATES · RoadGate. Todos los derechos reservados. 
-Este software es propietario y no se concede ninguna licencia de uso, copia, modificación o distribución sin autorización expresa por escrito.
