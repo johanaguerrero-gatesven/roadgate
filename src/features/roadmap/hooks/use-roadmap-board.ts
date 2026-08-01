@@ -130,22 +130,23 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     update(items.map((it) => (it.uid === uidKey ? { ...it, ...safePatch } : it)));
   };
 
-  /** Mueve un item a un quarter. Cascada no destructiva: solo desciende a hijos que compartían el Q previo. */
+  /**
+   * Mueve un item a un quarter.
+   * Si es un agrupador (Epic/Feature), TODOS sus descendientes heredan ese quarter.
+   * Si luego se mueve un hijo suelto, `normalizeItems` recalcula el padre a "MULTI".
+   */
   const moveQuarter = (uidKey: string, quarter: Quarter) => {
     const target = items.find((i) => i.uid === uidKey);
     if (!target) return;
     if (target.quarter === quarter) return;
-    if (quarter && !hasAssignedPriority(target.priority)) {
+    if (quarter && quarter !== "MULTI" && !hasAssignedPriority(target.priority)) {
       toast.error("No se puede añadir al Roadmap sin prioridad", {
         description: `${target.id}: define la prioridad antes de asignar un Quarter.`,
       });
       return;
     }
-    const prevQ = target.quarter ?? "";
-    const cascadeUids = new Set<string>([target.uid]);
-    descendantsOf(target, items).forEach((d) => {
-      if ((d.quarter ?? "") === prevQ) cascadeUids.add(d.uid);
-    });
+    // Herencia en bloque: el padre impone su quarter a toda su descendencia.
+    const cascadeUids = new Set<string>([target.uid, ...descendantsOf(target, items).map((d) => d.uid)]);
     update(items.map((it) => (cascadeUids.has(it.uid) ? { ...it, quarter } : it)));
     toast.success(quarter ? `Movido a ${quarter}` : "Movido a Backlog", {
       description: `${target.id}: ${target.title}`,
