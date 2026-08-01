@@ -92,11 +92,10 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
       const demote = nextPriority === "";
       if (demote && (current.quarter ?? "") !== "") {
         safePatch.quarter = "";
-        const prevQ = current.quarter ?? "";
-        const cascadeUids = new Set<string>([current.uid]);
-        descendantsOf(current, items).forEach((d) => {
-          if ((d.quarter ?? "") === prevQ) cascadeUids.add(d.uid);
-        });
+        const cascadeUids = new Set<string>([
+          current.uid,
+          ...descendantsOf(current, items).map((d) => d.uid),
+        ]);
         update(
           items.map((it) =>
             cascadeUids.has(it.uid)
