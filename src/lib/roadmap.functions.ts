@@ -1,3 +1,22 @@
+/**
+ * =============================================================================
+ * Capa de persistencia de RoadGate (server functions)
+ * =============================================================================
+ * Único punto de entrada del cliente al backend para leer/escribir roadmaps.
+ *
+ * Reglas transversales:
+ *  - Todas las funciones exigen sesión (`requireSupabaseAuth`) y operan como el
+ *    usuario autenticado, por lo que RLS aplica además de los filtros `user_id`.
+ *  - Antes de tocar los datos de un roadmap concreto se comprueba la propiedad
+ *    con `assertRoadmapOwned` (defensa en profundidad frente a RLS).
+ *  - El dominio (camelCase, ver `./roadmap`) y la base de datos (snake_case)
+ *    se traducen exclusivamente en `rowToItem` / `itemToRow`.
+ *
+ * Modelo de datos:
+ *  - `roadmaps`          → cabecera (id, nombre) de cada hoja de ruta.
+ *  - `roadmap_items`     → Epics / Features / User Stories de un roadmap.
+ *  - `roadmap_capacity`  → configuración de capacidad (1 fila por roadmap).
+ */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -11,6 +30,7 @@ import {
   type State,
 } from "./roadmap";
 
+/** Fila tal cual llega de la tabla `roadmap_items` (snake_case, nullables). */
 type ItemRow = {
   item_uid: string;
   item_code: string;
@@ -29,6 +49,13 @@ type ItemRow = {
   hidden_from_roadmap: boolean;
 };
 
+/**
+ * Adapta una fila de BD al modelo de dominio.
+ * Los `null` se normalizan a `undefined` o a cadena vacía según el campo, para
+ * que la lógica de negocio nunca tenga que distinguir entre ambos.
+ * Ojo: `item_uid` es la clave estable en cliente (drag & drop, edición) y
+ * `item_code` es el ID visible/editable por el usuario (EPIC-01, 14385, …).
+ */
 function rowToItem(r: ItemRow): RoadmapItem {
   return {
     uid: r.item_uid,
@@ -49,6 +76,11 @@ function rowToItem(r: ItemRow): RoadmapItem {
   };
 }
 
+/**
+ * Adapta un item de dominio a fila insertable.
+ * `priority` y `quarter` usan `|| null` (no `??`) a propósito: la cadena vacía
+ * significa "sin asignar" y debe guardarse como NULL, no como "".
+ */
 function itemToRow(it: RoadmapItem, userId: string, roadmapId: string) {
   return {
     user_id: userId,
@@ -71,6 +103,12 @@ function itemToRow(it: RoadmapItem, userId: string, roadmapId: string) {
   };
 }
 
+/**
+ * Verifica que el roadmap pertenece al usuario de la sesión.
+ * Se ejecuta antes de cualquier lectura/escritura de items o capacidad para
+ * garantizar el aislamiento de datos entre cuentas (además de RLS).
+ * @throws Error("Roadmap not found") si no existe o no es del usuario.
+ */
 async function assertRoadmapOwned(
   supabase: { from: (t: string) => { select: (c: string) => { eq: (col: string, v: string) => { eq: (col: string, v: string) => { maybeSingle: () => Promise<{ data: unknown; error: { message: string } | null }> } } } } },
   roadmapId: string,
@@ -81,6 +119,12 @@ async function assertRoadmapOwned(
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Roadmap not found");
 }
+
+/**
+ * Lista los roadmaps del usuario (más recientes primero) enriquecidos con el
+ * número de work items de cada uno, en una única consulta agregada en memoria
+ * para evitar N+1.
+ */
 
 export const listRoadmaps = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
