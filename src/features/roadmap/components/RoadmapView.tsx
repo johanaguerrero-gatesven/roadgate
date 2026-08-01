@@ -55,10 +55,12 @@ export function RoadmapView({
   const [lastSnapshot, setLastSnapshot] = useState<{ items: RoadmapItem[]; fromQ: Quarter; toQ: Quarter; id: string } | null>(null);
   const [pending, setPending] = useState<{ uid: string; q: Quarter } | null>(null);
   const [detailUid, setDetailUid] = useState<string | null>(null);
-  // Tarjetas contenedoras (padres) colapsadas por defecto.
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  // Los padres muestran su árbol de hijos EXPANDIDO por defecto; aquí guardamos
+  // solo los que el usuario ha colapsado manualmente.
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const isExpanded = (uidKey: string) => !collapsed.has(uidKey);
   const toggleExpanded = (uidKey: string) =>
-    setExpanded((prev) => {
+    setCollapsed((prev) => {
       const next = new Set(prev);
       if (next.has(uidKey)) next.delete(uidKey); else next.add(uidKey);
       return next;
@@ -215,7 +217,7 @@ export function RoadmapView({
                   const rows: { item: RoadmapItem; depth: number; rolledUp: boolean }[] = [
                     { item: v.item, depth: 0, rolledUp: v.rolledUp },
                   ];
-                  if (v.rolledUp && expanded.has(v.item.uid)) {
+                  if (v.rolledUp && isExpanded(v.item.uid)) {
                     flattenDescendants(v.item).forEach((r) =>
                       rows.push({ item: r.item, depth: r.depth, rolledUp: false }),
                     );
@@ -253,10 +255,10 @@ export function RoadmapView({
                                     <button
                                       type="button"
                                       className="rounded hover:bg-foreground/10 p-0.5 -ml-0.5"
-                                      title={expanded.has(it.uid) ? "Colapsar" : "Expandir hijos"}
+                                      title={isExpanded(it.uid) ? "Colapsar" : "Expandir hijos"}
                                       onClick={(e) => { e.stopPropagation(); toggleExpanded(it.uid); }}
                                     >
-                                      {expanded.has(it.uid)
+                                      {isExpanded(it.uid)
                                         ? <ChevronDown className="h-3 w-3" />
                                         : <ChevronRight className="h-3 w-3" />}
                                     </button>
