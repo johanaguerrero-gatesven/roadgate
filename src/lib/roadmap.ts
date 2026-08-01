@@ -146,6 +146,25 @@ export function syncParentQuarters(input: RoadmapItem[]): RoadmapItem[] {
 }
 
 /**
+ * Invariante de prioridad (Reglas 3 y 4):
+ *  - Todo item con Quarter (Q1–Q4 o MULTI, es decir, presente en el Roadmap)
+ *    es prioridad Alta.
+ *  - Ningún item del Backlog puede ser Alta; si lo era, baja a "3-Low".
+ *    Los items sin prioridad ("") en Backlog se respetan tal cual.
+ * Se aplica SIEMPRE al normalizar, así los datos importados o heredados no
+ * pueden quedar en un estado incoherente (hijo "4-Lowest" dentro de un Q).
+ */
+export function enforcePriorityInvariant(items: RoadmapItem[]): RoadmapItem[] {
+  return items.map((it) => {
+    const q = (it.quarter ?? "") as Quarter;
+    const p = (it.priority ?? "") as Priority;
+    if (q !== "") return p === "1-High" ? it : { ...it, priority: "1-High" as Priority };
+    if (p === "1-High") return { ...it, priority: "3-Low" as Priority };
+    return it;
+  });
+}
+
+/**
  * Enforce the invariant: parent.effort = Σ(children rolled-up effort)
  * y parent.quarter = derivado de sus hijos (ver syncParentQuarters).
  * Callers should run this before persisting so stored data stays consistent.
@@ -162,8 +181,9 @@ export function normalizeItems(items: RoadmapItem[]): RoadmapItem[] {
     const sum = rollup(it);
     return it.effort === sum ? it : { ...it, effort: sum };
   });
-  return syncParentQuarters(withEffort);
+  return enforcePriorityInvariant(syncParentQuarters(withEffort));
 }
+
 
 
 export function sprintsForQuarter(c: CapacityConfig, q: RealQuarter) {
