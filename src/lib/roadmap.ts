@@ -147,22 +147,38 @@ export function syncParentQuarters(input: RoadmapItem[]): RoadmapItem[] {
 
 /**
  * Invariante de prioridad (Reglas 3 y 4):
- *  - Todo item con Quarter (Q1–Q4 o MULTI, es decir, presente en el Roadmap)
- *    es prioridad Alta.
+ *  - En el Roadmap (Q1–Q4 o MULTI) solo se admite Alta o Media. Un item con
+ *    Baja/Mínima/sin prioridad hereda la prioridad del ancestro más cercano
+ *    que sea Alta o Media; si no hay ninguno, se marca como Alta.
  *  - Ningún item del Backlog puede ser Alta; si lo era, baja a "3-Low".
  *    Los items sin prioridad ("") en Backlog se respetan tal cual.
- * Se aplica SIEMPRE al normalizar, así los datos importados o heredados no
- * pueden quedar en un estado incoherente (hijo "4-Lowest" dentro de un Q).
  */
 export function enforcePriorityInvariant(items: RoadmapItem[]): RoadmapItem[] {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const isRoadmapPriority = (p: Priority) => p === "1-High" || p === "2-Medium";
+  const inheritedPriority = (it: RoadmapItem): Priority => {
+    const seen = new Set<string>();
+    let cur = it.parentId ? byId.get(it.parentId) : undefined;
+    while (cur && !seen.has(cur.uid)) {
+      seen.add(cur.uid);
+      const p = (cur.priority ?? "") as Priority;
+      if (isRoadmapPriority(p)) return p;
+      cur = cur.parentId ? byId.get(cur.parentId) : undefined;
+    }
+    return "1-High";
+  };
   return items.map((it) => {
     const q = (it.quarter ?? "") as Quarter;
     const p = (it.priority ?? "") as Priority;
-    if (q !== "") return p === "1-High" ? it : { ...it, priority: "1-High" as Priority };
+    if (q !== "") {
+      if (isRoadmapPriority(p)) return it;
+      return { ...it, priority: inheritedPriority(it) };
+    }
     if (p === "1-High") return { ...it, priority: "3-Low" as Priority };
     return it;
   });
 }
+
 
 /**
  * Enforce the invariant: parent.effort = Σ(children rolled-up effort)
