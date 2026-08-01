@@ -37,9 +37,8 @@ export function ItemDetailDialog({
   const hasKids = kids.length > 0;
   const rolled = rolledUpEffort(item, items);
   const meta = WORK_ITEM_ICONS[item.type];
-  const kidQuarters = new Set(kids.map((k) => k.quarter || "").filter(Boolean));
-  const shownQuarter =
-    item.quarter || (kidQuarters.size === 1 ? ([...kidQuarters][0] as Quarter) : "");
+  // El quarter del padre ya viene derivado de sus hijos (puede ser "MULTI").
+  const shownQuarter = (item.quarter ?? "") as Quarter;
 
   const save = () => {
     const patch: Partial<RoadmapItem> = {};
