@@ -215,6 +215,9 @@ export function BacklogPanel({
                             {QUARTERS.map((q) => (
                               <SelectItem key={q} value={q} className="text-xs">{q}</SelectItem>
                             ))}
+                            {it.quarter === "MULTI" && (
+                              <SelectItem value="MULTI" className="text-xs" disabled>Multi-Quarter</SelectItem>
+                            )}
                           </SelectContent>
                         </Select>
                       </td>

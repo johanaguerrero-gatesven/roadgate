@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, CornerDownRight, AlertTriangle } from "lucide-react";
+import { ArrowLeft, CornerDownRight, AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -38,14 +38,50 @@ export function RoadmapView({
   const [lastSnapshot, setLastSnapshot] = useState<{ items: RoadmapItem[]; fromQ: Quarter; toQ: Quarter; id: string } | null>(null);
   const [pending, setPending] = useState<{ uid: string; q: Quarter } | null>(null);
   const [detailUid, setDetailUid] = useState<string | null>(null);
+  // Tarjetas contenedoras (padres) colapsadas por defecto.
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const toggleExpanded = (uidKey: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(uidKey)) next.delete(uidKey); else next.add(uidKey);
+      return next;
+    });
+
+  /** Árbol de descendientes renderizado dentro de una tarjeta contenedora. */
+  const ChildTree = ({ parent, depth = 0 }: { parent: RoadmapItem; depth?: number }) => {
+    const kids = items.filter((c) => c.parentId === parent.id);
+    if (kids.length === 0) return null;
+    return (
+      <div className="mt-1 space-y-1">
+        {kids.map((k) => (
+          <div key={k.uid}>
+            <div
+              className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer"
+              style={{ paddingLeft: depth * 10 }}
+              onClick={(e) => { e.stopPropagation(); setDetailUid(k.uid); }}
+            >
+              <WorkItemIcon type={k.type} className="h-3 w-3 shrink-0" />
+              <span className="font-medium shrink-0">{k.id}</span>
+              <span className="truncate">{k.title}</span>
+              <span className="ml-auto shrink-0">{rolledUpEffort(k, items) || 0}h</span>
+            </div>
+            <ChildTree parent={k} depth={depth + 1} />
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+
 
   const [pendPriority, setPendPriority] = useState<Priority>("");
   const [pendEffort, setPendEffort] = useState<string>("");
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
-      { Q1: [], Q2: [], Q3: [], Q4: [], "": [] };
-    view.forEach((v) => map[v.quarter].push(v));
+      { Q1: [], Q2: [], Q3: [], Q4: [], MULTI: [], "": [] };
+    // "MULTI" nunca se renderiza como tarjeta: sus hijos ya aparecen en sus Quarters.
+    view.forEach((v) => { if (v.quarter !== "MULTI") map[v.quarter].push(v); });
     return map;
   }, [view]);
 
@@ -190,6 +226,18 @@ export function RoadmapView({
                     >
                       <div className="flex items-start justify-between gap-2">
                         <span className="flex items-center gap-1 font-semibold">
+                          {v.rolledUp && (
+                            <button
+                              type="button"
+                              className="rounded hover:bg-foreground/10 p-0.5 -ml-0.5"
+                              title={expanded.has(it.uid) ? "Colapsar" : "Expandir hijos"}
+                              onClick={(e) => { e.stopPropagation(); toggleExpanded(it.uid); }}
+                            >
+                              {expanded.has(it.uid)
+                                ? <ChevronDown className="h-3 w-3" />
+                                : <ChevronRight className="h-3 w-3" />}
+                            </button>
+                          )}
                           <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
                           {it.id}
                         </span>
@@ -199,6 +247,11 @@ export function RoadmapView({
                         />
                       </div>
                       <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
+                      {v.rolledUp && expanded.has(it.uid) && (
+                        <div className="mt-1 border-l border-border/60 pl-2">
+                          <ChildTree parent={it} />
+                        </div>
+                      )}
                       {showParent && top && cov && (
                         <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground" title={`${cov.planned}h / ${cov.total}h of ${top.id} planned in roadmap`}>
                           <CornerDownRight className="h-3 w-3" />

@@ -1,7 +1,7 @@
 import { ChevronsUp, ChevronUp, ChevronDown, ChevronsDown } from "lucide-react";
-import type { ItemType, Priority, Quarter } from "@/lib/roadmap";
+import type { ItemType, Priority, RealQuarter } from "@/lib/roadmap";
 
-export type RealQuarter = Exclude<Quarter, "">;
+export type { RealQuarter };
 export type RealPriority = Exclude<Priority, "">;
 
 export const QUARTERS: RealQuarter[] = ["Q1", "Q2", "Q3", "Q4"];

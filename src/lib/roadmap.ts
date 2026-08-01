@@ -1,6 +1,12 @@
 // Roadmap data layer (localStorage, no backend yet)
 export type ItemType = "epic" | "feature" | "story";
-export type Quarter = "Q1" | "Q2" | "Q3" | "Q4" | "";
+/**
+ * "MULTI" es un estado exclusivo de items agrupadores (Epic/Feature): significa
+ * que sus hijos están repartidos en varios Quarters (o solo parcialmente planificados).
+ * Nunca se asigna a hojas y no se renderiza como columna del roadmap.
+ */
+export type RealQuarter = "Q1" | "Q2" | "Q3" | "Q4";
+export type Quarter = RealQuarter | "MULTI" | "";
 export type Priority = "1-High" | "2-Medium" | "3-Low" | "4-Lowest" | "";
 export type State = "Backlog" | "In Progress" | "Done" | "Blocked";
 export type DisplayMode = "auto" | "self" | "children";
@@ -29,7 +35,7 @@ export type CapacityConfig = {
   daysPerSprint: number;
   hoursPerDay: number;
   sprintsPerQuarter: number;             // default for every quarter
-  sprintsByQuarter?: Partial<Record<Exclude<Quarter, "">, number>>; // per-Q override
+  sprintsByQuarter?: Partial<Record<RealQuarter, number>>; // per-Q override
 };
 
 export const defaultCapacity: CapacityConfig = {
@@ -42,7 +48,58 @@ export const defaultCapacity: CapacityConfig = {
 };
 
 /**
- * Enforce the invariant: parent.effort = Σ(children rolled-up effort).
+ * Deriva el Quarter de los items agrupadores (los que tienen hijos) a partir de
+ * sus descendientes, de abajo hacia arriba:
+ *  - todos los hijos en el mismo Q  → el padre queda en ese Q
+ *  - hijos en Q distintos, o solo algunos planificados → "MULTI"
+ *  - ningún hijo planificado → "" (sin quarter)
+ * Las hojas conservan siempre su propio quarter.
+ */
+export function syncParentQuarters(items: RoadmapItem[]): RoadmapItem[] {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const childrenMap = new Map<string, RoadmapItem[]>();
+  items.forEach((i) => {
+    if (!i.parentId || !byId.has(i.parentId)) return;
+    const arr = childrenMap.get(i.parentId) ?? [];
+    arr.push(i);
+    childrenMap.set(i.parentId, arr);
+  });
+
+  const memo = new Map<string, Quarter>();
+  const resolve = (item: RoadmapItem, seen = new Set<string>()): Quarter => {
+    if (memo.has(item.uid)) return memo.get(item.uid)!;
+    if (seen.has(item.uid)) return item.quarter ?? "";
+    seen.add(item.uid);
+    const kids = childrenMap.get(item.id) ?? [];
+    if (kids.length === 0) {
+      const own = (item.quarter ?? "") as Quarter;
+      const leafQ = own === "MULTI" ? "" : own; // una hoja nunca puede ser MULTI
+      memo.set(item.uid, leafQ);
+      return leafQ;
+    }
+    const kidQs = kids.map((k) => resolve(k, seen));
+    const distinct = new Set(kidQs);
+    let q: Quarter;
+    if (distinct.size === 1 && !distinct.has("MULTI")) q = [...distinct][0];
+    else if (kidQs.every((k) => k === "")) q = "";
+    else q = "MULTI";
+    memo.set(item.uid, q);
+    return q;
+  };
+
+  return items.map((it) => {
+    const kids = childrenMap.get(it.id) ?? [];
+    if (kids.length === 0) {
+      return (it.quarter ?? "") === "MULTI" ? { ...it, quarter: "" as Quarter } : it;
+    }
+    const q = resolve(it);
+    return (it.quarter ?? "") === q ? it : { ...it, quarter: q };
+  });
+}
+
+/**
+ * Enforce the invariant: parent.effort = Σ(children rolled-up effort)
+ * y parent.quarter = derivado de sus hijos (ver syncParentQuarters).
  * Callers should run this before persisting so stored data stays consistent.
  */
 export function normalizeItems(items: RoadmapItem[]): RoadmapItem[] {
@@ -51,23 +108,24 @@ export function normalizeItems(items: RoadmapItem[]): RoadmapItem[] {
     if (kids.length === 0) return item.effort || 0;
     return kids.reduce((s, k) => s + rollup(k), 0);
   };
-  return items.map((it) => {
+  const withEffort = items.map((it) => {
     const hasKids = items.some((c) => c.parentId === it.id);
     if (!hasKids) return it;
     const sum = rollup(it);
     return it.effort === sum ? it : { ...it, effort: sum };
   });
+  return syncParentQuarters(withEffort);
 }
 
 
-export function sprintsForQuarter(c: CapacityConfig, q: Exclude<Quarter, "">) {
+export function sprintsForQuarter(c: CapacityConfig, q: RealQuarter) {
   const v = c.sprintsByQuarter?.[q];
   return typeof v === "number" && v >= 0 ? v : c.sprintsPerQuarter;
 }
 export function capacityPerSprint(c: CapacityConfig) {
   return c.developers * (c.dedicationPct / 100) * c.daysPerSprint * c.hoursPerDay;
 }
-export function capacityPerQuarter(c: CapacityConfig, q?: Exclude<Quarter, "">) {
+export function capacityPerQuarter(c: CapacityConfig, q?: RealQuarter) {
   const sprints = q ? sprintsForQuarter(c, q) : c.sprintsPerQuarter;
   return capacityPerSprint(c) * sprints;
 }
@@ -290,31 +348,19 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
 
   const decide = (node: RoadmapItem): { choice: "self" | "children"; quarter?: Quarter } => {
     const mode = node.displayMode ?? "auto";
+    if (mode === "children") return { choice: "children" };
+    const desc = allDescendants(node);
+    if (desc.length === 0) return { choice: "self" };
     if (mode === "self") {
       const shared = sharedChildQuarter(node);
       return { choice: "self", quarter: shared ?? undefined };
     }
-    if (mode === "children") return { choice: "children" };
-    // auto: prefer rendering the node itself while nothing has been placed
-    // on the roadmap yet. Only expand into children once the node or any of
-    // its descendants has been assigned to a quarter — otherwise a parent
-    // in the Backlog would be replaced by its children and disappear from
-    // the "No Quarter" column, making the counts not match the Backlog tab.
-    const desc = allDescendants(node);
-    if (desc.length === 0) return { choice: "self" };
-    const anyPlaced =
-      !!effectiveQuarter(node, items) ||
-      desc.some((d) => !!effectiveQuarter(d, items));
-    if (!anyPlaced) return { choice: "self" };
-    // If every descendant resolves to the same quarter, render the parent
-    // rolled-up in that quarter (matches parent's own quarter when set, or
-    // simply groups the children when the parent has no quarter yet).
-    const shared = sharedChildQuarter(node);
+    // auto: el quarter del padre ya viene derivado de sus hijos (syncParentQuarters).
+    //  - "MULTI" → los hijos están repartidos: se renderizan ellos, no el padre.
+    //  - Q1..Q4 o "" → el padre se renderiza como tarjeta contenedora (colapsable).
     const own = effectiveQuarter(node, items);
-    if (shared && (!own || own === shared)) {
-      return { choice: "self", quarter: shared };
-    }
-    return { choice: "children" };
+    if (own === "MULTI") return { choice: "children" };
+    return { choice: "self", quarter: own };
   };
 
 
@@ -349,7 +395,7 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
  * (stories, or features/epics without children) so we never double-count.
  */
 export function effortByQuarter(items: RoadmapItem[]): Record<Quarter, number> {
-  const acc: Record<Quarter, number> = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, "": 0 };
+  const acc: Record<Quarter, number> = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, MULTI: 0, "": 0 };
   items.forEach((it) => {
     if (it.hiddenFromRoadmap) return;
     const hasKids = items.some((c) => c.parentId === it.id);

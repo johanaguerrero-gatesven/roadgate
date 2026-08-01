@@ -37,9 +37,8 @@ export function ItemDetailDialog({
   const hasKids = kids.length > 0;
   const rolled = rolledUpEffort(item, items);
   const meta = WORK_ITEM_ICONS[item.type];
-  const kidQuarters = new Set(kids.map((k) => k.quarter || "").filter(Boolean));
-  const shownQuarter =
-    item.quarter || (kidQuarters.size === 1 ? ([...kidQuarters][0] as Quarter) : "");
+  // El quarter del padre ya viene derivado de sus hijos (puede ser "MULTI").
+  const shownQuarter = (item.quarter ?? "") as Quarter;
 
   const save = () => {
     const patch: Partial<RoadmapItem> = {};
@@ -106,9 +105,17 @@ export function ItemDetailDialog({
                 <SelectContent>
                   <SelectItem value="__bl">Sin Quarter</SelectItem>
                   {QUARTERS.map((qq) => <SelectItem key={qq} value={qq}>{qq}</SelectItem>)}
+                  {shownQuarter === "MULTI" && (
+                    <SelectItem value="MULTI" disabled>Multi-Quarter</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
-              {hasKids && (
+              {shownQuarter === "MULTI" && (
+                <p className="text-[11px] text-muted-foreground">
+                  Sus hijos están repartidos en varios Quarters. Elige un Quarter para agruparlos todos.
+                </p>
+              )}
+              {hasKids && shownQuarter !== "MULTI" && (
                 <p className="text-[11px] text-muted-foreground">
                   Se aplicará también a sus hijos.
                 </p>
