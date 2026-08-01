@@ -105,9 +105,17 @@ export function ItemDetailDialog({
                 <SelectContent>
                   <SelectItem value="__bl">Sin Quarter</SelectItem>
                   {QUARTERS.map((qq) => <SelectItem key={qq} value={qq}>{qq}</SelectItem>)}
+                  {shownQuarter === "MULTI" && (
+                    <SelectItem value="MULTI" disabled>Multi-Quarter</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
-              {hasKids && (
+              {shownQuarter === "MULTI" && (
+                <p className="text-[11px] text-muted-foreground">
+                  Sus hijos están repartidos en varios Quarters. Elige un Quarter para agruparlos todos.
+                </p>
+              )}
+              {hasKids && shownQuarter !== "MULTI" && (
                 <p className="text-[11px] text-muted-foreground">
                   Se aplicará también a sus hijos.
                 </p>
