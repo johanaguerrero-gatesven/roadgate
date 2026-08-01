@@ -232,6 +232,9 @@ export function RoadmapView({
                         const eff = hasKids ? rolledUpEffort(it, items) : (it.effort ?? 0);
                         // Regla 0h: nada planificado en un Quarter puede tener 0h de esfuerzo.
                         const zeroEffort = eff <= 0;
+                        // Regla de prioridad: en el Roadmap solo Alta o Media.
+                        const lowPriority = it.priority !== "1-High" && it.priority !== "2-Medium";
+
                         return (
                           <div
                             key={it.uid}
