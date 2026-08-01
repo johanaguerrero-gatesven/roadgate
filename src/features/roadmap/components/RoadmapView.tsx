@@ -217,7 +217,7 @@ export function RoadmapView({
                   const rows: { item: RoadmapItem; depth: number; rolledUp: boolean }[] = [
                     { item: v.item, depth: 0, rolledUp: v.rolledUp },
                   ];
-                  if (v.rolledUp && expanded.has(v.item.uid)) {
+                  if (v.rolledUp && isExpanded(v.item.uid)) {
                     flattenDescendants(v.item).forEach((r) =>
                       rows.push({ item: r.item, depth: r.depth, rolledUp: false }),
                     );
@@ -255,10 +255,10 @@ export function RoadmapView({
                                     <button
                                       type="button"
                                       className="rounded hover:bg-foreground/10 p-0.5 -ml-0.5"
-                                      title={expanded.has(it.uid) ? "Colapsar" : "Expandir hijos"}
+                                      title={isExpanded(it.uid) ? "Colapsar" : "Expandir hijos"}
                                       onClick={(e) => { e.stopPropagation(); toggleExpanded(it.uid); }}
                                     >
-                                      {expanded.has(it.uid)
+                                      {isExpanded(it.uid)
                                         ? <ChevronDown className="h-3 w-3" />
                                         : <ChevronRight className="h-3 w-3" />}
                                     </button>
