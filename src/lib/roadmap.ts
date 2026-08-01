@@ -72,7 +72,37 @@ export const defaultCapacity: CapacityConfig = {
  *  - ningún hijo planificado → "" (sin quarter)
  * Las hojas conservan siempre su propio quarter.
  */
-export function syncParentQuarters(items: RoadmapItem[]): RoadmapItem[] {
+export function syncParentQuarters(input: RoadmapItem[]): RoadmapItem[] {
+  // --- Fase 0 (top-down): materializar la herencia de Quarter -------------
+  // Un hijo sin quarter propio cuyo padre SÍ está planificado en un Q concreto
+  // hereda ese Q de forma explícita. Sin este paso, la tarjeta del hijo se
+  // pintaba bajo el padre "prestada" y, al pasar el padre a MULTI (porque otro
+  // hermano se movió), los hermanos caían al Backlog sin que nadie los tocara.
+  const items = (() => {
+    const byIdIn = new Map(input.map((i) => [i.id, i]));
+    const kidsIn = new Map<string, RoadmapItem[]>();
+    input.forEach((i) => {
+      if (!i.parentId || !byIdIn.has(i.parentId)) return;
+      const arr = kidsIn.get(i.parentId) ?? [];
+      arr.push(i);
+      kidsIn.set(i.parentId, arr);
+    });
+    const patched = new Map<string, Quarter>();
+    const pushDown = (node: RoadmapItem, inherited: Quarter) => {
+      const own = (patched.get(node.uid) ?? node.quarter ?? "") as Quarter;
+      let effective = own;
+      if (own === "" && inherited !== "" && inherited !== "MULTI") {
+        effective = inherited;
+        patched.set(node.uid, inherited);
+      }
+      (kidsIn.get(node.id) ?? []).forEach((k) => pushDown(k, effective));
+    };
+    input.filter((i) => !i.parentId || !byIdIn.has(i.parentId)).forEach((r) => pushDown(r, ""));
+    return patched.size
+      ? input.map((i) => (patched.has(i.uid) ? { ...i, quarter: patched.get(i.uid)! } : i))
+      : input;
+  })();
+
   const byId = new Map(items.map((i) => [i.id, i]));
   const childrenMap = new Map<string, RoadmapItem[]>();
   items.forEach((i) => {
@@ -81,6 +111,7 @@ export function syncParentQuarters(items: RoadmapItem[]): RoadmapItem[] {
     arr.push(i);
     childrenMap.set(i.parentId, arr);
   });
+
 
   const memo = new Map<string, Quarter>();
   const resolve = (item: RoadmapItem, seen = new Set<string>()): Quarter => {
