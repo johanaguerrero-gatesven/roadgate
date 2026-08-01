@@ -348,31 +348,19 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
 
   const decide = (node: RoadmapItem): { choice: "self" | "children"; quarter?: Quarter } => {
     const mode = node.displayMode ?? "auto";
+    if (mode === "children") return { choice: "children" };
+    const desc = allDescendants(node);
+    if (desc.length === 0) return { choice: "self" };
     if (mode === "self") {
       const shared = sharedChildQuarter(node);
       return { choice: "self", quarter: shared ?? undefined };
     }
-    if (mode === "children") return { choice: "children" };
-    // auto: prefer rendering the node itself while nothing has been placed
-    // on the roadmap yet. Only expand into children once the node or any of
-    // its descendants has been assigned to a quarter — otherwise a parent
-    // in the Backlog would be replaced by its children and disappear from
-    // the "No Quarter" column, making the counts not match the Backlog tab.
-    const desc = allDescendants(node);
-    if (desc.length === 0) return { choice: "self" };
-    const anyPlaced =
-      !!effectiveQuarter(node, items) ||
-      desc.some((d) => !!effectiveQuarter(d, items));
-    if (!anyPlaced) return { choice: "self" };
-    // If every descendant resolves to the same quarter, render the parent
-    // rolled-up in that quarter (matches parent's own quarter when set, or
-    // simply groups the children when the parent has no quarter yet).
-    const shared = sharedChildQuarter(node);
+    // auto: el quarter del padre ya viene derivado de sus hijos (syncParentQuarters).
+    //  - "MULTI" → los hijos están repartidos: se renderizan ellos, no el padre.
+    //  - Q1..Q4 o "" → el padre se renderiza como tarjeta contenedora (colapsable).
     const own = effectiveQuarter(node, items);
-    if (shared && (!own || own === shared)) {
-      return { choice: "self", quarter: shared };
-    }
-    return { choice: "children" };
+    if (own === "MULTI") return { choice: "children" };
+    return { choice: "self", quarter: own };
   };
 
 
@@ -407,7 +395,7 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
  * (stories, or features/epics without children) so we never double-count.
  */
 export function effortByQuarter(items: RoadmapItem[]): Record<Quarter, number> {
-  const acc: Record<Quarter, number> = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, "": 0 };
+  const acc: Record<Quarter, number> = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, MULTI: 0, "": 0 };
   items.forEach((it) => {
     if (it.hiddenFromRoadmap) return;
     const hasKids = items.some((c) => c.parentId === it.id);
