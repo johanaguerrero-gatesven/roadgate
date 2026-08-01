@@ -152,6 +152,7 @@ export function uid() {
 }
 
 // Minimal CSV parser supporting quoted fields and commas inside quotes
+/** Parser CSV mínimo con soporte de comillas, comas y saltos de línea dentro del campo. */
 export function parseCSV(text: string): Record<string, string>[] {
   // Strip BOM
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
@@ -185,6 +186,7 @@ export function parseCSV(text: string): Record<string, string>[] {
   });
 }
 
+/** Lee de una fila CSV la primera columna cuyo nombre coincida (sin distinguir mayúsculas). */
 function pick(row: Record<string, string>, keys: string[]): string {
   for (const k of Object.keys(row)) {
     const lk = k.toLowerCase().trim();
@@ -193,6 +195,7 @@ function pick(row: Record<string, string>, keys: string[]): string {
   return "";
 }
 
+/** Deduce el tipo de work item a partir del texto de "Work Item Type". */
 function detectType(raw: string, fallback: ItemType): ItemType {
   const v = raw.toLowerCase().trim();
   if (!v) return fallback;
@@ -202,6 +205,7 @@ function detectType(raw: string, fallback: ItemType): ItemType {
   return fallback;
 }
 
+/** Traduce prioridades en texto libre (español/inglés, numeradas) al enum interno. */
 function normalizePriority(raw: string): Priority {
   const v = raw.trim();
   if (!v) return "";
@@ -211,6 +215,7 @@ function normalizePriority(raw: string): Priority {
   return (v as Priority) || "";
 }
 
+/** Extrae Q1..Q4 de un texto libre (p. ej. una Iteration Path). */
 function normalizeQuarter(raw: string): Quarter {
   const m = raw.match(/Q[1-4]/i);
   return (m ? (m[0].toUpperCase() as Quarter) : "");
@@ -250,6 +255,7 @@ export function importCSV(text: string, defaultType: ItemType, existing: Roadmap
   return [...map.values()];
 }
 
+/** Serializa los items a CSV con las cabeceras que espera Azure DevOps. */
 export function toCSV(items: RoadmapItem[]): string {
   const headers = ["ID", "Work Item Type", "Title", "Description", "Parent", "Effort", "Priority", "Quarter", "State", "Tags", "Notes"];
   const witLabel: Record<ItemType, string> = { epic: "Epic", feature: "Feature", story: "User Story" };
@@ -270,6 +276,7 @@ export function toCSV(items: RoadmapItem[]): string {
 
 // ---------- Roadmap rollup logic ----------
 
+/** Busca un item por su ID visible (`id`), no por `uid`. */
 function findById(items: RoadmapItem[], id?: string) {
   if (!id) return undefined;
   return items.find((i) => i.id === id);
@@ -327,6 +334,7 @@ export function effectiveQuarter(item: RoadmapItem, _items: RoadmapItem[]): Quar
   return item.quarter || "";
 }
 
+/** Hijos directos de `parent` (relación por `parentId` = `id` del padre). */
 function childrenOf(parent: RoadmapItem, items: RoadmapItem[]) {
   return items.filter((i) => i.parentId === parent.id);
 }
@@ -447,6 +455,7 @@ export function syncParentEfforts(items: RoadmapItem[]): RoadmapItem[] {
   });
 }
 
+/** Nº de work items por prioridad (incluye los no priorizados). */
 export function countByPriority(items: RoadmapItem[]): Record<string, number> {
   const acc: Record<string, number> = { "1-High": 0, "2-Medium": 0, "3-Low": 0, "Sin prioridad": 0 };
   items.forEach((it) => {
@@ -456,6 +465,7 @@ export function countByPriority(items: RoadmapItem[]): Record<string, number> {
   return acc;
 }
 
+/** Esfuerzo total por prioridad; solo cuenta hojas para no duplicar el del padre. */
 export function effortByPriority(items: RoadmapItem[]): Record<string, number> {
   const acc: Record<string, number> = { "1-High": 0, "2-Medium": 0, "3-Low": 0, "Sin prioridad": 0 };
   items.forEach((it) => {
