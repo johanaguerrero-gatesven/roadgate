@@ -44,8 +44,9 @@ export function RoadmapView({
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
-      { Q1: [], Q2: [], Q3: [], Q4: [], "": [] };
-    view.forEach((v) => map[v.quarter].push(v));
+      { Q1: [], Q2: [], Q3: [], Q4: [], MULTI: [], "": [] };
+    // "MULTI" nunca se renderiza como tarjeta: sus hijos ya aparecen en sus Quarters.
+    view.forEach((v) => { if (v.quarter !== "MULTI") map[v.quarter].push(v); });
     return map;
   }, [view]);
 
