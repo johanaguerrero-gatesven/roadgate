@@ -596,7 +596,21 @@ const dict = {
     "roadmap.priority.medium": "Medium",
     "roadmap.priority.low": "Low",
     "roadmap.priority.lowest": "Lowest",
+    "roadmap.q.unassigned": "Unassigned",
+    "roadmap.detail.desc": "Edit the key data of this work item.",
+    "roadmap.detail.id": "ID",
+    "roadmap.detail.title": "Title",
+    "roadmap.detail.effort": "Effort (h)",
+    "roadmap.detail.effortSum": "Sum of its children's effort. Edit it on each child.",
+    "roadmap.detail.quarter": "Quarter",
+    "roadmap.detail.multi": "Multi-Quarter",
+    "roadmap.detail.multiHint": "Its children are spread across several Quarters. Pick a Quarter to group them all.",
+    "roadmap.detail.kidsHint": "It will also apply to its children.",
+    "roadmap.detail.priority": "Priority",
+    "roadmap.detail.cancel": "Cancel",
+    "roadmap.detail.save": "Save",
   },
+
 } as const;
 
 export type TKey = keyof typeof dict["es"];
