@@ -64,30 +64,22 @@ export function RoadmapView({
       return next;
     });
 
-  /** Árbol de descendientes renderizado dentro de una tarjeta contenedora. */
-  const ChildTree = ({ parent, depth = 0 }: { parent: RoadmapItem; depth?: number }) => {
-    const kids = items.filter((c) => c.parentId === parent.id);
-    if (kids.length === 0) return null;
-    return (
-      <div className="mt-1 space-y-1">
-        {kids.map((k) => (
-          <div key={k.uid}>
-            <div
-              className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer"
-              style={{ paddingLeft: depth * 10 }}
-              onClick={(e) => { e.stopPropagation(); setDetailUid(k.uid); }}
-            >
-              <WorkItemIcon type={k.type} className="h-3 w-3 shrink-0" />
-              <span className="font-medium shrink-0">{k.id}</span>
-              <span className="truncate">{k.title}</span>
-              <span className="ml-auto shrink-0">{rolledUpEffort(k, items) || 0}h</span>
-            </div>
-            <ChildTree parent={k} depth={depth + 1} />
-          </div>
-        ))}
-      </div>
-    );
+  /**
+   * Aplana la descendencia de un padre en filas independientes (item + nivel).
+   * Se renderizan como tarjetas hermanas DEBAJO del padre (no dentro), para que
+   * cada hijo sea arrastrable por sí mismo.
+   */
+  const flattenDescendants = (parent: RoadmapItem, depth = 1): { item: RoadmapItem; depth: number }[] => {
+    const out: { item: RoadmapItem; depth: number }[] = [];
+    items
+      .filter((c) => c.parentId === parent.id)
+      .forEach((k) => {
+        out.push({ item: k, depth });
+        out.push(...flattenDescendants(k, depth + 1));
+      });
+    return out;
   };
+
 
 
 
@@ -220,83 +212,113 @@ export function RoadmapView({
                   <div className="text-xs text-muted-foreground/60 text-center py-6">—</div>
                 )}
                 {cell.map((v) => {
-                  const it = v.item;
-                  const top = topAncestor(it, items);
-                  const cov = top ? roadmapCoverage(top, items) : null;
-                  const showParent = !!top && cov !== null && cov.pct < 100 - 0.5;
+                  const rows: { item: RoadmapItem; depth: number; rolledUp: boolean }[] = [
+                    { item: v.item, depth: 0, rolledUp: v.rolledUp },
+                  ];
+                  if (v.rolledUp && expanded.has(v.item.uid)) {
+                    flattenDescendants(v.item).forEach((r) =>
+                      rows.push({ item: r.item, depth: r.depth, rolledUp: false }),
+                    );
+                  }
                   return (
-                    <div
-                      key={it.uid}
-                      draggable
-                      onDragStart={(e) => { setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; }}
-                      onDragEnd={() => { setDragUid(null); setOverQ(null); }}
-                      onClick={() => setDetailUid(it.uid)}
-                      className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity hover:ring-2 hover:ring-primary/40 ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""}`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="flex items-center gap-1 font-semibold">
-                          {v.rolledUp && (
-                            <button
-                              type="button"
-                              className="rounded hover:bg-foreground/10 p-0.5 -ml-0.5"
-                              title={expanded.has(it.uid) ? "Colapsar" : "Expandir hijos"}
-                              onClick={(e) => { e.stopPropagation(); toggleExpanded(it.uid); }}
-                            >
-                              {expanded.has(it.uid)
-                                ? <ChevronDown className="h-3 w-3" />
-                                : <ChevronRight className="h-3 w-3" />}
-                            </button>
-                          )}
-                          <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
-                          {it.id}
-                        </span>
-                        <PriorityPicker
-                          value={it.priority}
-                          onChange={(p) => onUpdate(it.uid, { priority: p })}
-                        />
-                      </div>
-                      <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
-                      {v.rolledUp && expanded.has(it.uid) && (
-                        <div className="mt-1 border-l border-border/60 pl-2">
-                          <ChildTree parent={it} />
-                        </div>
-                      )}
-                      {showParent && top && cov && (
-                        <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground" title={`${cov.planned}h / ${cov.total}h of ${top.id} planned in roadmap`}>
-                          <CornerDownRight className="h-3 w-3" />
-                          <span className="font-medium">{top.id}</span>
-                          <span>· {cov.pct.toFixed(0)}% in roadmap</span>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between mt-1 gap-2">
-                        {(() => {
-                          const e2 = v.rolledUp ? rolledUpEffort(it, items) : (it.effort ?? 0);
-                          return e2 > 0
-                            ? <span className="text-[10px] text-muted-foreground">{v.rolledUp ? "Σ " : ""}{e2}h</span>
-                            : <span />;
-                        })()}
-                        <Select
-                          value={(it.quarter || v.quarter || q) || "__bl"}
-                          onValueChange={(val) => commitMove(it.uid, (val === "__bl" ? "" : val) as Quarter)}
-                        >
-                          <SelectTrigger
-                            className="h-6 w-[74px] text-[10px] px-1.5"
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={(e) => e.stopPropagation()}
+                    <div key={v.item.uid} className="space-y-1.5">
+                      {rows.map(({ item: it, depth, rolledUp }) => {
+                        const top = topAncestor(it, items);
+                        const cov = top ? roadmapCoverage(top, items) : null;
+                        const showParent = depth === 0 && !!top && cov !== null && cov.pct < 100 - 0.5;
+                        const hasKids = items.some((c) => c.parentId === it.id);
+                        const eff = hasKids ? rolledUpEffort(it, items) : (it.effort ?? 0);
+                        // Regla 0h: nada planificado en un Quarter puede tener 0h de esfuerzo.
+                        const zeroEffort = eff <= 0;
+                        return (
+                          <div
+                            key={it.uid}
+                            style={depth > 0 ? { marginLeft: depth * 12 } : undefined}
+                            className={depth > 0 ? "border-l-2 border-border/70 pl-2" : undefined}
                           >
-                            <SelectValue placeholder="Q?" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__bl" className="text-xs">Sin Q</SelectItem>
-                            {QUARTERS.map((qq) => (
-                              <SelectItem key={qq} value={qq} className="text-xs">{qq}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                            <div
+                              draggable
+                              onDragStart={(e) => { e.stopPropagation(); setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; }}
+                              onDragEnd={() => { setDragUid(null); setOverQ(null); }}
+                              onClick={() => setDetailUid(it.uid)}
+                              className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity hover:ring-2 hover:ring-primary/40 ${
+                                zeroEffort
+                                  ? "border-destructive/70 bg-destructive/10 ring-1 ring-destructive/30"
+                                  : WORK_ITEM_ICONS[it.type].badgeClass
+                              } ${dragUid === it.uid ? "opacity-40" : ""}`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="flex items-center gap-1 font-semibold">
+                                  {rolledUp && (
+                                    <button
+                                      type="button"
+                                      className="rounded hover:bg-foreground/10 p-0.5 -ml-0.5"
+                                      title={expanded.has(it.uid) ? "Colapsar" : "Expandir hijos"}
+                                      onClick={(e) => { e.stopPropagation(); toggleExpanded(it.uid); }}
+                                    >
+                                      {expanded.has(it.uid)
+                                        ? <ChevronDown className="h-3 w-3" />
+                                        : <ChevronRight className="h-3 w-3" />}
+                                    </button>
+                                  )}
+                                  <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
+                                  {it.id}
+                                </span>
+                                <PriorityPicker
+                                  value={it.priority}
+                                  onChange={(p) => onUpdate(it.uid, { priority: p })}
+                                />
+                              </div>
+                              <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
+
+                              {zeroEffort && (
+                                <div
+                                  className="mt-1 flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-1 text-[10px] font-medium text-destructive"
+                                  title="Update effort (>0h) or move to Backlog"
+                                >
+                                  <AlertTriangle className="h-3 w-3 shrink-0" />
+                                  <span>Update effort (&gt;0h) or move to Backlog</span>
+                                </div>
+                              )}
+
+                              {showParent && top && cov && (
+                                <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground" title={`${cov.planned}h / ${cov.total}h of ${top.id} planned in roadmap`}>
+                                  <CornerDownRight className="h-3 w-3" />
+                                  <span className="font-medium">{top.id}</span>
+                                  <span>· {cov.pct.toFixed(0)}% in roadmap</span>
+                                </div>
+                              )}
+                              <div className="flex items-center justify-between mt-1 gap-2">
+                                {eff > 0
+                                  ? <span className="text-[10px] text-muted-foreground">{hasKids ? "Σ " : ""}{eff}h</span>
+                                  : <span />}
+                                <Select
+                                  value={(it.quarter || q) || "__bl"}
+                                  onValueChange={(val) => commitMove(it.uid, (val === "__bl" ? "" : val) as Quarter)}
+                                >
+                                  <SelectTrigger
+                                    className="h-6 w-[74px] text-[10px] px-1.5"
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <SelectValue placeholder="Q?" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="__bl" className="text-xs">Sin Q</SelectItem>
+                                    {QUARTERS.map((qq) => (
+                                      <SelectItem key={qq} value={qq} className="text-xs">{qq}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })}
+
               </div>
             </div>
           );
@@ -338,11 +360,8 @@ export function RoadmapView({
                     ) : (
                       <div className="flex flex-col gap-2">
                         {list.map((v) => {
-                          const hasKids = items.some((c) => c.parentId === v.item.id);
-                          const eff = hasKids ? rolledUpEffort(v.item, items) : (v.item.effort ?? 0);
                           const missingPriority = !hasAssignedPriority(v.item.priority);
-                          const missingEffort = eff <= 0;
-                          // Planificar ya no requiere prioridad previa: se fuerza Alta al mover.
+                          // En "No quarter assigned" el esfuerzo 0h es legítimo: no se alerta.
                           const canAssignQuarter = true;
                           return (
                             <div
@@ -351,7 +370,7 @@ export function RoadmapView({
                               onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
                               onDragEnd={() => { setDragUid(null); setOverQ(null); }}
                               className={`cursor-grab active:cursor-grabbing flex items-center gap-1 ${dragUid === v.item.uid ? "opacity-40" : ""}`}
-                              title={missingPriority ? "Falta prioridad" : missingEffort ? "Falta esfuerzo" : ""}
+                              title={missingPriority ? "Falta prioridad" : ""}
                             >
                               <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${missingPriority ? "ring-1 ring-amber-500/60" : ""} flex items-center gap-1 flex-1 min-w-0`}>
                                 <PriorityPicker
@@ -364,23 +383,16 @@ export function RoadmapView({
                                   onClick={(e) => { e.stopPropagation(); setDetailUid(v.item.uid); }}
                                 >{v.item.id} · {v.item.title}</span>
 
-                                {(missingPriority || missingEffort) && (
+                                {missingPriority && (
                                   <span
                                     className="ml-1 text-amber-600 dark:text-amber-400 shrink-0 cursor-help"
-                                    title={
-                                      missingPriority && missingEffort
-                                        ? `Falta prioridad y esfuerzo.\n\nEsfuerzo: ${hasKids ? `rolled-up de ${items.filter(c => c.parentId === v.item.id).length} hijo(s) = 0` : "no asignado en este item (leaf)"}.\nFuente: rolledUpEffort() en src/lib/roadmap.ts — suma recursiva del effort de los descendientes leaf.`
-                                        : missingPriority
-                                        ? "Falta prioridad. Asigna Alta/Media/Baja/Muy baja en el selector de prioridad."
-                                        : hasKids
-                                        ? `Effort rolled-up = 0.\n\nEste ${WORK_ITEM_ICONS[v.item.type].label} tiene ${items.filter(c => c.parentId === v.item.id).length} hijo(s) y ninguno tiene 'effort' > 0.\n\nCálculo: rolledUpEffort() en src/lib/roadmap.ts recorre los descendientes hasta las hojas y suma su campo 'effort'. Como todos son 0 (o vacío), la suma es 0.\n\nSolución: asigna 'effort' a los hijos (Features/User Stories) desde la vista Backlog. El padre heredará la suma automáticamente.`
-                                        : `Effort = 0.\n\nEste ${WORK_ITEM_ICONS[v.item.type].label} no tiene hijos, así que su esfuerzo viene de su propio campo 'effort' (leaf). Actualmente está vacío o en 0.\n\nSolución: asigna un valor de 'effort' desde la vista Backlog.`
-                                    }
+                                    title="Falta prioridad. Asigna Alta/Media/Baja/Muy baja en el selector de prioridad."
                                   >
                                     <AlertTriangle className="h-3.5 w-3.5" />
                                   </span>
                                 )}
                               </Badge>
+
 
                               <Select
                                 value={v.item.quarter || "__bl"}
