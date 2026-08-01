@@ -1,3 +1,20 @@
+/**
+ * =============================================================================
+ * RoadmapView — tablero trimestral (vista "Roadmap")
+ * =============================================================================
+ * Presentación pura: no contiene reglas de negocio, delega en las acciones
+ * `onMove` / `onUpdate` que expone `useRoadmapBoard`.
+ *
+ * Qué resuelve esta vista:
+ *  - Qué se pinta en cada columna: lo decide `buildRoadmapView(items)`.
+ *      · Padre con toda su descendencia en el mismo Q → una tarjeta contenedora
+ *        colapsable (chevron) que despliega el árbol de hijos.
+ *      · Padre en "MULTI" (hijos repartidos) → NO se pinta; se pintan los hijos.
+ *      · Sin planificar → zona "No quarter assigned", separada por tipo.
+ *  - KPIs por Quarter: esfuerzo comprometido (`effortByQuarter`, solo hojas, sin
+ *    doble conteo) frente a capacidad (`capacityPerQuarter`) y % de utilización.
+ *  - Drag & drop nativo (HTML5) con snapshot para el banner de "Deshacer".
+ */
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, CornerDownRight, AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";

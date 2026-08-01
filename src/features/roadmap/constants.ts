@@ -1,12 +1,24 @@
+/**
+ * =============================================================================
+ * Constantes y metadatos visuales del módulo Roadmap
+ * =============================================================================
+ * Punto único de verdad para los valores enumerados (Quarters, prioridades,
+ * tipos de work item) y su representación visual (iconos y colores).
+ * Regla: ningún componente debe redefinir estas listas ni sus colores.
+ */
 import { ChevronsUp, ChevronUp, ChevronDown, ChevronsDown } from "lucide-react";
 import type { ItemType, Priority, RealQuarter } from "@/lib/roadmap";
 
 export type { RealQuarter };
+/** Prioridad efectivamente asignada (excluye el estado "sin prioridad"). */
 export type RealPriority = Exclude<Priority, "">;
 
+/** Quarters seleccionables. "MULTI" no está aquí: es un estado derivado, no elegible. */
 export const QUARTERS: RealQuarter[] = ["Q1", "Q2", "Q3", "Q4"];
+/** Prioridades ordenadas de mayor a menor. La Alta es exclusiva de items planificados. */
 export const PRIORITIES: RealPriority[] = ["1-High", "2-Medium", "3-Low", "4-Lowest"];
 
+/** Jerarquía RoadGate: Epic → Feature → User Story. */
 export const ALL_TYPES: ItemType[] = ["epic", "feature", "story"];
 export const TYPE_LABEL: Record<ItemType, string> = {
   epic: "Epics",
@@ -14,7 +26,7 @@ export const TYPE_LABEL: Record<ItemType, string> = {
   story: "User Stories",
 };
 
-/** Prioridad "real" asignada (el gate de priorización depende de esto). */
+/** Type guard: indica si el item tiene una prioridad real asignada. */
 export const hasAssignedPriority = (priority?: Priority): priority is RealPriority =>
   PRIORITIES.includes(priority as RealPriority);
 

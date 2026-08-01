@@ -1,4 +1,21 @@
-// Roadmap data layer (localStorage, no backend yet)
+/**
+ * =============================================================================
+ * Núcleo de dominio de RoadGate
+ * =============================================================================
+ * Funciones puras (sin React ni backend) que definen el modelo y las reglas de
+ * cálculo del roadmap. Todo lo que se muestra en pantalla o se exporta a Excel
+ * se deriva de aquí, de modo que UI, persistencia e informes nunca discrepen.
+ *
+ * Conceptos clave:
+ *  - Jerarquía: Epic → Feature → User Story (vía `parentId` sobre el campo `id`).
+ *  - La HOJA es la fuente de verdad: solo las hojas aportan esfuerzo; el padre
+ *    es un agregado visual (Σ de sus hojas) → nunca hay doble conteo.
+ *  - El Quarter del padre es DERIVADO de sus hijos: un Q concreto si todos
+ *    coinciden, "MULTI" si están repartidos, "" si ninguno está planificado.
+ *  - `normalizeItems` aplica ambos invariantes y debe ejecutarse antes de
+ *    persistir cualquier cambio.
+ */
+
 export type ItemType = "epic" | "feature" | "story";
 /**
  * "MULTI" es un estado exclusivo de items agrupadores (Epic/Feature): significa
