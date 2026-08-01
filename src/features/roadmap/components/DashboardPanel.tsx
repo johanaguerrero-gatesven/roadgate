@@ -1,3 +1,10 @@
+/**
+ * DashboardPanel — KPIs del roadmap.
+ * Compara el esfuerzo comprometido con la capacidad disponible (anual y por
+ * Quarter) y muestra la distribución de work items por prioridad.
+ * Todos los números provienen del dominio (`effortByQuarter`, `capacityPerQuarter`),
+ * nunca se recalculan aquí.
+ */
 import { useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
 import {

@@ -1,3 +1,10 @@
+/**
+ * BacklogPanel — vista tipo hoja de cálculo del backlog.
+ * Una fila por work item con edición en línea (ID, título, padre, esfuerzo,
+ * prioridad, quarter y observaciones). El esfuerzo de los items con hijos está
+ * bloqueado: se muestra la suma (Σ) que calcula el dominio.
+ * También ofrece importación CSV y exportación a Excel por tipo de item.
+ */
 import { useRef } from "react";
 import {
   Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, Minus,

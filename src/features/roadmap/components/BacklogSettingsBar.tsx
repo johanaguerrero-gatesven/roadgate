@@ -1,3 +1,9 @@
+/**
+ * BacklogSettingsBar — ajustes de alcance global del Backlog.
+ * Controla qué tipos de work item se muestran y el modo "wrap text" (altura de
+ * fila adaptada al contenido). La preferencia de tipos se guarda en el
+ * navegador (ver `loadEnabledTypes` en ../constants).
+ */
 import { Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";

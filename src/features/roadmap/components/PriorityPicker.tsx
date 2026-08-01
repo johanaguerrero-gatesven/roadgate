@@ -1,3 +1,8 @@
+/**
+ * PriorityPicker — selector compacto de prioridad estilo Jira.
+ * Muestra únicamente el icono de la prioridad actual y despliega las cuatro
+ * opciones al pulsarlo. Los colores e iconos vienen de `PRIORITY_META`.
+ */
 import { Minus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";

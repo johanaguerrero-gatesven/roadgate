@@ -1,3 +1,9 @@
+/**
+ * CapacityPanel — configuración de la capacidad del equipo.
+ * Entradas: desarrolladores, % de dedicación, días por sprint, horas por día y
+ * sprints por Quarter (con posibilidad de sobrescribir Quarter a Quarter).
+ * Capacidad por sprint = devs x dedicación x días x horas.
+ */
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import { CapacityConfig, capacityPerQuarter, capacityPerSprint, sprintsForQuarter } from "@/lib/roadmap";

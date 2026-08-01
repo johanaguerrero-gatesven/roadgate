@@ -1,3 +1,9 @@
+/**
+ * IdInput — input del ID visible del work item.
+ * Mantiene el valor en estado local mientras se escribe y solo confirma
+ * (`onCommit`) al salir del campo, evitando reescrituras y colisiones de ID
+ * en cada pulsación de tecla.
+ */
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 

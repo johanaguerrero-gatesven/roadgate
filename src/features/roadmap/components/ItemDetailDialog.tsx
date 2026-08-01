@@ -1,3 +1,9 @@
+/**
+ * ItemDetailDialog — pop-up de edición rápida de un work item.
+ * Permite cambiar título, esfuerzo, quarter y prioridad. El esfuerzo se
+ * bloquea (Σ de los hijos) cuando el item es un agrupador, y el quarter puede
+ * mostrarse como "Multi-Quarter" (solo lectura) si sus hijos están repartidos.
+ */
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
