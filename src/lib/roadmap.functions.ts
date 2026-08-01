@@ -158,6 +158,11 @@ export const listRoadmaps = createServerFn({ method: "GET" })
     }));
   });
 
+/**
+ * KPIs del workspace mostrados en la portada del usuario.
+ * `totalFTE` = Σ(developers × dedicationPct/100) de todas las configuraciones
+ * de capacidad, es decir el equivalente a personas a tiempo completo.
+ */
 export const getWorkspaceStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -186,6 +191,10 @@ export const getWorkspaceStats = createServerFn({ method: "GET" })
     return { roadmapsCount, teamsCount, totalFTE, totalDevelopers };
   });
 
+/**
+ * Crea un roadmap vacío (sin items ni capacidad) y devuelve su id para navegar.
+ * Si no se indica nombre se usa un título por defecto.
+ */
 export const createRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { name: string }) => d)
@@ -198,6 +207,7 @@ export const createRoadmap = createServerFn({ method: "POST" })
     return { id: (row as { id: string }).id };
   });
 
+/** Renombra un roadmap del usuario. El nombre vacío se rechaza. */
 export const renameRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string; name: string }) => d)
@@ -211,6 +221,7 @@ export const renameRoadmap = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/** Borra un roadmap del usuario; items y capacidad caen por ON DELETE CASCADE. */
 export const deleteRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string }) => d)
@@ -222,6 +233,11 @@ export const deleteRoadmap = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/**
+ * Carga completa de un roadmap: items, capacidad y cabecera en paralelo.
+ * Si el roadmap todavía no tiene fila de capacidad se devuelve `defaultCapacity`
+ * para que la UI pueda trabajar sin necesidad de un guardado previo.
+ */
 export const fetchRoadmap = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string }) => d)
@@ -256,6 +272,16 @@ export const fetchRoadmap = createServerFn({ method: "GET" })
     return { items, capacity, roadmap: { id: rm.id, name: rm.name } };
   });
 
+/**
+ * Persiste el conjunto completo de items del roadmap (estrategia
+ * "replace-all": borra los existentes e inserta el snapshot recibido).
+ *
+ * Se eligió replace-all en lugar de diff incremental porque el cliente ya
+ * mantiene el estado completo y lo envía con debounce (~350 ms) desde
+ * `useRoadmapBoard`; así se evita reconciliar altas/bajas/reparentados.
+ * IMPORTANTE: el cliente debe enviar SIEMPRE la lista normalizada
+ * (`normalizeItems`) para que se guarden los invariantes de esfuerzo y quarter.
+ */
 export const persistItems = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string; items: RoadmapItem[] }) => d)
@@ -275,6 +301,10 @@ export const persistItems = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/**
+ * Guarda la configuración de capacidad del roadmap (delete + insert: solo hay
+ * una fila por roadmap, así que reemplazarla evita conflictos de upsert).
+ */
 export const persistCapacity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string; capacity: CapacityConfig }) => d)
@@ -300,6 +330,10 @@ export const persistCapacity = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/**
+ * Vacía por completo un roadmap (items + capacidad) sin borrar la cabecera.
+ * Es la operación que respalda el botón "Reset demo data" del Backlog.
+ */
 export const resetRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string }) => d)
