@@ -206,9 +206,14 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     });
   };
 
+  /** Elimina un item. Sus hijos quedan con `parentId` colgado y se tratan como raíces. */
   const remove = (uidKey: string) => update(items.filter((it) => it.uid !== uidKey));
 
-  /** Crea un item del tipo indicado con un ID correlativo libre. */
+  /**
+   * Crea un item del tipo indicado con un ID correlativo libre (EPIC-01, FEAT-03…).
+   * El bucle `while` evita colisiones cuando el usuario ha editado IDs a mano.
+   * Nace en Backlog y, por la Regla 1, con prioridad Baja.
+   */
   const add = (type: ItemType) => {
     const prefix = type === "epic" ? "EPIC" : type === "feature" ? "FEAT" : "US";
     const used = new Set(items.filter((i) => i.type === type).map((i) => i.id));
