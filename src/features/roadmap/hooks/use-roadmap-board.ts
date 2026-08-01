@@ -83,12 +83,18 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
   };
   useEffect(() => () => { if (persistTimer.current) clearTimeout(persistTimer.current); }, []);
 
+  /**
+   * Punto ÚNICO de escritura de items: normaliza (invariantes de esfuerzo y
+   * quarter), refresca el estado local y programa el guardado con debounce.
+   * Nunca llames a `setItems` directamente desde fuera de aquí.
+   */
   const update = (next: RoadmapItem[]) => {
     const normalized = normalizeItems(next);
     setItems(normalized);
     schedulePersist(normalized);
   };
 
+  /** Guarda la configuración de capacidad al instante (no hay ráfagas de edición). */
   const updateCapacity = (c: CapacityConfig) => {
     setCfg(c);
     persistCapacityFn({ data: { roadmapId, capacity: c } }).catch((e) => {
@@ -96,6 +102,15 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     });
   };
 
+  /**
+   * Edición parcial de un item aplicando las reglas de negocio.
+   * @param uidKey uid interno del item (no el ID visible).
+   * @param patch  campos a modificar; los que violen una regla se descartan.
+   *
+   * Orden de evaluación: tipo inmutable → R4 (Alta solo en Roadmap) →
+   * R4 inversa (quitar prioridad ⇒ Backlog en cascada) → jerarquía de padre →
+   * R2 (herencia de prioridad a descendientes).
+   */
   const updateOne = (uidKey: string, patch: Partial<RoadmapItem>) => {
     const current = items.find((i) => i.uid === uidKey);
     if (!current) return;
