@@ -4,11 +4,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import {
-  RoadmapItem, ItemType, Quarter,
+  RoadmapItem, ItemType, Quarter, Priority,
   CapacityConfig, defaultCapacity, uid, normalizeItems, descendantsOf,
 } from "@/lib/roadmap";
 import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/roadmap.functions";
-import { hasAssignedPriority } from "../constants";
+
+/** Regla 1: prioridad por defecto de cualquier item nuevo o devuelto al Backlog. */
+const DEFAULT_PRIORITY: Priority = "3-Low";
+/** Regla 3: todo lo planificado en un Quarter es prioridad Alta. */
+const HIGH: Priority = "1-High";
+
 
 /**
  * Estado + reglas de negocio de un roadmap concreto:
@@ -78,20 +83,22 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     const safePatch = { ...patch };
     // Nunca permitir sobrescribir el tipo original
     if ("type" in safePatch) delete (safePatch as { type?: ItemType }).type;
-    // Gate de priorización: no permitir asignar Quarter sin prioridad definida
-    if ("quarter" in safePatch && safePatch.quarter && !hasAssignedPriority(current.priority) && !hasAssignedPriority(safePatch.priority)) {
-      toast.error("No se puede añadir al Roadmap sin prioridad", {
-        description: "Define la prioridad antes de asignar un Quarter.",
-      });
-      delete safePatch.quarter;
+
+    // Regla 4: el Backlog (sin Quarter) no admite prioridad HIGH.
+    if ("priority" in safePatch && safePatch.priority === HIGH) {
+      const nextQ = ("quarter" in safePatch ? safePatch.quarter : current.quarter) ?? "";
+      if (nextQ === "") {
+        toast.error("La prioridad Alta es exclusiva del Roadmap", {
+          description: `${current.id}: asígnale un Quarter para marcarlo como Alta.`,
+        });
+        delete safePatch.priority;
+      }
     }
-    // Regla de negocio: solo se devuelve al Backlog si se quita la prioridad ("Sin prioridad").
-    // Baja y Muy baja pueden permanecer en el Roadmap.
+
+    // Regla 4 (inversa): quitar la prioridad devuelve el item (y su rama) al Backlog.
     if ("priority" in safePatch) {
-      const nextPriority = safePatch.priority ?? "";
-      const demote = nextPriority === "";
+      const demote = (safePatch.priority ?? "") === "";
       if (demote && (current.quarter ?? "") !== "") {
-        safePatch.quarter = "";
         const cascadeUids = new Set<string>([
           current.uid,
           ...descendantsOf(current, items).map((d) => d.uid),
@@ -99,7 +106,7 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
         update(
           items.map((it) =>
             cascadeUids.has(it.uid)
-              ? { ...it, ...(it.uid === current.uid ? safePatch : {}), quarter: "" as Quarter }
+              ? { ...it, quarter: "" as Quarter, priority: DEFAULT_PRIORITY }
               : it,
           ),
         );
@@ -126,29 +133,42 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
       }
     }
     if (Object.keys(safePatch).length === 0) return;
-    update(items.map((it) => (it.uid === uidKey ? { ...it, ...safePatch } : it)));
+
+    // Regla 2: herencia estricta top-down de la prioridad hacia los descendientes.
+    const inheritUids =
+      "priority" in safePatch
+        ? new Set(descendantsOf(current, items).map((d) => d.uid))
+        : new Set<string>();
+
+    update(items.map((it) => {
+      if (it.uid === uidKey) return { ...it, ...safePatch };
+      if (inheritUids.has(it.uid)) return { ...it, priority: safePatch.priority };
+      return it;
+    }));
+    if (inheritUids.size > 0) {
+      toast.info("Prioridad heredada", {
+        description: `${inheritUids.size} descendiente(s) actualizados a la prioridad de ${current.id}.`,
+      });
+    }
   };
 
   /**
    * Mueve un item a un quarter.
-   * Si es un agrupador (Epic/Feature), TODOS sus descendientes heredan ese quarter.
-   * Si luego se mueve un hijo suelto, `normalizeItems` recalcula el padre a "MULTI".
+   * - Si es un agrupador (Epic/Feature), TODOS sus descendientes heredan ese quarter.
+   * - Regla 3: planificar en un Quarter fuerza prioridad Alta (en cascada).
+   * - Regla 4: devolver al Backlog rebaja la prioridad a la de por defecto (Baja).
    */
   const moveQuarter = (uidKey: string, quarter: Quarter) => {
     const target = items.find((i) => i.uid === uidKey);
     if (!target) return;
     if (target.quarter === quarter) return;
-    if (quarter && quarter !== "MULTI" && !hasAssignedPriority(target.priority)) {
-      toast.error("No se puede añadir al Roadmap sin prioridad", {
-        description: `${target.id}: define la prioridad antes de asignar un Quarter.`,
-      });
-      return;
-    }
-    // Herencia en bloque: el padre impone su quarter a toda su descendencia.
+    const planning = quarter !== "" && quarter !== "MULTI";
+    const nextPriority = planning ? HIGH : DEFAULT_PRIORITY;
+    // Herencia en bloque: el padre impone quarter y prioridad a toda su descendencia.
     const cascadeUids = new Set<string>([target.uid, ...descendantsOf(target, items).map((d) => d.uid)]);
-    update(items.map((it) => (cascadeUids.has(it.uid) ? { ...it, quarter } : it)));
-    toast.success(quarter ? `Movido a ${quarter}` : "Movido a Backlog", {
-      description: `${target.id}: ${target.title}`,
+    update(items.map((it) => (cascadeUids.has(it.uid) ? { ...it, quarter, priority: nextPriority } : it)));
+    toast.success(planning ? `Movido a ${quarter}` : "Movido a Backlog", {
+      description: `${target.id}: prioridad ${planning ? "Alta" : "Baja"} aplicada a la rama.`,
     });
   };
 
@@ -164,6 +184,8 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     update([...items, {
       uid: uid(), id: newId, type,
       title: `${t("roadmap.new")} ${type}`, state: "Backlog",
+      // Regla 1: prioridad Baja por defecto.
+      priority: DEFAULT_PRIORITY,
     }]);
   };
 
