@@ -129,22 +129,15 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
       }
     }
 
-    // Roadmap: solo Alta o Media. Baja/Mínima obligan a volver al Backlog.
-    if ("priority" in safePatch && (safePatch.priority === "3-Low" || safePatch.priority === "4-Lowest")) {
-      const nextQ = ("quarter" in safePatch ? safePatch.quarter : current.quarter) ?? "";
-      if (nextQ !== "") {
-        toast.error("El Roadmap solo admite prioridad Alta o Media", {
-          description: `${current.id}: muévelo al Backlog para bajarle la prioridad.`,
-        });
-        delete safePatch.priority;
-      }
-    }
-
-
-    // Regla 4 (inversa): quitar la prioridad devuelve el item (y su rama) al Backlog.
+    // Reglas 2 y 3 (degradación): bajar la prioridad a Baja/Mínima —o quitarla—
+    // desplanifica el item y toda su rama (Quarter → No asignado).
     if ("priority" in safePatch) {
-      const demote = (safePatch.priority ?? "") === "";
-      if (demote && (current.quarter ?? "") !== "") {
+      const nextP = (safePatch.priority ?? "") as Priority | "";
+      const demotes = nextP === "" || nextP === "3-Low" || nextP === "4-Lowest";
+      const currentQ = ("quarter" in safePatch ? safePatch.quarter : current.quarter) ?? "";
+      // Guarda anti-bucle: solo actuamos si realmente hay un cambio de estado.
+      if (demotes && currentQ !== "") {
+        const finalPriority: Priority = nextP === "" ? DEFAULT_PRIORITY : (nextP as Priority);
         const cascadeUids = new Set<string>([
           current.uid,
           ...descendantsOf(current, items).map((d) => d.uid),
@@ -152,16 +145,17 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
         update(
           items.map((it) =>
             cascadeUids.has(it.uid)
-              ? { ...it, quarter: "" as Quarter, priority: DEFAULT_PRIORITY }
+              ? { ...it, quarter: "" as Quarter, priority: finalPriority }
               : it,
           ),
         );
         toast.info("Movido al Backlog", {
-          description: `${current.id}: sin prioridad — se quitó del Roadmap.`,
+          description: `${current.id}: prioridad baja — se quitó del Roadmap (rama incluida).`,
         });
         return;
       }
     }
+
 
     // Validar parentId según el tipo
     if ("parentId" in safePatch) {
