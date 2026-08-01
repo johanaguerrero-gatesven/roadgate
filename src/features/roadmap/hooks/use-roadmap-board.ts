@@ -217,13 +217,17 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     if (!target) return;
     if (target.quarter === quarter) return;
     const planning = quarter !== "" && quarter !== "MULTI";
-    const nextPriority = planning ? HIGH : DEFAULT_PRIORITY;
+    // En el Roadmap solo caben Alta o Media: se respeta Media si ya la tenía,
+    // el resto (Baja/Mínima/sin prioridad) sube a Alta.
+    const priorityFor = (it: { priority?: string }) =>
+      planning ? (it.priority === "2-Medium" ? "2-Medium" : HIGH) : DEFAULT_PRIORITY;
     // Herencia en bloque: el padre impone quarter y prioridad a toda su descendencia.
     const cascadeUids = new Set<string>([target.uid, ...descendantsOf(target, items).map((d) => d.uid)]);
-    update(items.map((it) => (cascadeUids.has(it.uid) ? { ...it, quarter, priority: nextPriority } : it)));
+    update(items.map((it) => (cascadeUids.has(it.uid) ? { ...it, quarter, priority: priorityFor(it) as typeof it.priority } : it)));
     toast.success(planning ? `Movido a ${quarter}` : "Movido a Backlog", {
-      description: `${target.id}: prioridad ${planning ? "Alta" : "Baja"} aplicada a la rama.`,
+      description: `${target.id}: prioridad ${planning ? "Alta/Media" : "Baja"} aplicada a la rama.`,
     });
+
   };
 
   /** Elimina un item. Sus hijos quedan con `parentId` colgado y se tratan como raíces. */
