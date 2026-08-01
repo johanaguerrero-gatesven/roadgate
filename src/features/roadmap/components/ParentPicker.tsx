@@ -1,3 +1,8 @@
+/**
+ * ParentPicker — combobox buscable para asignar el padre de un work item.
+ * Filtra los candidatos según la jerarquía permitida: una Feature solo puede
+ * colgar de un Epic; una User Story de un Epic o de una Feature.
+ */
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

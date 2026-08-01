@@ -1,3 +1,22 @@
+/**
+ * =============================================================================
+ * Capa de persistencia de RoadGate (server functions)
+ * =============================================================================
+ * Único punto de entrada del cliente al backend para leer/escribir roadmaps.
+ *
+ * Reglas transversales:
+ *  - Todas las funciones exigen sesión (`requireSupabaseAuth`) y operan como el
+ *    usuario autenticado, por lo que RLS aplica además de los filtros `user_id`.
+ *  - Antes de tocar los datos de un roadmap concreto se comprueba la propiedad
+ *    con `assertRoadmapOwned` (defensa en profundidad frente a RLS).
+ *  - El dominio (camelCase, ver `./roadmap`) y la base de datos (snake_case)
+ *    se traducen exclusivamente en `rowToItem` / `itemToRow`.
+ *
+ * Modelo de datos:
+ *  - `roadmaps`          → cabecera (id, nombre) de cada hoja de ruta.
+ *  - `roadmap_items`     → Epics / Features / User Stories de un roadmap.
+ *  - `roadmap_capacity`  → configuración de capacidad (1 fila por roadmap).
+ */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -11,6 +30,7 @@ import {
   type State,
 } from "./roadmap";
 
+/** Fila tal cual llega de la tabla `roadmap_items` (snake_case, nullables). */
 type ItemRow = {
   item_uid: string;
   item_code: string;
@@ -29,6 +49,13 @@ type ItemRow = {
   hidden_from_roadmap: boolean;
 };
 
+/**
+ * Adapta una fila de BD al modelo de dominio.
+ * Los `null` se normalizan a `undefined` o a cadena vacía según el campo, para
+ * que la lógica de negocio nunca tenga que distinguir entre ambos.
+ * Ojo: `item_uid` es la clave estable en cliente (drag & drop, edición) y
+ * `item_code` es el ID visible/editable por el usuario (EPIC-01, 14385, …).
+ */
 function rowToItem(r: ItemRow): RoadmapItem {
   return {
     uid: r.item_uid,
@@ -49,6 +76,11 @@ function rowToItem(r: ItemRow): RoadmapItem {
   };
 }
 
+/**
+ * Adapta un item de dominio a fila insertable.
+ * `priority` y `quarter` usan `|| null` (no `??`) a propósito: la cadena vacía
+ * significa "sin asignar" y debe guardarse como NULL, no como "".
+ */
 function itemToRow(it: RoadmapItem, userId: string, roadmapId: string) {
   return {
     user_id: userId,
@@ -71,6 +103,12 @@ function itemToRow(it: RoadmapItem, userId: string, roadmapId: string) {
   };
 }
 
+/**
+ * Verifica que el roadmap pertenece al usuario de la sesión.
+ * Se ejecuta antes de cualquier lectura/escritura de items o capacidad para
+ * garantizar el aislamiento de datos entre cuentas (además de RLS).
+ * @throws Error("Roadmap not found") si no existe o no es del usuario.
+ */
 async function assertRoadmapOwned(
   supabase: { from: (t: string) => { select: (c: string) => { eq: (col: string, v: string) => { eq: (col: string, v: string) => { maybeSingle: () => Promise<{ data: unknown; error: { message: string } | null }> } } } } },
   roadmapId: string,
@@ -81,6 +119,12 @@ async function assertRoadmapOwned(
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Roadmap not found");
 }
+
+/**
+ * Lista los roadmaps del usuario (más recientes primero) enriquecidos con el
+ * número de work items de cada uno, en una única consulta agregada en memoria
+ * para evitar N+1.
+ */
 
 export const listRoadmaps = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -114,6 +158,11 @@ export const listRoadmaps = createServerFn({ method: "GET" })
     }));
   });
 
+/**
+ * KPIs del workspace mostrados en la portada del usuario.
+ * `totalFTE` = Σ(developers × dedicationPct/100) de todas las configuraciones
+ * de capacidad, es decir el equivalente a personas a tiempo completo.
+ */
 export const getWorkspaceStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -142,6 +191,10 @@ export const getWorkspaceStats = createServerFn({ method: "GET" })
     return { roadmapsCount, teamsCount, totalFTE, totalDevelopers };
   });
 
+/**
+ * Crea un roadmap vacío (sin items ni capacidad) y devuelve su id para navegar.
+ * Si no se indica nombre se usa un título por defecto.
+ */
 export const createRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { name: string }) => d)
@@ -154,6 +207,7 @@ export const createRoadmap = createServerFn({ method: "POST" })
     return { id: (row as { id: string }).id };
   });
 
+/** Renombra un roadmap del usuario. El nombre vacío se rechaza. */
 export const renameRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string; name: string }) => d)
@@ -167,6 +221,7 @@ export const renameRoadmap = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/** Borra un roadmap del usuario; items y capacidad caen por ON DELETE CASCADE. */
 export const deleteRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string }) => d)
@@ -178,6 +233,11 @@ export const deleteRoadmap = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/**
+ * Carga completa de un roadmap: items, capacidad y cabecera en paralelo.
+ * Si el roadmap todavía no tiene fila de capacidad se devuelve `defaultCapacity`
+ * para que la UI pueda trabajar sin necesidad de un guardado previo.
+ */
 export const fetchRoadmap = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string }) => d)
@@ -212,6 +272,16 @@ export const fetchRoadmap = createServerFn({ method: "GET" })
     return { items, capacity, roadmap: { id: rm.id, name: rm.name } };
   });
 
+/**
+ * Persiste el conjunto completo de items del roadmap (estrategia
+ * "replace-all": borra los existentes e inserta el snapshot recibido).
+ *
+ * Se eligió replace-all en lugar de diff incremental porque el cliente ya
+ * mantiene el estado completo y lo envía con debounce (~350 ms) desde
+ * `useRoadmapBoard`; así se evita reconciliar altas/bajas/reparentados.
+ * IMPORTANTE: el cliente debe enviar SIEMPRE la lista normalizada
+ * (`normalizeItems`) para que se guarden los invariantes de esfuerzo y quarter.
+ */
 export const persistItems = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string; items: RoadmapItem[] }) => d)
@@ -231,6 +301,10 @@ export const persistItems = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/**
+ * Guarda la configuración de capacidad del roadmap (delete + insert: solo hay
+ * una fila por roadmap, así que reemplazarla evita conflictos de upsert).
+ */
 export const persistCapacity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string; capacity: CapacityConfig }) => d)
@@ -256,6 +330,10 @@ export const persistCapacity = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/**
+ * Vacía por completo un roadmap (items + capacidad) sin borrar la cabecera.
+ * Es la operación que respalda el botón "Reset demo data" del Backlog.
+ */
 export const resetRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string }) => d)

@@ -1,3 +1,26 @@
+/**
+ * =============================================================================
+ * useRoadmapBoard — motor de reglas de negocio de un roadmap
+ * =============================================================================
+ * Concentra TODO el estado y las reglas de un roadmap concreto. Las rutas y los
+ * componentes son "tontos": solo pintan y llaman a las acciones que expone.
+ *
+ * Responsabilidades:
+ *  1. Hidratación desde el backend y persistencia con debounce (350 ms).
+ *  2. Invariantes de datos vía `normalizeItems` en cada escritura:
+ *       - esfuerzo del padre = Σ esfuerzo de sus hojas
+ *       - quarter del padre derivado de sus hijos (Q concreto | "MULTI" | "")
+ *  3. Reglas de priorización de RoadGate:
+ *       R1 Todo item nuevo nace con prioridad Baja (`DEFAULT_PRIORITY`).
+ *       R2 Herencia estricta top-down: cambiar la prioridad de un padre la
+ *          propaga a TODOS sus descendientes.
+ *       R3 Planificar (mover a Q1–Q4) fuerza prioridad Alta en toda la rama.
+ *       R4 El Backlog no admite prioridad Alta; volver al Backlog rebaja la
+ *          rama a Baja.
+ *  4. Herencia de Quarter: mover un agrupador arrastra a toda su descendencia;
+ *     mover un hijo suelto deja al padre en "MULTI" (lo calcula normalizeItems).
+ *  5. Validación de jerarquía Epic → Feature → User Story al reasignar padre.
+ */
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,14 +36,10 @@ import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/roadmap.funct
 const DEFAULT_PRIORITY: Priority = "3-Low";
 /** Regla 3: todo lo planificado en un Quarter es prioridad Alta. */
 const HIGH: Priority = "1-High";
-
-
 /**
- * Estado + reglas de negocio de un roadmap concreto:
- * carga, persistencia con debounce, gate de priorización, cascada de quarter
- * a los descendientes y validación de jerarquía Epic → Feature → User Story.
- *
- * La UI (rutas y componentes) solo consume las acciones que expone este hook.
+ * @param roadmapId Id del roadmap a cargar.
+ * @param userId    Id del usuario autenticado; sin él no se hidrata nada
+ *                  (evita pedir datos durante SSR o antes del login).
  */
 export function useRoadmapBoard(roadmapId: string, userId?: string) {
   const { t } = useI18n();
@@ -64,12 +83,18 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
   };
   useEffect(() => () => { if (persistTimer.current) clearTimeout(persistTimer.current); }, []);
 
+  /**
+   * Punto ÚNICO de escritura de items: normaliza (invariantes de esfuerzo y
+   * quarter), refresca el estado local y programa el guardado con debounce.
+   * Nunca llames a `setItems` directamente desde fuera de aquí.
+   */
   const update = (next: RoadmapItem[]) => {
     const normalized = normalizeItems(next);
     setItems(normalized);
     schedulePersist(normalized);
   };
 
+  /** Guarda la configuración de capacidad al instante (no hay ráfagas de edición). */
   const updateCapacity = (c: CapacityConfig) => {
     setCfg(c);
     persistCapacityFn({ data: { roadmapId, capacity: c } }).catch((e) => {
@@ -77,6 +102,15 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     });
   };
 
+  /**
+   * Edición parcial de un item aplicando las reglas de negocio.
+   * @param uidKey uid interno del item (no el ID visible).
+   * @param patch  campos a modificar; los que violen una regla se descartan.
+   *
+   * Orden de evaluación: tipo inmutable → R4 (Alta solo en Roadmap) →
+   * R4 inversa (quitar prioridad ⇒ Backlog en cascada) → jerarquía de padre →
+   * R2 (herencia de prioridad a descendientes).
+   */
   const updateOne = (uidKey: string, patch: Partial<RoadmapItem>) => {
     const current = items.find((i) => i.uid === uidKey);
     if (!current) return;
@@ -172,9 +206,14 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     });
   };
 
+  /** Elimina un item. Sus hijos quedan con `parentId` colgado y se tratan como raíces. */
   const remove = (uidKey: string) => update(items.filter((it) => it.uid !== uidKey));
 
-  /** Crea un item del tipo indicado con un ID correlativo libre. */
+  /**
+   * Crea un item del tipo indicado con un ID correlativo libre (EPIC-01, FEAT-03…).
+   * El bucle `while` evita colisiones cuando el usuario ha editado IDs a mano.
+   * Nace en Backlog y, por la Regla 1, con prioridad Baja.
+   */
   const add = (type: ItemType) => {
     const prefix = type === "epic" ? "EPIC" : type === "feature" ? "FEAT" : "US";
     const used = new Set(items.filter((i) => i.type === type).map((i) => i.id));

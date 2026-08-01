@@ -1,3 +1,7 @@
+/**
+ * PriorityIcon — icono de solo lectura de una prioridad.
+ * Renderiza el guion de "sin prioridad" cuando el valor no está asignado.
+ */
 import { Minus } from "lucide-react";
 import type { Priority } from "@/lib/roadmap";
 import { PRIORITY_META, type RealPriority } from "../constants";

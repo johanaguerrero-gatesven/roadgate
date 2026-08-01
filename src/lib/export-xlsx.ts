@@ -1,7 +1,21 @@
+/**
+ * =============================================================================
+ * Exportación a Excel (.xlsx)
+ * =============================================================================
+ * Genera el libro que replica el formato de seguimiento usado por negocio:
+ * una hoja con los work items y otra con el resumen de capacidad/utilización
+ * por Quarter. Se ejecuta íntegramente en el navegador (sin backend) usando
+ * la librería `xlsx`.
+ *
+ * Los cálculos NO se duplican aquí: se reutilizan los del dominio
+ * (`rolledUpEffort`, `effortByQuarter`, `capacityPerQuarter`) para que el Excel
+ * y la aplicación muestren siempre las mismas cifras.
+ */
 import * as XLSX from "xlsx";
 import type { RoadmapItem, CapacityConfig, RealQuarter } from "./roadmap";
 import { capacityPerSprint, capacityPerQuarter, effortByQuarter, rolledUpEffort } from "./roadmap";
 
+/** Quarters reales exportables ("MULTI" y "" no son columnas del informe). */
 const QUARTERS: RealQuarter[] = ["Q1", "Q2", "Q3", "Q4"];
 
 const PRIO_LABEL: Record<string, string> = {
