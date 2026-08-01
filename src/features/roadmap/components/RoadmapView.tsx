@@ -212,83 +212,113 @@ export function RoadmapView({
                   <div className="text-xs text-muted-foreground/60 text-center py-6">—</div>
                 )}
                 {cell.map((v) => {
-                  const it = v.item;
-                  const top = topAncestor(it, items);
-                  const cov = top ? roadmapCoverage(top, items) : null;
-                  const showParent = !!top && cov !== null && cov.pct < 100 - 0.5;
+                  const rows: { item: RoadmapItem; depth: number; rolledUp: boolean }[] = [
+                    { item: v.item, depth: 0, rolledUp: v.rolledUp },
+                  ];
+                  if (v.rolledUp && expanded.has(v.item.uid)) {
+                    flattenDescendants(v.item).forEach((r) =>
+                      rows.push({ item: r.item, depth: r.depth, rolledUp: false }),
+                    );
+                  }
                   return (
-                    <div
-                      key={it.uid}
-                      draggable
-                      onDragStart={(e) => { setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; }}
-                      onDragEnd={() => { setDragUid(null); setOverQ(null); }}
-                      onClick={() => setDetailUid(it.uid)}
-                      className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity hover:ring-2 hover:ring-primary/40 ${WORK_ITEM_ICONS[it.type].badgeClass} ${dragUid === it.uid ? "opacity-40" : ""}`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="flex items-center gap-1 font-semibold">
-                          {v.rolledUp && (
-                            <button
-                              type="button"
-                              className="rounded hover:bg-foreground/10 p-0.5 -ml-0.5"
-                              title={expanded.has(it.uid) ? "Colapsar" : "Expandir hijos"}
-                              onClick={(e) => { e.stopPropagation(); toggleExpanded(it.uid); }}
-                            >
-                              {expanded.has(it.uid)
-                                ? <ChevronDown className="h-3 w-3" />
-                                : <ChevronRight className="h-3 w-3" />}
-                            </button>
-                          )}
-                          <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
-                          {it.id}
-                        </span>
-                        <PriorityPicker
-                          value={it.priority}
-                          onChange={(p) => onUpdate(it.uid, { priority: p })}
-                        />
-                      </div>
-                      <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
-                      {v.rolledUp && expanded.has(it.uid) && (
-                        <div className="mt-1 border-l border-border/60 pl-2">
-                          <ChildTree parent={it} />
-                        </div>
-                      )}
-                      {showParent && top && cov && (
-                        <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground" title={`${cov.planned}h / ${cov.total}h of ${top.id} planned in roadmap`}>
-                          <CornerDownRight className="h-3 w-3" />
-                          <span className="font-medium">{top.id}</span>
-                          <span>· {cov.pct.toFixed(0)}% in roadmap</span>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between mt-1 gap-2">
-                        {(() => {
-                          const e2 = v.rolledUp ? rolledUpEffort(it, items) : (it.effort ?? 0);
-                          return e2 > 0
-                            ? <span className="text-[10px] text-muted-foreground">{v.rolledUp ? "Σ " : ""}{e2}h</span>
-                            : <span />;
-                        })()}
-                        <Select
-                          value={(it.quarter || v.quarter || q) || "__bl"}
-                          onValueChange={(val) => commitMove(it.uid, (val === "__bl" ? "" : val) as Quarter)}
-                        >
-                          <SelectTrigger
-                            className="h-6 w-[74px] text-[10px] px-1.5"
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={(e) => e.stopPropagation()}
+                    <div key={v.item.uid} className="space-y-1.5">
+                      {rows.map(({ item: it, depth, rolledUp }) => {
+                        const top = topAncestor(it, items);
+                        const cov = top ? roadmapCoverage(top, items) : null;
+                        const showParent = depth === 0 && !!top && cov !== null && cov.pct < 100 - 0.5;
+                        const hasKids = items.some((c) => c.parentId === it.id);
+                        const eff = hasKids ? rolledUpEffort(it, items) : (it.effort ?? 0);
+                        // Regla 0h: nada planificado en un Quarter puede tener 0h de esfuerzo.
+                        const zeroEffort = eff <= 0;
+                        return (
+                          <div
+                            key={it.uid}
+                            style={depth > 0 ? { marginLeft: depth * 12 } : undefined}
+                            className={depth > 0 ? "border-l-2 border-border/70 pl-2" : undefined}
                           >
-                            <SelectValue placeholder="Q?" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__bl" className="text-xs">Sin Q</SelectItem>
-                            {QUARTERS.map((qq) => (
-                              <SelectItem key={qq} value={qq} className="text-xs">{qq}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                            <div
+                              draggable
+                              onDragStart={(e) => { e.stopPropagation(); setDragUid(it.uid); e.dataTransfer.effectAllowed = "move"; }}
+                              onDragEnd={() => { setDragUid(null); setOverQ(null); }}
+                              onClick={() => setDetailUid(it.uid)}
+                              className={`rounded-md border p-2 text-xs cursor-grab active:cursor-grabbing transition-opacity hover:ring-2 hover:ring-primary/40 ${
+                                zeroEffort
+                                  ? "border-destructive/70 bg-destructive/10 ring-1 ring-destructive/30"
+                                  : WORK_ITEM_ICONS[it.type].badgeClass
+                              } ${dragUid === it.uid ? "opacity-40" : ""}`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="flex items-center gap-1 font-semibold">
+                                  {rolledUp && (
+                                    <button
+                                      type="button"
+                                      className="rounded hover:bg-foreground/10 p-0.5 -ml-0.5"
+                                      title={expanded.has(it.uid) ? "Colapsar" : "Expandir hijos"}
+                                      onClick={(e) => { e.stopPropagation(); toggleExpanded(it.uid); }}
+                                    >
+                                      {expanded.has(it.uid)
+                                        ? <ChevronDown className="h-3 w-3" />
+                                        : <ChevronRight className="h-3 w-3" />}
+                                    </button>
+                                  )}
+                                  <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
+                                  {it.id}
+                                </span>
+                                <PriorityPicker
+                                  value={it.priority}
+                                  onChange={(p) => onUpdate(it.uid, { priority: p })}
+                                />
+                              </div>
+                              <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
+
+                              {zeroEffort && (
+                                <div
+                                  className="mt-1 flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-1 text-[10px] font-medium text-destructive"
+                                  title="Update effort (>0h) or move to Backlog"
+                                >
+                                  <AlertTriangle className="h-3 w-3 shrink-0" />
+                                  <span>Update effort (&gt;0h) or move to Backlog</span>
+                                </div>
+                              )}
+
+                              {showParent && top && cov && (
+                                <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground" title={`${cov.planned}h / ${cov.total}h of ${top.id} planned in roadmap`}>
+                                  <CornerDownRight className="h-3 w-3" />
+                                  <span className="font-medium">{top.id}</span>
+                                  <span>· {cov.pct.toFixed(0)}% in roadmap</span>
+                                </div>
+                              )}
+                              <div className="flex items-center justify-between mt-1 gap-2">
+                                {eff > 0
+                                  ? <span className="text-[10px] text-muted-foreground">{hasKids ? "Σ " : ""}{eff}h</span>
+                                  : <span />}
+                                <Select
+                                  value={(it.quarter || q) || "__bl"}
+                                  onValueChange={(val) => commitMove(it.uid, (val === "__bl" ? "" : val) as Quarter)}
+                                >
+                                  <SelectTrigger
+                                    className="h-6 w-[74px] text-[10px] px-1.5"
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <SelectValue placeholder="Q?" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="__bl" className="text-xs">Sin Q</SelectItem>
+                                    {QUARTERS.map((qq) => (
+                                      <SelectItem key={qq} value={qq} className="text-xs">{qq}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })}
+
               </div>
             </div>
           );
