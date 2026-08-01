@@ -168,11 +168,19 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     }
     if (Object.keys(safePatch).length === 0) return;
 
-    // Regla 2: herencia estricta top-down de la prioridad hacia los descendientes.
+    // Regla 2: herencia top-down de la prioridad, pero SOLO hacia los
+    // descendientes que están en el Backlog. Los descendientes ya planificados
+    // en un Quarter son Alta por definición (Regla 3) y no deben degradarse
+    // porque el padre tenga Media/Baja.
     const inheritUids =
       "priority" in safePatch
-        ? new Set(descendantsOf(current, items).map((d) => d.uid))
+        ? new Set(
+            descendantsOf(current, items)
+              .filter((d) => (d.quarter ?? "") === "")
+              .map((d) => d.uid),
+          )
         : new Set<string>();
+
 
     update(items.map((it) => {
       if (it.uid === uidKey) return { ...it, ...safePatch };
