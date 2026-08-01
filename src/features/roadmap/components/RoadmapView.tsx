@@ -107,15 +107,7 @@ export function RoadmapView({
           setOverQ(null);
           return;
         }
-        // Gate estricto de priorización: bloquear el movimiento a un Quarter sin prioridad
-        if (q !== "" && !hasAssignedPriority(target.priority)) {
-          toast.error("No se puede añadir al Roadmap sin prioridad", {
-            description: `${target.id}: define la prioridad en la vista de Backlog antes de mover a ${q}.`,
-          });
-          setDragUid(null);
-          setOverQ(null);
-          return;
-        }
+        // Sin gate de prioridad: al planificar, el hook fuerza prioridad Alta en cascada.
       }
       commitMove(dragUid, q);
     }
