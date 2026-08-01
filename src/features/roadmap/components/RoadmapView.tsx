@@ -38,6 +38,41 @@ export function RoadmapView({
   const [lastSnapshot, setLastSnapshot] = useState<{ items: RoadmapItem[]; fromQ: Quarter; toQ: Quarter; id: string } | null>(null);
   const [pending, setPending] = useState<{ uid: string; q: Quarter } | null>(null);
   const [detailUid, setDetailUid] = useState<string | null>(null);
+  // Tarjetas contenedoras (padres) colapsadas por defecto.
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const toggleExpanded = (uidKey: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(uidKey)) next.delete(uidKey); else next.add(uidKey);
+      return next;
+    });
+
+  /** Árbol de descendientes renderizado dentro de una tarjeta contenedora. */
+  const ChildTree = ({ parent, depth = 0 }: { parent: RoadmapItem; depth?: number }) => {
+    const kids = items.filter((c) => c.parentId === parent.id);
+    if (kids.length === 0) return null;
+    return (
+      <div className="mt-1 space-y-1">
+        {kids.map((k) => (
+          <div key={k.uid}>
+            <div
+              className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer"
+              style={{ paddingLeft: depth * 10 }}
+              onClick={(e) => { e.stopPropagation(); setDetailUid(k.uid); }}
+            >
+              <WorkItemIcon type={k.type} className="h-3 w-3 shrink-0" />
+              <span className="font-medium shrink-0">{k.id}</span>
+              <span className="truncate">{k.title}</span>
+              <span className="ml-auto shrink-0">{rolledUpEffort(k, items) || 0}h</span>
+            </div>
+            <ChildTree parent={k} depth={depth + 1} />
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+
 
   const [pendPriority, setPendPriority] = useState<Priority>("");
   const [pendEffort, setPendEffort] = useState<string>("");
