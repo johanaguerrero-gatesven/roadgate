@@ -35,7 +35,7 @@ export type CapacityConfig = {
   daysPerSprint: number;
   hoursPerDay: number;
   sprintsPerQuarter: number;             // default for every quarter
-  sprintsByQuarter?: Partial<Record<Exclude<Quarter, "">, number>>; // per-Q override
+  sprintsByQuarter?: Partial<Record<RealQuarter, number>>; // per-Q override
 };
 
 export const defaultCapacity: CapacityConfig = {
@@ -48,7 +48,58 @@ export const defaultCapacity: CapacityConfig = {
 };
 
 /**
- * Enforce the invariant: parent.effort = Σ(children rolled-up effort).
+ * Deriva el Quarter de los items agrupadores (los que tienen hijos) a partir de
+ * sus descendientes, de abajo hacia arriba:
+ *  - todos los hijos en el mismo Q  → el padre queda en ese Q
+ *  - hijos en Q distintos, o solo algunos planificados → "MULTI"
+ *  - ningún hijo planificado → "" (sin quarter)
+ * Las hojas conservan siempre su propio quarter.
+ */
+export function syncParentQuarters(items: RoadmapItem[]): RoadmapItem[] {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const childrenMap = new Map<string, RoadmapItem[]>();
+  items.forEach((i) => {
+    if (!i.parentId || !byId.has(i.parentId)) return;
+    const arr = childrenMap.get(i.parentId) ?? [];
+    arr.push(i);
+    childrenMap.set(i.parentId, arr);
+  });
+
+  const memo = new Map<string, Quarter>();
+  const resolve = (item: RoadmapItem, seen = new Set<string>()): Quarter => {
+    if (memo.has(item.uid)) return memo.get(item.uid)!;
+    if (seen.has(item.uid)) return item.quarter ?? "";
+    seen.add(item.uid);
+    const kids = childrenMap.get(item.id) ?? [];
+    if (kids.length === 0) {
+      const own = (item.quarter ?? "") as Quarter;
+      const leafQ = own === "MULTI" ? "" : own; // una hoja nunca puede ser MULTI
+      memo.set(item.uid, leafQ);
+      return leafQ;
+    }
+    const kidQs = kids.map((k) => resolve(k, seen));
+    const distinct = new Set(kidQs);
+    let q: Quarter;
+    if (distinct.size === 1 && !distinct.has("MULTI")) q = [...distinct][0];
+    else if (kidQs.every((k) => k === "")) q = "";
+    else q = "MULTI";
+    memo.set(item.uid, q);
+    return q;
+  };
+
+  return items.map((it) => {
+    const kids = childrenMap.get(it.id) ?? [];
+    if (kids.length === 0) {
+      return (it.quarter ?? "") === "MULTI" ? { ...it, quarter: "" as Quarter } : it;
+    }
+    const q = resolve(it);
+    return (it.quarter ?? "") === q ? it : { ...it, quarter: q };
+  });
+}
+
+/**
+ * Enforce the invariant: parent.effort = Σ(children rolled-up effort)
+ * y parent.quarter = derivado de sus hijos (ver syncParentQuarters).
  * Callers should run this before persisting so stored data stays consistent.
  */
 export function normalizeItems(items: RoadmapItem[]): RoadmapItem[] {
@@ -57,23 +108,24 @@ export function normalizeItems(items: RoadmapItem[]): RoadmapItem[] {
     if (kids.length === 0) return item.effort || 0;
     return kids.reduce((s, k) => s + rollup(k), 0);
   };
-  return items.map((it) => {
+  const withEffort = items.map((it) => {
     const hasKids = items.some((c) => c.parentId === it.id);
     if (!hasKids) return it;
     const sum = rollup(it);
     return it.effort === sum ? it : { ...it, effort: sum };
   });
+  return syncParentQuarters(withEffort);
 }
 
 
-export function sprintsForQuarter(c: CapacityConfig, q: Exclude<Quarter, "">) {
+export function sprintsForQuarter(c: CapacityConfig, q: RealQuarter) {
   const v = c.sprintsByQuarter?.[q];
   return typeof v === "number" && v >= 0 ? v : c.sprintsPerQuarter;
 }
 export function capacityPerSprint(c: CapacityConfig) {
   return c.developers * (c.dedicationPct / 100) * c.daysPerSprint * c.hoursPerDay;
 }
-export function capacityPerQuarter(c: CapacityConfig, q?: Exclude<Quarter, "">) {
+export function capacityPerQuarter(c: CapacityConfig, q?: RealQuarter) {
   const sprints = q ? sprintsForQuarter(c, q) : c.sprintsPerQuarter;
   return capacityPerSprint(c) * sprints;
 }
