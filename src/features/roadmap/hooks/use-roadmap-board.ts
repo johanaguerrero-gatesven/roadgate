@@ -4,11 +4,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import {
-  RoadmapItem, ItemType, Quarter,
+  RoadmapItem, ItemType, Quarter, Priority,
   CapacityConfig, defaultCapacity, uid, normalizeItems, descendantsOf,
 } from "@/lib/roadmap";
 import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/roadmap.functions";
-import { hasAssignedPriority } from "../constants";
+
+/** Regla 1: prioridad por defecto de cualquier item nuevo o devuelto al Backlog. */
+const DEFAULT_PRIORITY: Priority = "3-Low";
+/** Regla 3: todo lo planificado en un Quarter es prioridad Alta. */
+const HIGH: Priority = "1-High";
+
 
 /**
  * Estado + reglas de negocio de un roadmap concreto:
