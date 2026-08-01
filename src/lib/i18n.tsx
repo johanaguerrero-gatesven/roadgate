@@ -293,7 +293,21 @@ const dict = {
     "roadmap.priority.medium": "Media",
     "roadmap.priority.low": "Baja",
     "roadmap.priority.lowest": "Muy baja",
+    "roadmap.q.unassigned": "No asignado",
+    "roadmap.detail.desc": "Edita los datos clave de este work item.",
+    "roadmap.detail.id": "ID",
+    "roadmap.detail.title": "Título",
+    "roadmap.detail.effort": "Esfuerzo (h)",
+    "roadmap.detail.effortSum": "Suma del esfuerzo de sus hijos. Edítalo en cada hijo.",
+    "roadmap.detail.quarter": "Quarter",
+    "roadmap.detail.multi": "Multi-Quarter",
+    "roadmap.detail.multiHint": "Sus hijos están repartidos en varios Quarters. Elige un Quarter para agruparlos todos.",
+    "roadmap.detail.kidsHint": "Se aplicará también a sus hijos.",
+    "roadmap.detail.priority": "Prioridad",
+    "roadmap.detail.cancel": "Cancelar",
+    "roadmap.detail.save": "Guardar",
   },
+
   en: {
     "nav.home": "Home",
     "nav.product": "Product",
@@ -582,7 +596,21 @@ const dict = {
     "roadmap.priority.medium": "Medium",
     "roadmap.priority.low": "Low",
     "roadmap.priority.lowest": "Lowest",
+    "roadmap.q.unassigned": "Unassigned",
+    "roadmap.detail.desc": "Edit the key data of this work item.",
+    "roadmap.detail.id": "ID",
+    "roadmap.detail.title": "Title",
+    "roadmap.detail.effort": "Effort (h)",
+    "roadmap.detail.effortSum": "Sum of its children's effort. Edit it on each child.",
+    "roadmap.detail.quarter": "Quarter",
+    "roadmap.detail.multi": "Multi-Quarter",
+    "roadmap.detail.multiHint": "Its children are spread across several Quarters. Pick a Quarter to group them all.",
+    "roadmap.detail.kidsHint": "It will also apply to its children.",
+    "roadmap.detail.priority": "Priority",
+    "roadmap.detail.cancel": "Cancel",
+    "roadmap.detail.save": "Save",
   },
+
 } as const;
 
 export type TKey = keyof typeof dict["es"];

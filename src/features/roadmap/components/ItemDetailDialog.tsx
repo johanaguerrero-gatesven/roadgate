@@ -15,6 +15,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { RoadmapItem, Quarter, Priority, rolledUpEffort } from "@/lib/roadmap";
+import { useI18n } from "@/lib/i18n";
 import { WORK_ITEM_ICONS, WorkItemIcon } from "@/lib/work-item-icons";
 import { PRIORITIES, PRIORITY_META, QUARTERS } from "../constants";
 
@@ -28,6 +29,7 @@ export function ItemDetailDialog({
   onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void;
   onMove: (uid: string, quarter: Quarter) => void;
 }) {
+  const { t } = useI18n();
   const [title, setTitle] = useState("");
   const [effort, setEffort] = useState("");
 
@@ -66,28 +68,28 @@ export function ItemDetailDialog({
             <span>{item.id}</span>
             <Badge variant="outline" className={meta.badgeClass}>{meta.label}</Badge>
           </DialogTitle>
-          <DialogDescription>Edita los datos clave de este work item.</DialogDescription>
+          <DialogDescription>{t("roadmap.detail.desc")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label>ID</Label>
+            <Label>{t("roadmap.detail.id")}</Label>
             <Input value={item.id} disabled />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="detail-title">Título</Label>
+            <Label htmlFor="detail-title">{t("roadmap.detail.title")}</Label>
             <Textarea id="detail-title" value={title} onChange={(e) => setTitle(e.target.value)} rows={2} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="detail-effort">Esfuerzo (h)</Label>
+              <Label htmlFor="detail-effort">{t("roadmap.detail.effort")}</Label>
               {hasKids ? (
                 <>
                   <Input id="detail-effort" value={`Σ ${rolled}`} disabled />
                   <p className="text-[11px] text-muted-foreground">
-                    Suma de {kids.length} hijo(s). Edita el esfuerzo en cada hijo.
+                    {t("roadmap.detail.effortSum")}
                   </p>
                 </>
               ) : (
@@ -102,42 +104,42 @@ export function ItemDetailDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label>Quarter</Label>
+              <Label>{t("roadmap.detail.quarter")}</Label>
               <Select
                 value={shownQuarter || "__bl"}
                 onValueChange={(val) => onMove(item.uid, (val === "__bl" ? "" : val) as Quarter)}
               >
                 <SelectTrigger><SelectValue placeholder="Q?" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__bl">Sin Quarter</SelectItem>
+                  <SelectItem value="__bl">{t("roadmap.q.unassigned")}</SelectItem>
                   {QUARTERS.map((qq) => <SelectItem key={qq} value={qq}>{qq}</SelectItem>)}
                   {shownQuarter === "MULTI" && (
-                    <SelectItem value="MULTI" disabled>Multi-Quarter</SelectItem>
+                    <SelectItem value="MULTI" disabled>{t("roadmap.detail.multi")}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
               {shownQuarter === "MULTI" && (
                 <p className="text-[11px] text-muted-foreground">
-                  Sus hijos están repartidos en varios Quarters. Elige un Quarter para agruparlos todos.
+                  {t("roadmap.detail.multiHint")}
                 </p>
               )}
               {hasKids && shownQuarter !== "MULTI" && (
                 <p className="text-[11px] text-muted-foreground">
-                  Se aplicará también a sus hijos.
+                  {t("roadmap.detail.kidsHint")}
                 </p>
               )}
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label>Prioridad</Label>
+            <Label>{t("roadmap.detail.priority")}</Label>
             <Select
               value={item.priority || "__none"}
               onValueChange={(v) => onUpdate(item.uid, { priority: v === "__none" ? "" : (v as Priority) })}
             >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none">Sin prioridad</SelectItem>
+                <SelectItem value="__none">{t("roadmap.priority.none")}</SelectItem>
                 {PRIORITIES.map((p) => {
                   const M = PRIORITY_META[p];
                   return (
@@ -155,8 +157,8 @@ export function ItemDetailDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button onClick={save}>Guardar</Button>
+          <Button variant="ghost" onClick={onClose}>{t("roadmap.detail.cancel")}</Button>
+          <Button onClick={save}>{t("roadmap.detail.save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

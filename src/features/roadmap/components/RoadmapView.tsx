@@ -321,7 +321,7 @@ export function RoadmapView({
                                     <SelectValue placeholder="Q?" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="__bl" className="text-xs">Sin Q</SelectItem>
+                                    <SelectItem value="__bl" className="text-xs">{t("roadmap.q.unassigned")}</SelectItem>
                                     {QUARTERS.map((qq) => (
                                       <SelectItem key={qq} value={qq} className="text-xs">{qq}</SelectItem>
                                     ))}
@@ -425,7 +425,7 @@ export function RoadmapView({
                                   <SelectValue placeholder="Q?" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="__bl" className="text-xs">Sin Q</SelectItem>
+                                  <SelectItem value="__bl" className="text-xs">{t("roadmap.q.unassigned")}</SelectItem>
                                   {QUARTERS.map((qq) => (
                                     <SelectItem key={qq} value={qq} className="text-xs">{qq}</SelectItem>
                                   ))}
