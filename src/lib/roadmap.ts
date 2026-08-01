@@ -1,6 +1,12 @@
 // Roadmap data layer (localStorage, no backend yet)
 export type ItemType = "epic" | "feature" | "story";
-export type Quarter = "Q1" | "Q2" | "Q3" | "Q4" | "";
+/**
+ * "MULTI" es un estado exclusivo de items agrupadores (Epic/Feature): significa
+ * que sus hijos están repartidos en varios Quarters (o solo parcialmente planificados).
+ * Nunca se asigna a hojas y no se renderiza como columna del roadmap.
+ */
+export type RealQuarter = "Q1" | "Q2" | "Q3" | "Q4";
+export type Quarter = RealQuarter | "MULTI" | "";
 export type Priority = "1-High" | "2-Medium" | "3-Low" | "4-Lowest" | "";
 export type State = "Backlog" | "In Progress" | "Done" | "Blocked";
 export type DisplayMode = "auto" | "self" | "children";
