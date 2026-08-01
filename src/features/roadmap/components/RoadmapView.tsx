@@ -286,6 +286,18 @@ export function RoadmapView({
                                 </div>
                               )}
 
+                              {lowPriority && (
+                                <div
+                                  className="mt-1 flex items-center gap-1 rounded bg-amber-500/10 px-1.5 py-1 text-[10px] font-medium text-amber-700 dark:text-amber-400"
+                                  title="Roadmap items must be High or Medium priority"
+                                >
+                                  <AlertTriangle className="h-3 w-3 shrink-0" />
+                                  <span>Update priority (High/Medium) or move to Backlog</span>
+                                </div>
+                              )}
+
+
+
                               {showParent && top && cov && (
                                 <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground" title={`${cov.planned}h / ${cov.total}h of ${top.id} planned in roadmap`}>
                                   <CornerDownRight className="h-3 w-3" />
