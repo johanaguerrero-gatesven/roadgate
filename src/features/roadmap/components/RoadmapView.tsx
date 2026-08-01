@@ -64,30 +64,22 @@ export function RoadmapView({
       return next;
     });
 
-  /** Árbol de descendientes renderizado dentro de una tarjeta contenedora. */
-  const ChildTree = ({ parent, depth = 0 }: { parent: RoadmapItem; depth?: number }) => {
-    const kids = items.filter((c) => c.parentId === parent.id);
-    if (kids.length === 0) return null;
-    return (
-      <div className="mt-1 space-y-1">
-        {kids.map((k) => (
-          <div key={k.uid}>
-            <div
-              className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer"
-              style={{ paddingLeft: depth * 10 }}
-              onClick={(e) => { e.stopPropagation(); setDetailUid(k.uid); }}
-            >
-              <WorkItemIcon type={k.type} className="h-3 w-3 shrink-0" />
-              <span className="font-medium shrink-0">{k.id}</span>
-              <span className="truncate">{k.title}</span>
-              <span className="ml-auto shrink-0">{rolledUpEffort(k, items) || 0}h</span>
-            </div>
-            <ChildTree parent={k} depth={depth + 1} />
-          </div>
-        ))}
-      </div>
-    );
+  /**
+   * Aplana la descendencia de un padre en filas independientes (item + nivel).
+   * Se renderizan como tarjetas hermanas DEBAJO del padre (no dentro), para que
+   * cada hijo sea arrastrable por sí mismo.
+   */
+  const flattenDescendants = (parent: RoadmapItem, depth = 1): { item: RoadmapItem; depth: number }[] => {
+    const out: { item: RoadmapItem; depth: number }[] = [];
+    items
+      .filter((c) => c.parentId === parent.id)
+      .forEach((k) => {
+        out.push({ item: k, depth });
+        out.push(...flattenDescendants(k, depth + 1));
+      });
+    return out;
   };
+
 
 
 
