@@ -1,3 +1,26 @@
+/**
+ * =============================================================================
+ * useRoadmapBoard — motor de reglas de negocio de un roadmap
+ * =============================================================================
+ * Concentra TODO el estado y las reglas de un roadmap concreto. Las rutas y los
+ * componentes son "tontos": solo pintan y llaman a las acciones que expone.
+ *
+ * Responsabilidades:
+ *  1. Hidratación desde el backend y persistencia con debounce (350 ms).
+ *  2. Invariantes de datos vía `normalizeItems` en cada escritura:
+ *       - esfuerzo del padre = Σ esfuerzo de sus hojas
+ *       - quarter del padre derivado de sus hijos (Q concreto | "MULTI" | "")
+ *  3. Reglas de priorización de RoadGate:
+ *       R1 Todo item nuevo nace con prioridad Baja (`DEFAULT_PRIORITY`).
+ *       R2 Herencia estricta top-down: cambiar la prioridad de un padre la
+ *          propaga a TODOS sus descendientes.
+ *       R3 Planificar (mover a Q1–Q4) fuerza prioridad Alta en toda la rama.
+ *       R4 El Backlog no admite prioridad Alta; volver al Backlog rebaja la
+ *          rama a Baja.
+ *  4. Herencia de Quarter: mover un agrupador arrastra a toda su descendencia;
+ *     mover un hijo suelto deja al padre en "MULTI" (lo calcula normalizeItems).
+ *  5. Validación de jerarquía Epic → Feature → User Story al reasignar padre.
+ */
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,6 +36,7 @@ import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/roadmap.funct
 const DEFAULT_PRIORITY: Priority = "3-Low";
 /** Regla 3: todo lo planificado en un Quarter es prioridad Alta. */
 const HIGH: Priority = "1-High";
+
 
 
 /**
