@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, CornerDownRight, AlertTriangle } from "lucide-react";
+import { ArrowLeft, CornerDownRight, AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -226,6 +226,18 @@ export function RoadmapView({
                     >
                       <div className="flex items-start justify-between gap-2">
                         <span className="flex items-center gap-1 font-semibold">
+                          {v.rolledUp && (
+                            <button
+                              type="button"
+                              className="rounded hover:bg-foreground/10 p-0.5 -ml-0.5"
+                              title={expanded.has(it.uid) ? "Colapsar" : "Expandir hijos"}
+                              onClick={(e) => { e.stopPropagation(); toggleExpanded(it.uid); }}
+                            >
+                              {expanded.has(it.uid)
+                                ? <ChevronDown className="h-3 w-3" />
+                                : <ChevronRight className="h-3 w-3" />}
+                            </button>
+                          )}
                           <WorkItemIcon type={it.type} className="h-3.5 w-3.5" />
                           {it.id}
                         </span>
@@ -235,6 +247,11 @@ export function RoadmapView({
                         />
                       </div>
                       <div className="text-foreground mt-0.5 line-clamp-2">{it.title}</div>
+                      {v.rolledUp && expanded.has(it.uid) && (
+                        <div className="mt-1 border-l border-border/60 pl-2">
+                          <ChildTree parent={it} />
+                        </div>
+                      )}
                       {showParent && top && cov && (
                         <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground" title={`${cov.planned}h / ${cov.total}h of ${top.id} planned in roadmap`}>
                           <CornerDownRight className="h-3 w-3" />
