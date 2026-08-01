@@ -36,15 +36,10 @@ import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/roadmap.funct
 const DEFAULT_PRIORITY: Priority = "3-Low";
 /** Regla 3: todo lo planificado en un Quarter es prioridad Alta. */
 const HIGH: Priority = "1-High";
-
-
-
 /**
- * Estado + reglas de negocio de un roadmap concreto:
- * carga, persistencia con debounce, gate de priorización, cascada de quarter
- * a los descendientes y validación de jerarquía Epic → Feature → User Story.
- *
- * La UI (rutas y componentes) solo consume las acciones que expone este hook.
+ * @param roadmapId Id del roadmap a cargar.
+ * @param userId    Id del usuario autenticado; sin él no se hidrata nada
+ *                  (evita pedir datos durante SSR o antes del login).
  */
 export function useRoadmapBoard(roadmapId: string, userId?: string) {
   const { t } = useI18n();
