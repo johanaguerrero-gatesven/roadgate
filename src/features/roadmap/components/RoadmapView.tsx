@@ -325,8 +325,8 @@ export function RoadmapView({
                           const eff = hasKids ? rolledUpEffort(v.item, items) : (v.item.effort ?? 0);
                           const missingPriority = !hasAssignedPriority(v.item.priority);
                           const missingEffort = eff <= 0;
-                          // Quarter selector habilitado con cualquier prioridad válida asignada
-                          const canAssignQuarter = hasAssignedPriority(v.item.priority);
+                          // Planificar ya no requiere prioridad previa: se fuerza Alta al mover.
+                          const canAssignQuarter = true;
                           return (
                             <div
                               key={v.item.uid}
