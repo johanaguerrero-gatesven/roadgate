@@ -1,8 +1,8 @@
 import * as XLSX from "xlsx";
-import type { RoadmapItem, CapacityConfig, Quarter } from "./roadmap";
+import type { RoadmapItem, CapacityConfig, RealQuarter } from "./roadmap";
 import { capacityPerSprint, capacityPerQuarter, effortByQuarter, rolledUpEffort } from "./roadmap";
 
-const QUARTERS: Exclude<Quarter, "">[] = ["Q1", "Q2", "Q3", "Q4"];
+const QUARTERS: RealQuarter[] = ["Q1", "Q2", "Q3", "Q4"];
 
 const PRIO_LABEL: Record<string, string> = {
   "1-High": 1,
