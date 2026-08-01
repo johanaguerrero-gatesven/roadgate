@@ -360,11 +360,8 @@ export function RoadmapView({
                     ) : (
                       <div className="flex flex-col gap-2">
                         {list.map((v) => {
-                          const hasKids = items.some((c) => c.parentId === v.item.id);
-                          const eff = hasKids ? rolledUpEffort(v.item, items) : (v.item.effort ?? 0);
                           const missingPriority = !hasAssignedPriority(v.item.priority);
-                          const missingEffort = eff <= 0;
-                          // Planificar ya no requiere prioridad previa: se fuerza Alta al mover.
+                          // En "No quarter assigned" el esfuerzo 0h es legítimo: no se alerta.
                           const canAssignQuarter = true;
                           return (
                             <div
@@ -373,7 +370,7 @@ export function RoadmapView({
                               onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
                               onDragEnd={() => { setDragUid(null); setOverQ(null); }}
                               className={`cursor-grab active:cursor-grabbing flex items-center gap-1 ${dragUid === v.item.uid ? "opacity-40" : ""}`}
-                              title={missingPriority ? "Falta prioridad" : missingEffort ? "Falta esfuerzo" : ""}
+                              title={missingPriority ? "Falta prioridad" : ""}
                             >
                               <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${missingPriority ? "ring-1 ring-amber-500/60" : ""} flex items-center gap-1 flex-1 min-w-0`}>
                                 <PriorityPicker
@@ -386,23 +383,16 @@ export function RoadmapView({
                                   onClick={(e) => { e.stopPropagation(); setDetailUid(v.item.uid); }}
                                 >{v.item.id} · {v.item.title}</span>
 
-                                {(missingPriority || missingEffort) && (
+                                {missingPriority && (
                                   <span
                                     className="ml-1 text-amber-600 dark:text-amber-400 shrink-0 cursor-help"
-                                    title={
-                                      missingPriority && missingEffort
-                                        ? `Falta prioridad y esfuerzo.\n\nEsfuerzo: ${hasKids ? `rolled-up de ${items.filter(c => c.parentId === v.item.id).length} hijo(s) = 0` : "no asignado en este item (leaf)"}.\nFuente: rolledUpEffort() en src/lib/roadmap.ts — suma recursiva del effort de los descendientes leaf.`
-                                        : missingPriority
-                                        ? "Falta prioridad. Asigna Alta/Media/Baja/Muy baja en el selector de prioridad."
-                                        : hasKids
-                                        ? `Effort rolled-up = 0.\n\nEste ${WORK_ITEM_ICONS[v.item.type].label} tiene ${items.filter(c => c.parentId === v.item.id).length} hijo(s) y ninguno tiene 'effort' > 0.\n\nCálculo: rolledUpEffort() en src/lib/roadmap.ts recorre los descendientes hasta las hojas y suma su campo 'effort'. Como todos son 0 (o vacío), la suma es 0.\n\nSolución: asigna 'effort' a los hijos (Features/User Stories) desde la vista Backlog. El padre heredará la suma automáticamente.`
-                                        : `Effort = 0.\n\nEste ${WORK_ITEM_ICONS[v.item.type].label} no tiene hijos, así que su esfuerzo viene de su propio campo 'effort' (leaf). Actualmente está vacío o en 0.\n\nSolución: asigna un valor de 'effort' desde la vista Backlog.`
-                                    }
+                                    title="Falta prioridad. Asigna Alta/Media/Baja/Muy baja en el selector de prioridad."
                                   >
                                     <AlertTriangle className="h-3.5 w-3.5" />
                                   </span>
                                 )}
                               </Badge>
+
 
                               <Select
                                 value={v.item.quarter || "__bl"}
