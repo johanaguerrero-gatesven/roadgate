@@ -129,6 +129,18 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
       }
     }
 
+    // Roadmap: solo Alta o Media. Baja/Mínima obligan a volver al Backlog.
+    if ("priority" in safePatch && (safePatch.priority === "3-Low" || safePatch.priority === "4-Lowest")) {
+      const nextQ = ("quarter" in safePatch ? safePatch.quarter : current.quarter) ?? "";
+      if (nextQ !== "") {
+        toast.error("El Roadmap solo admite prioridad Alta o Media", {
+          description: `${current.id}: muévelo al Backlog para bajarle la prioridad.`,
+        });
+        delete safePatch.priority;
+      }
+    }
+
+
     // Regla 4 (inversa): quitar la prioridad devuelve el item (y su rama) al Backlog.
     if ("priority" in safePatch) {
       const demote = (safePatch.priority ?? "") === "";
