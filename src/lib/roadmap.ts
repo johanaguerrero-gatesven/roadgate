@@ -445,10 +445,12 @@ function findById(items: RoadmapItem[], id?: string) {
   return items.find((i) => i.id === id);
 }
 
-/** All descendants of `item` (children, grandchildren, ...). */
-export function descendantsOf(item: RoadmapItem, items: RoadmapItem[]): RoadmapItem[] {
-  const kids = items.filter((c) => c.parentId === item.id);
-  return [...kids, ...kids.flatMap((k) => descendantsOf(k, items))];
+/** All descendants of `item` (children, grandchildren, ...); a prueba de ciclos. */
+export function descendantsOf(item: RoadmapItem, items: RoadmapItem[], seen = new Set<string>()): RoadmapItem[] {
+  if (seen.has(item.uid)) return [];
+  seen.add(item.uid);
+  const kids = items.filter((c) => c.parentId === item.id && c.uid !== item.uid && !seen.has(c.uid));
+  return kids.flatMap((k) => [k, ...descendantsOf(k, items, seen)]);
 }
 
 /** Topmost ancestor of `item`, walking up via parentId. Returns undefined if none. */
