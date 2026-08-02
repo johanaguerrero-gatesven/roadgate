@@ -65,6 +65,29 @@ export const defaultCapacity: CapacityConfig = {
 };
 
 /**
+ * Índice `parentId -> hijos directos`, ignorando padres inexistentes y
+ * auto-referencias (`parentId === id`), que provocaban recursión infinita.
+ */
+function buildChildrenMap(
+  list: RoadmapItem[],
+  byId: Map<string, RoadmapItem>,
+): Map<string, RoadmapItem[]> {
+  const map = new Map<string, RoadmapItem[]>();
+  list.forEach((i) => {
+    if (!i.parentId || i.parentId === i.id || !byId.has(i.parentId)) return;
+    const arr = map.get(i.parentId) ?? [];
+    arr.push(i);
+    map.set(i.parentId, arr);
+  });
+  return map;
+}
+
+/** Items sin padre válido: raíces del árbol para los recorridos top-down. */
+function rootsOf(list: RoadmapItem[], byId: Map<string, RoadmapItem>): RoadmapItem[] {
+  return list.filter((i) => !i.parentId || i.parentId === i.id || !byId.has(i.parentId));
+}
+
+/**
  * Deriva el Quarter de los items agrupadores (los que tienen hijos) a partir de
  * sus descendientes, de abajo hacia arriba:
  *  - todos los hijos en el mismo Q  → el padre queda en ese Q
