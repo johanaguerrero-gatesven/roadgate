@@ -102,7 +102,8 @@ function RoadmapPage() {
             <Tabs value={tab} onValueChange={(v) => setTab(v as ItemType)}>
               <TabsList>
                 {enabledTypes.map((ty) => (
-                  <TabsTrigger key={ty} value={ty}>
+                  <TabsTrigger key={ty} value={ty} className="gap-1.5">
+                    <WorkItemIcon type={ty} className="h-4 w-4" />
                     {TYPE_LABEL[ty]} ({items.filter((i) => i.type === ty).length})
                   </TabsTrigger>
                 ))}
