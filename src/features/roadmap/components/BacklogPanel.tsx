@@ -98,7 +98,7 @@ export function BacklogPanel({
           <Trash2 className="h-4 w-4" /> Reset demo data
         </Button>
         <input
-          ref={fileRef} type="file" accept=".csv,text/csv" className="hidden"
+          ref={fileRef} type="file" accept=".csv,text/csv,.xlsx,.xls,.xlsm" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
 
