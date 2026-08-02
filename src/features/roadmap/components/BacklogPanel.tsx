@@ -149,7 +149,7 @@ export function BacklogPanel({
                   <th className="sticky left-0 z-20 bg-muted/95 backdrop-blur-sm border-r border-border w-[120px] min-w-[120px]">ID</th>
                   <th className="min-w-[200px]">{t("roadmap.col.title")}</th>
                   {!isFeature && <th className="min-w-[180px]">Description</th>}
-                  {type !== "epic" && <th className="min-w-[120px]">{isFeature ? "EPIC ID" : t("roadmap.col.parent")}</th>}
+                  {type !== "epic" && <th className={isFeature ? "min-w-[80px]" : "min-w-[120px]"}>{isFeature ? "EPIC ID" : t("roadmap.col.parent")}</th>}
                   {isFeature && <th className="min-w-[160px]">EPIC Title</th>}
                   <th className="min-w-[80px] text-right">{isFeature ? "Effort (h)" : "Effort"}</th>
                   <th className="min-w-[120px]">Priority</th>
@@ -210,6 +210,7 @@ export function BacklogPanel({
                             value={it.parentId}
                             parents={parents}
                             onChange={(v) => onUpdate(it.uid, { parentId: v || undefined })}
+                            showIdOnly={isFeature}
                           />
                         </td>
                       )}
