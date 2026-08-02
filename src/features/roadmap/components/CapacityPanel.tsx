@@ -123,5 +123,44 @@ export function CapacityPanel({ cfg, roadmapId, onChange }: { cfg: CapacityConfi
         </dl>
       </div>
     </div>
+
+    <section className="rounded-xl border border-border bg-card p-6">
+      <h3 className="font-semibold text-foreground">{t("roadmap.cap.history")}</h3>
+      <p className="text-xs text-muted-foreground mb-3">{t("roadmap.cap.historyHint")}</p>
+      {history.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("roadmap.cap.historyEmpty")}</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase text-muted-foreground border-b border-border">
+                <th className="py-2 pr-4 font-medium">{t("roadmap.cap.historyAt")}</th>
+                <th className="py-2 pr-4 font-medium">{t("roadmap.cap.historyBy")}</th>
+                <th className="py-2 pr-4 font-medium">{t("roadmap.cap.historyField")}</th>
+                <th className="py-2 font-medium">{t("roadmap.cap.historyChange")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.map((h) => (
+                <tr key={h.id} className="border-b border-border/50 last:border-0">
+                  <td className="py-1.5 pr-4 whitespace-nowrap text-muted-foreground">
+                    {new Date(h.at).toLocaleString()}
+                  </td>
+                  <td className="py-1.5 pr-4 whitespace-nowrap">{h.by || "—"}</td>
+                  <td className="py-1.5 pr-4">{fieldLabel(h.field)}</td>
+                  <td className="py-1.5 whitespace-nowrap">
+                    <span className="text-muted-foreground line-through">{val(h.oldValue)}</span>
+                    <span className="mx-2">→</span>
+                    <span className="font-semibold text-foreground">{val(h.newValue)}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+    </div>
   );
 }
+
