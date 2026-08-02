@@ -122,18 +122,21 @@ export function BacklogPanel({
                   <th className="w-8"></th>
                   <th className="w-[110px]">ID</th>
                   <th className="min-w-[280px]">{t("roadmap.col.title")}</th>
-                  <th className="min-w-[220px]">Description</th>
-                  {type !== "epic" && <th className="w-[150px]">{t("roadmap.col.parent")}</th>}
-                  <th className="w-[80px] text-right">Effort</th>
+                  {!isFeature && <th className="min-w-[220px]">Description</th>}
+                  {type !== "epic" && <th className="w-[150px]">{isFeature ? "EPIC ID" : t("roadmap.col.parent")}</th>}
+                  {isFeature && <th className="min-w-[200px]">EPIC Title</th>}
+                  <th className="w-[80px] text-right">{isFeature ? "Effort (h)" : "Effort"}</th>
                   <th className="w-[140px]">Priority</th>
                   <th className="w-[100px]">Quarter</th>
                   <th className="w-[120px]">State</th>
-                  <th className="w-[120px]">Tags</th>
-                  <th className="min-w-[220px]">Notes</th>
+                  {isFeature ? <th className="w-[130px]">Owner</th> : <th className="w-[120px]">Tags</th>}
+                  {isFeature && <th className="w-[70px] text-right">PBIs #</th>}
+                  <th className="min-w-[220px]">{isFeature ? "Comments" : "Notes"}</th>
                   <th className="w-[60px] text-center">Show</th>
                   <th className="w-[44px]"></th>
                 </tr>
               </thead>
+
               <tbody>
                 {list.map((it) => {
                   const hidden = !!it.hiddenFromRoadmap;
