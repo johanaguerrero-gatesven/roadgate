@@ -121,11 +121,14 @@ export function BacklogPanel({
                 <tr className="[&>th]:px-2 [&>th]:py-2 [&>th]:text-left [&>th]:font-semibold [&>th]:border-b [&>th]:border-border">
                   <th className="w-8"></th>
                   <th className="w-[110px]">ID</th>
-                  <th className="min-w-[320px]">{t("roadmap.col.title")}</th>
+                  <th className="min-w-[280px]">{t("roadmap.col.title")}</th>
+                  <th className="min-w-[220px]">Description</th>
                   {type !== "epic" && <th className="w-[150px]">{t("roadmap.col.parent")}</th>}
                   <th className="w-[80px] text-right">Effort</th>
                   <th className="w-[140px]">Priority</th>
                   <th className="w-[100px]">Quarter</th>
+                  <th className="w-[120px]">State</th>
+                  <th className="w-[120px]">Tags</th>
                   <th className="min-w-[220px]">Notes</th>
                   <th className="w-[60px] text-center">Show</th>
                   <th className="w-[44px]"></th>
