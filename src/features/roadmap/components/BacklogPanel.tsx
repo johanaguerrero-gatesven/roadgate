@@ -121,11 +121,14 @@ export function BacklogPanel({
                 <tr className="[&>th]:px-2 [&>th]:py-2 [&>th]:text-left [&>th]:font-semibold [&>th]:border-b [&>th]:border-border">
                   <th className="w-8"></th>
                   <th className="w-[110px]">ID</th>
-                  <th className="min-w-[320px]">{t("roadmap.col.title")}</th>
+                  <th className="min-w-[280px]">{t("roadmap.col.title")}</th>
+                  <th className="min-w-[220px]">Description</th>
                   {type !== "epic" && <th className="w-[150px]">{t("roadmap.col.parent")}</th>}
                   <th className="w-[80px] text-right">Effort</th>
                   <th className="w-[140px]">Priority</th>
                   <th className="w-[100px]">Quarter</th>
+                  <th className="w-[120px]">State</th>
+                  <th className="w-[120px]">Tags</th>
                   <th className="min-w-[220px]">Notes</th>
                   <th className="w-[60px] text-center">Show</th>
                   <th className="w-[44px]"></th>
@@ -159,6 +162,15 @@ export function BacklogPanel({
                             Σ {rolledUpEffort(it, items)}h ({t("roadmap.rollupTitle")})
                           </div>
                         )}
+                      </td>
+                      <td>
+                        <Textarea
+                          value={it.description || ""}
+                          onChange={(e) => onUpdate(it.uid, { description: e.target.value })}
+                          rows={rowsFor(it.description || "", 32)}
+                          className={`min-h-[32px] text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
+                          placeholder="—"
+                        />
                       </td>
                       {type !== "epic" && (
                         <td>
@@ -245,6 +257,22 @@ export function BacklogPanel({
                             )}
                           </SelectContent>
                         </Select>
+                      </td>
+                      <td>
+                        <Input
+                          value={it.state || ""}
+                          onChange={(e) => onUpdate(it.uid, { state: e.target.value as RoadmapItem["state"] })}
+                          className="h-8 text-xs"
+                          placeholder="—"
+                        />
+                      </td>
+                      <td>
+                        <Input
+                          value={it.tags || ""}
+                          onChange={(e) => onUpdate(it.uid, { tags: e.target.value })}
+                          className="h-8 text-xs"
+                          placeholder="—"
+                        />
                       </td>
                       <td>
                         <Textarea
