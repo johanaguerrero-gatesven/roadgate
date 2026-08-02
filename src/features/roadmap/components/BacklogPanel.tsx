@@ -155,8 +155,8 @@ export function BacklogPanel({
                   <th className="min-w-[120px]">Priority</th>
                   <th className="min-w-[95px]">Quarter</th>
                   <th className="min-w-[105px]">State</th>
-                  {isFeature ? <th className="min-w-[110px]">Owner</th> : <th className="min-w-[105px]">Tags</th>}
-                  {isFeature && <th className="min-w-[80px] text-right">PBIs #</th>}
+                  {isFeature ? <th className="min-w-[80px] w-[80px]">Owner</th> : <th className="min-w-[80px] w-[80px]">Tags</th>}
+                  {isFeature && <th className="min-w-[60px] w-[60px] text-right">PBIs #</th>}
                   <th className="min-w-[180px]">{isFeature ? "Comments" : "Notes"}</th>
                   <th className="min-w-[70px] text-center">Show</th>
                   <th className="min-w-[56px]"></th>
