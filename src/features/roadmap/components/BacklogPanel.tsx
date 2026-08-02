@@ -40,6 +40,7 @@ export function BacklogPanel({
 }) {
   const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [pending, setPending] = useState<{ csv: string; name: string; report: ImportReport } | null>(null);
   const rowsFor = (v: string, cpl: number) =>
     wrapText
       ? Math.max(1, v.split("\n").reduce((s, l) => s + Math.ceil((l.length || 1) / cpl), 0))
