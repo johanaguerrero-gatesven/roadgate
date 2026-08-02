@@ -94,12 +94,20 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     schedulePersist(normalized);
   };
 
-  /** Guarda la configuración de capacidad al instante (no hay ráfagas de edición). */
+  /**
+   * Guarda la capacidad con debounce: teclear en los inputs numéricos generaba
+   * una escritura por pulsación (y respuestas fuera de orden).
+   */
+  const capacityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (capacityTimer.current) clearTimeout(capacityTimer.current); }, []);
   const updateCapacity = (c: CapacityConfig) => {
     setCfg(c);
-    persistCapacityFn({ data: { roadmapId, capacity: c } }).catch((e) => {
-      console.error(e); toast.error("Error al guardar capacity");
-    });
+    if (capacityTimer.current) clearTimeout(capacityTimer.current);
+    capacityTimer.current = setTimeout(() => {
+      persistCapacityFn({ data: { roadmapId, capacity: c } }).catch((e) => {
+        console.error(e); toast.error("Error al guardar capacity");
+      });
+    }, 400);
   };
 
   /**
