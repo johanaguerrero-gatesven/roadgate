@@ -29,7 +29,7 @@ import {
   sprintsForQuarter, rolledUpEffort, topAncestor, roadmapCoverage,
 } from "@/lib/roadmap";
 import { WORK_ITEM_ICONS, WorkItemIcon } from "@/lib/work-item-icons";
-import { PRIORITIES, QUARTERS, hasAssignedPriority, utilizationBarColor } from "../constants";
+import { QUARTERS, hasAssignedPriority, utilizationBarColor } from "../constants";
 import { PriorityPicker } from "./PriorityPicker";
 import { ItemDetailDialog } from "./ItemDetailDialog";
 
