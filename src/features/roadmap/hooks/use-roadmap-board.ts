@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import {
   RoadmapItem, ItemType, Quarter, Priority,
-  CapacityConfig, defaultCapacity, uid, normalizeItems, descendantsOf,
+  CapacityConfig, defaultCapacity, uid, normalizeItems, descendantsOf, rolledUpEffort,
 } from "@/lib/roadmap";
 import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/roadmap.functions";
 
