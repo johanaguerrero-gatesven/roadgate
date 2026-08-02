@@ -297,19 +297,19 @@ export function BacklogPanel({
                           </SelectContent>
                         </Select>
                       </td>
-                      <td>
+                      <td className="min-w-[80px] w-[80px]">
                         <Input
                           value={it.state || ""}
                           onChange={(e) => onUpdate(it.uid, { state: e.target.value as RoadmapItem["state"] })}
-                          className="h-8 text-xs"
+                          className="h-7 text-xs px-1.5"
                           placeholder="—"
                         />
                       </td>
-                      <td>
+                      <td className="min-w-[80px] w-[80px]">
                         <Input
                           value={it.tags || ""}
                           onChange={(e) => onUpdate(it.uid, { tags: e.target.value })}
-                          className="h-8 text-xs"
+                          className="h-7 text-xs px-1.5"
                           placeholder="—"
                         />
                       </td>
