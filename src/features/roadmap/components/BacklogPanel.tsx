@@ -151,7 +151,7 @@ export function BacklogPanel({
                   {!isFeature && <th className="min-w-[180px]">Description</th>}
                   {type !== "epic" && <th className={isFeature ? "min-w-[80px]" : "min-w-[120px]"}>{isFeature ? "EPIC ID" : t("roadmap.col.parent")}</th>}
                   {isFeature && <th className="min-w-[160px]">EPIC Title</th>}
-                  <th className="min-w-[80px] text-right">{isFeature ? "Effort (h)" : "Effort"}</th>
+                  <th className="min-w-[64px] w-[64px] text-right">{isFeature ? "Effort (h)" : "Effort"}</th>
                   <th className="min-w-[120px]">Priority</th>
                   <th className="min-w-[95px]">Quarter</th>
                   <th className="min-w-[105px]">State</th>
@@ -220,10 +220,10 @@ export function BacklogPanel({
                         </td>
                       )}
 
-                      <td>
+                      <td className="min-w-[64px] w-[64px]">
                         {hasKids ? (
                           <div
-                            className="h-8 flex items-center justify-end px-2.5 text-xs text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border cursor-not-allowed"
+                            className="h-7 flex items-center justify-end px-2 text-xs text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border cursor-not-allowed"
                             title={t("roadmap.rollupTitle")}
                           >
                             Σ {rolledUpEffort(it, items)}h
@@ -236,7 +236,7 @@ export function BacklogPanel({
                               effort: e.target.value === "" ? undefined : Number(e.target.value),
                             })}
                             placeholder="0"
-                            className="h-8 text-xs text-right"
+                            className="h-7 w-[64px] text-xs text-right px-1.5"
                           />
                         )}
                       </td>
