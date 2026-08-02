@@ -19,12 +19,9 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, CornerDownRight, AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
+
 import { useI18n } from "@/lib/i18n";
 import {
   RoadmapItem, ItemType, Quarter, Priority, CapacityConfig,
@@ -32,7 +29,7 @@ import {
   sprintsForQuarter, rolledUpEffort, topAncestor, roadmapCoverage,
 } from "@/lib/roadmap";
 import { WORK_ITEM_ICONS, WorkItemIcon } from "@/lib/work-item-icons";
-import { PRIORITIES, QUARTERS, hasAssignedPriority, utilizationBarColor } from "../constants";
+import { QUARTERS, hasAssignedPriority, utilizationBarColor } from "../constants";
 import { PriorityPicker } from "./PriorityPicker";
 import { ItemDetailDialog } from "./ItemDetailDialog";
 
@@ -53,7 +50,6 @@ export function RoadmapView({
   const [dragUid, setDragUid] = useState<string | null>(null);
   const [overQ, setOverQ] = useState<Quarter | null>(null);
   const [lastSnapshot, setLastSnapshot] = useState<{ items: RoadmapItem[]; fromQ: Quarter; toQ: Quarter; id: string } | null>(null);
-  const [pending, setPending] = useState<{ uid: string; q: Quarter } | null>(null);
   const [detailUid, setDetailUid] = useState<string | null>(null);
   // Los padres muestran su árbol de hijos EXPANDIDO por defecto; aquí guardamos
   // solo los que el usuario ha colapsado manualmente.
@@ -85,8 +81,6 @@ export function RoadmapView({
 
 
 
-  const [pendPriority, setPendPriority] = useState<Priority>("");
-  const [pendEffort, setPendEffort] = useState<string>("");
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
@@ -126,27 +120,9 @@ export function RoadmapView({
     setOverQ(null);
   };
 
-  const confirmPending = () => {
-    if (!pending) return;
-    const target = items.find((i) => i.uid === pending.uid);
-    if (!target) { setPending(null); return; }
-    const hasKids = items.some((c) => c.parentId === target.id);
-    const patch: Partial<RoadmapItem> = {};
-    if (!hasAssignedPriority(target.priority) && hasAssignedPriority(pendPriority)) patch.priority = pendPriority;
-    if (!hasKids) {
-      const n = Number(pendEffort);
-      if (n > 0) patch.effort = n;
-    }
-    if (Object.keys(patch).length) onUpdate(pending.uid, patch);
-    commitMove(pending.uid, pending.q);
-    setPending(null);
-  };
+  // Nota: mover una tarjeta al Roadmap (o entre Quarters) NO pide prioridad ni
+  // esfuerzo. El hook aplica la prioridad automáticamente y respeta la existente.
 
-  const pendingItem = pending ? items.find((i) => i.uid === pending.uid) : null;
-  const pendingHasKids = pendingItem ? items.some((c) => c.parentId === pendingItem.id) : false;
-  const pendingValid =
-    hasAssignedPriority(pendPriority) &&
-    (pendingHasKids ? rolledUpEffort(pendingItem!, items) > 0 : Number(pendEffort) > 0);
 
   const undo = () => {
     if (!lastSnapshot) return;
@@ -444,42 +420,8 @@ export function RoadmapView({
         );
       })()}
 
-      <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Completar antes de añadir al Roadmap</DialogTitle>
-            <DialogDescription>
-              {pendingItem ? `${pendingItem.id} · ${pendingItem.title}` : ""} requiere prioridad
-              {pendingHasKids ? "" : " y esfuerzo"} para ubicarse en {pending?.q}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-foreground">Prioridad</label>
-              <Select value={pendPriority || undefined} onValueChange={(v) => setPendPriority(v as Priority)}>
-                <SelectTrigger><SelectValue placeholder="Selecciona prioridad" /></SelectTrigger>
-                <SelectContent>
-                  {PRIORITIES.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-foreground">Esfuerzo (h)</label>
-              {pendingHasKids ? (
-                <div className="text-xs text-muted-foreground border border-dashed rounded-md px-3 py-2 bg-muted/30">
-                  Σ {pendingItem ? rolledUpEffort(pendingItem, items) : 0} h (suma de hijos)
-                </div>
-              ) : (
-                <Input type="number" min={0} value={pendEffort} onChange={(e) => setPendEffort(e.target.value)} placeholder="Ej. 8" />
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setPending(null)}>Cancelar</Button>
-            <Button onClick={confirmPending} disabled={!pendingValid}>Guardar y mover</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+
 
       <ItemDetailDialog
         item={detailUid ? items.find((i) => i.uid === detailUid) ?? null : null}
