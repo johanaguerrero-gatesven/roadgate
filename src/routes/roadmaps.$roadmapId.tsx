@@ -147,7 +147,7 @@ function RoadmapPage() {
           </TabsContent>
 
           <TabsContent value="capacity" className="mt-6">
-            <CapacityPanel cfg={cfg} onChange={updateCapacity} />
+            <CapacityPanel cfg={cfg} roadmapId={roadmapId} onChange={updateCapacity} />
           </TabsContent>
         </Tabs>
       </main>
