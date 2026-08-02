@@ -184,7 +184,7 @@ export function BacklogPanel({
                           value={it.title}
                           onChange={(e) => onUpdate(it.uid, { title: e.target.value })}
                           rows={rowsFor(it.title || "", 42)}
-                          className={`min-h-[32px] text-sm leading-snug py-1.5 px-2 font-medium ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
+                          className={`min-h-[36px] rounded-md text-sm leading-snug py-1.5 px-2 font-medium ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                           placeholder={t("roadmap.col.title")}
                         />
                         {hasKids && (
@@ -199,7 +199,7 @@ export function BacklogPanel({
                             value={it.description || ""}
                             onChange={(e) => onUpdate(it.uid, { description: e.target.value })}
                             rows={rowsFor(it.description || "", 32)}
-                            className={`min-h-[32px] text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
+                            className={`min-h-[36px] rounded-md text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                             placeholder="—"
                           />
                         </td>
@@ -222,7 +222,7 @@ export function BacklogPanel({
                       <td>
                         {hasKids ? (
                           <div
-                            className="h-8 flex items-center justify-end px-2 text-xs text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border cursor-not-allowed"
+                            className="h-9 flex items-center justify-end px-2.5 text-xs text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border cursor-not-allowed"
                             title={t("roadmap.rollupTitle")}
                           >
                             Σ {rolledUpEffort(it, items)}h
@@ -235,7 +235,7 @@ export function BacklogPanel({
                               effort: e.target.value === "" ? undefined : Number(e.target.value),
                             })}
                             placeholder="0"
-                            className="h-8 text-xs text-right"
+                            className="h-9 text-xs text-right"
                           />
                         )}
                       </td>
@@ -245,7 +245,7 @@ export function BacklogPanel({
                           value={it.priority || "__none"}
                           onValueChange={(v) => onUpdate(it.uid, { priority: (v === "__none" ? "" : v) as Priority })}
                         >
-                          <SelectTrigger className="h-8 text-xs gap-1 [&>span]:flex [&>span]:items-center [&>span]:gap-1.5">
+                          <SelectTrigger className="h-9 text-xs gap-1 [&>span]:flex [&>span]:items-center [&>span]:gap-1.5">
                             <SelectValue>
                               {it.priority ? (
                                 <span className="flex items-center gap-1.5">
@@ -282,7 +282,7 @@ export function BacklogPanel({
                           value={it.quarter || "__bl"}
                           onValueChange={(v) => onMoveQuarter(it.uid, (v === "__bl" ? "" : v) as Quarter)}
                         >
-                          <SelectTrigger className="h-8 text-xs">
+                          <SelectTrigger className="h-9 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -300,7 +300,7 @@ export function BacklogPanel({
                         <Input
                           value={it.state || ""}
                           onChange={(e) => onUpdate(it.uid, { state: e.target.value as RoadmapItem["state"] })}
-                          className="h-8 text-xs"
+                          className="h-9 text-xs"
                           placeholder="—"
                         />
                       </td>
@@ -308,7 +308,7 @@ export function BacklogPanel({
                         <Input
                           value={it.tags || ""}
                           onChange={(e) => onUpdate(it.uid, { tags: e.target.value })}
-                          className="h-8 text-xs"
+                          className="h-9 text-xs"
                           placeholder="—"
                         />
                       </td>
@@ -321,7 +321,7 @@ export function BacklogPanel({
                           value={it.notes || ""}
                           onChange={(e) => onUpdate(it.uid, { notes: e.target.value })}
                           rows={rowsFor(it.notes || "", 32)}
-                          className={`min-h-[32px] text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
+                          className={`min-h-[36px] rounded-md text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                           placeholder="—"
                         />
                       </td>

@@ -23,7 +23,7 @@ export function IdInput({ value, onCommit }: { value: string; onCommit: (v: stri
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
       placeholder="ID"
-      className="h-8 px-2 text-xs font-mono font-semibold"
+      className="h-9 w-full min-w-0 px-2.5 text-xs font-mono font-semibold tracking-tight"
     />
   );
 }
