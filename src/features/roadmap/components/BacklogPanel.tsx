@@ -141,25 +141,25 @@ export function BacklogPanel({
           <p className="mt-1 text-sm text-muted-foreground">{t("roadmap.empty.lead")}</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
-                <tr className="[&>th]:px-2 [&>th]:py-2 [&>th]:text-left [&>th]:font-semibold [&>th]:border-b [&>th]:border-border">
-                  <th className="w-[170px]">ID</th>
-                  <th className="min-w-[280px]">{t("roadmap.col.title")}</th>
-                  {!isFeature && <th className="min-w-[220px]">Description</th>}
-                  {type !== "epic" && <th className="w-[150px]">{isFeature ? "EPIC ID" : t("roadmap.col.parent")}</th>}
-                  {isFeature && <th className="min-w-[200px]">EPIC Title</th>}
-                  <th className="w-[80px] text-right">{isFeature ? "Effort (h)" : "Effort"}</th>
-                  <th className="w-[140px]">Priority</th>
-                  <th className="w-[100px]">Quarter</th>
-                  <th className="w-[120px]">State</th>
-                  {isFeature ? <th className="w-[130px]">Owner</th> : <th className="w-[120px]">Tags</th>}
-                  {isFeature && <th className="w-[70px] text-right">PBIs #</th>}
-                  <th className="min-w-[220px]">{isFeature ? "Comments" : "Notes"}</th>
-                  <th className="w-[60px] text-center">Show</th>
-                  <th className="w-[44px]"></th>
+        <div className="rounded-xl border border-border bg-card shadow-sm">
+          <div className="overflow-x-auto overscroll-x-contain rounded-xl [scrollbar-width:thin]">
+            <table className="w-max min-w-full text-sm border-separate border-spacing-0">
+              <thead className="bg-muted/70 text-[11px] uppercase tracking-wide text-muted-foreground">
+                <tr className="[&>th]:px-3 [&>th]:py-2.5 [&>th]:text-left [&>th]:font-semibold [&>th]:whitespace-nowrap [&>th]:border-b [&>th]:border-border">
+                  <th className="sticky left-0 z-20 bg-muted/95 backdrop-blur-sm border-r border-border w-[180px] min-w-[180px]">ID</th>
+                  <th className="min-w-[300px]">{t("roadmap.col.title")}</th>
+                  {!isFeature && <th className="min-w-[240px]">Description</th>}
+                  {type !== "epic" && <th className="min-w-[170px]">{isFeature ? "EPIC ID" : t("roadmap.col.parent")}</th>}
+                  {isFeature && <th className="min-w-[220px]">EPIC Title</th>}
+                  <th className="min-w-[100px] text-right">{isFeature ? "Effort (h)" : "Effort"}</th>
+                  <th className="min-w-[150px]">Priority</th>
+                  <th className="min-w-[120px]">Quarter</th>
+                  <th className="min-w-[130px]">State</th>
+                  {isFeature ? <th className="min-w-[140px]">Owner</th> : <th className="min-w-[130px]">Tags</th>}
+                  {isFeature && <th className="min-w-[80px] text-right">PBIs #</th>}
+                  <th className="min-w-[240px]">{isFeature ? "Comments" : "Notes"}</th>
+                  <th className="min-w-[70px] text-center">Show</th>
+                  <th className="min-w-[56px]"></th>
                 </tr>
               </thead>
 
@@ -173,17 +173,18 @@ export function BacklogPanel({
                   return (
                     <tr
                       key={it.uid}
-                      className={`group border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors [&>td]:px-2 [&>td]:py-1.5 [&>td]:align-top ${hidden ? "opacity-60" : ""}`}
+                      className={`group transition-colors [&>td]:px-3 [&>td]:py-2 [&>td]:align-top [&>td]:border-b [&>td]:border-border/70 hover:[&>td]:bg-muted/40 ${hidden ? "opacity-60" : ""}`}
                     >
-                      <td>
+                      <td className="sticky left-0 z-10 bg-card border-r border-border group-hover:bg-muted/40">
                         <IdInput value={it.id} onCommit={(v) => onUpdate(it.uid, { id: v })} />
                       </td>
+
                       <td>
                         <Textarea
                           value={it.title}
                           onChange={(e) => onUpdate(it.uid, { title: e.target.value })}
                           rows={rowsFor(it.title || "", 42)}
-                          className={`min-h-[32px] text-sm leading-snug py-1.5 px-2 font-medium ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
+                          className={`min-h-[36px] rounded-md text-sm leading-snug py-1.5 px-2 font-medium ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                           placeholder={t("roadmap.col.title")}
                         />
                         {hasKids && (
@@ -198,7 +199,7 @@ export function BacklogPanel({
                             value={it.description || ""}
                             onChange={(e) => onUpdate(it.uid, { description: e.target.value })}
                             rows={rowsFor(it.description || "", 32)}
-                            className={`min-h-[32px] text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
+                            className={`min-h-[36px] rounded-md text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                             placeholder="—"
                           />
                         </td>
@@ -221,7 +222,7 @@ export function BacklogPanel({
                       <td>
                         {hasKids ? (
                           <div
-                            className="h-8 flex items-center justify-end px-2 text-xs text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border cursor-not-allowed"
+                            className="h-9 flex items-center justify-end px-2.5 text-xs text-muted-foreground bg-muted/30 rounded-md border border-dashed border-border cursor-not-allowed"
                             title={t("roadmap.rollupTitle")}
                           >
                             Σ {rolledUpEffort(it, items)}h
@@ -234,7 +235,7 @@ export function BacklogPanel({
                               effort: e.target.value === "" ? undefined : Number(e.target.value),
                             })}
                             placeholder="0"
-                            className="h-8 text-xs text-right"
+                            className="h-9 text-xs text-right"
                           />
                         )}
                       </td>
@@ -244,7 +245,7 @@ export function BacklogPanel({
                           value={it.priority || "__none"}
                           onValueChange={(v) => onUpdate(it.uid, { priority: (v === "__none" ? "" : v) as Priority })}
                         >
-                          <SelectTrigger className="h-8 text-xs gap-1 [&>span]:flex [&>span]:items-center [&>span]:gap-1.5">
+                          <SelectTrigger className="h-9 text-xs gap-1 [&>span]:flex [&>span]:items-center [&>span]:gap-1.5">
                             <SelectValue>
                               {it.priority ? (
                                 <span className="flex items-center gap-1.5">
@@ -281,7 +282,7 @@ export function BacklogPanel({
                           value={it.quarter || "__bl"}
                           onValueChange={(v) => onMoveQuarter(it.uid, (v === "__bl" ? "" : v) as Quarter)}
                         >
-                          <SelectTrigger className="h-8 text-xs">
+                          <SelectTrigger className="h-9 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -299,7 +300,7 @@ export function BacklogPanel({
                         <Input
                           value={it.state || ""}
                           onChange={(e) => onUpdate(it.uid, { state: e.target.value as RoadmapItem["state"] })}
-                          className="h-8 text-xs"
+                          className="h-9 text-xs"
                           placeholder="—"
                         />
                       </td>
@@ -307,7 +308,7 @@ export function BacklogPanel({
                         <Input
                           value={it.tags || ""}
                           onChange={(e) => onUpdate(it.uid, { tags: e.target.value })}
-                          className="h-8 text-xs"
+                          className="h-9 text-xs"
                           placeholder="—"
                         />
                       </td>
@@ -320,7 +321,7 @@ export function BacklogPanel({
                           value={it.notes || ""}
                           onChange={(e) => onUpdate(it.uid, { notes: e.target.value })}
                           rows={rowsFor(it.notes || "", 32)}
-                          className={`min-h-[32px] text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
+                          className={`min-h-[36px] rounded-md text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                           placeholder="—"
                         />
                       </td>
