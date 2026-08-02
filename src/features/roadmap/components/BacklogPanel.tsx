@@ -148,18 +148,21 @@ export function BacklogPanel({
                 <tr className="[&>th]:px-2 [&>th]:py-1.5 [&>th]:text-left [&>th]:font-semibold [&>th]:whitespace-nowrap [&>th]:border-b [&>th]:border-border">
                   <th className="sticky left-0 z-20 bg-muted/95 backdrop-blur-sm border-r border-border w-[120px] min-w-[120px]">ID</th>
                   <th className="min-w-[200px]">{t("roadmap.col.title")}</th>
-                  {!isFeature && <th className="min-w-[180px]">Description</th>}
-                  {type !== "epic" && <th className={isFeature ? "min-w-[80px]" : "min-w-[120px]"}>{isFeature ? "EPIC ID" : t("roadmap.col.parent")}</th>}
+                  {!isFeature && !isStory && <th className="min-w-[180px]">Description</th>}
+                  {isStory && <th className="min-w-[90px]">Parent Type</th>}
+                  {type !== "epic" && <th className={isFeature || isStory ? "min-w-[80px]" : "min-w-[120px]"}>{isFeature ? "EPIC ID" : isStory ? "Parent ID" : t("roadmap.col.parent")}</th>}
                   {isFeature && <th className="min-w-[160px]">EPIC Title</th>}
-                  <th className="min-w-[64px] w-[64px] text-right">{isFeature ? "Effort (h)" : "Effort"}</th>
+                  {isStory && <th className="min-w-[160px]">Parent Title</th>}
+                  <th className="min-w-[64px] w-[64px] text-right">{isFeature || isStory ? "Effort (h)" : "Effort"}</th>
                   <th className="min-w-[120px]">Priority</th>
                   <th className="min-w-[95px]">Quarter</th>
-                  <th className="min-w-[105px]">State</th>
-                  {isFeature ? <th className="min-w-[80px] w-[80px]">Owner</th> : <th className="min-w-[80px] w-[80px]">Tags</th>}
+                  {!isStory && <th className="min-w-[105px]">State</th>}
+                  {isFeature ? <th className="min-w-[80px] w-[80px]">Owner</th> : !isStory && <th className="min-w-[80px] w-[80px]">Tags</th>}
                   {isFeature && <th className="min-w-[60px] w-[60px] text-right">PBIs #</th>}
-                  <th className="min-w-[180px]">{isFeature ? "Comments" : "Notes"}</th>
+                  <th className="min-w-[180px]">{isFeature || isStory ? "Comments" : "Notes"}</th>
                   <th className="min-w-[70px] text-center">Show</th>
                   <th className="min-w-[56px]"></th>
+
                 </tr>
               </thead>
 
