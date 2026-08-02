@@ -5,7 +5,7 @@
  * bloqueado: se muestra la suma (Σ) que calcula el dominio.
  * También ofrece importación CSV y exportación a Excel por tipo de item.
  */
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, Minus,
@@ -16,10 +16,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { RoadmapItem, ItemType, Quarter, Priority, toCSV, rolledUpEffort } from "@/lib/roadmap";
+import { validateImportCSV, type ImportReport } from "@/lib/csv-validation";
 import { PRIORITIES, PRIORITY_META, QUARTERS, type RealPriority } from "../constants";
 import { PriorityIcon } from "./PriorityIcon";
 import { ParentPicker } from "./ParentPicker";
 import { IdInput } from "./IdInput";
+import { ImportReportDialog } from "./ImportReportDialog";
 
 /** Tabla estilo Excel con todos los work items de un tipo. */
 export function BacklogPanel({
@@ -38,6 +40,7 @@ export function BacklogPanel({
 }) {
   const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [pending, setPending] = useState<{ csv: string; name: string; report: ImportReport } | null>(null);
   const rowsFor = (v: string, cpl: number) =>
     wrapText
       ? Math.max(1, v.split("\n").reduce((s, l) => s + Math.ceil((l.length || 1) / cpl), 0))
@@ -55,7 +58,15 @@ export function BacklogPanel({
   /**
    * Acepta CSV y Excel (.xlsx/.xls). Los Excel se convierten a CSV en el
    * navegador (SheetJS) para reutilizar el mismo parser de importación.
+   * Antes de importar se valida la estructura y se muestra el informe.
    */
+  const review = (csv: string, name: string) => {
+    const report = validateImportCSV(csv, type, items);
+    setPending({ csv, name, report });
+    if (!report.ok) toast.error(`Importación bloqueada: ${report.errorCount} errores en el fichero`);
+    else if (report.warningCount) toast.warning(`${report.warningCount} avisos en el fichero`);
+  };
+
   const handleFile = async (f: File) => {
     const isExcel = /\.(xlsx|xlsm|xls)$/i.test(f.name);
     if (isExcel) {
@@ -63,7 +74,7 @@ export function BacklogPanel({
         const XLSX = await import("xlsx");
         const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
         const sheet = wb.Sheets[wb.SheetNames[0]];
-        onImport(XLSX.utils.sheet_to_csv(sheet));
+        review(XLSX.utils.sheet_to_csv(sheet), f.name);
       } catch (e) {
         console.error(e);
         toast.error("No se pudo leer el Excel");
@@ -71,7 +82,7 @@ export function BacklogPanel({
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => onImport(String(reader.result || ""));
+    reader.onload = () => review(String(reader.result || ""), f.name);
     reader.readAsText(f);
   };
   const exportCsv = () => {
@@ -107,6 +118,21 @@ export function BacklogPanel({
           {list.length} {type === "story" ? "user stories" : `${type}s`}
         </span>
       </div>
+
+      <ImportReportDialog
+        report={pending?.report ?? null}
+        type={type}
+        fileName={pending?.name}
+        onCancel={() => setPending(null)}
+        onConfirm={() => {
+          if (!pending) return;
+          onImport(pending.csv);
+          toast.success(`${pending.report.validRows} filas importadas`);
+          setPending(null);
+        }}
+      />
+
+
 
       {list.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card/60 p-10 text-center">
