@@ -3,14 +3,23 @@
  * Entradas: desarrolladores, % de dedicación, días por sprint, horas por día y
  * sprints por Quarter (con posibilidad de sobrescribir Quarter a Quarter).
  * Capacidad por sprint = devs x dedicación x días x horas.
+ * Incluye el audit trail de cambios (quién, cuándo, valor anterior → nuevo).
  */
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import { CapacityConfig, capacityPerQuarter, capacityPerSprint, sprintsForQuarter } from "@/lib/roadmap";
+import { fetchCapacityHistory } from "@/lib/roadmap.functions";
 import { QUARTERS } from "../constants";
 
+type HistoryEntry = {
+  id: string; field: string; oldValue: string | null; newValue: string | null; by: string; at: string;
+};
+
 /** Configuración de capacidad del equipo y su cálculo derivado. */
-export function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: CapacityConfig) => void }) {
+export function CapacityPanel({ cfg, roadmapId, onChange }: { cfg: CapacityConfig; roadmapId: string; onChange: (c: CapacityConfig) => void }) {
+
   const { t } = useI18n();
   type NumKey = "developers" | "dedicationPct" | "daysPerSprint" | "hoursPerDay" | "sprintsPerQuarter";
   const fields: { key: NumKey; label: string }[] = [
