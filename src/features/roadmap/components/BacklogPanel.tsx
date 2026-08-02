@@ -163,6 +163,15 @@ export function BacklogPanel({
                           </div>
                         )}
                       </td>
+                      <td>
+                        <Textarea
+                          value={it.description || ""}
+                          onChange={(e) => onUpdate(it.uid, { description: e.target.value })}
+                          rows={rowsFor(it.description || "", 32)}
+                          className={`min-h-[32px] text-xs leading-snug py-1.5 px-2 ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
+                          placeholder="—"
+                        />
+                      </td>
                       {type !== "epic" && (
                         <td>
                           <ParentPicker
