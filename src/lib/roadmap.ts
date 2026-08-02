@@ -504,7 +504,7 @@ export function effectiveQuarter(item: RoadmapItem, _items: RoadmapItem[]): Quar
 
 /** Hijos directos de `parent` (relación por `parentId` = `id` del padre). */
 function childrenOf(parent: RoadmapItem, items: RoadmapItem[]) {
-  return items.filter((i) => i.parentId === parent.id);
+  return items.filter((i) => i.parentId === parent.id && i.uid !== parent.uid);
 }
 
 /**
@@ -522,10 +522,7 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
   const out: { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[] = [];
   const visited = new Set<string>();
 
-  const allDescendants = (node: RoadmapItem): RoadmapItem[] => {
-    const kids = childrenOf(node, items);
-    return [...kids, ...kids.flatMap(allDescendants)];
-  };
+  const allDescendants = (node: RoadmapItem): RoadmapItem[] => descendantsOf(node, items);
 
   /**
    * Returns the single shared quarter of all descendants (ignoring unassigned),
