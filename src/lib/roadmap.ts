@@ -302,10 +302,18 @@ function normalizeQuarter(raw: string): Quarter {
   return (m ? (m[0].toUpperCase() as Quarter) : "");
 }
 
+/** Excel suele exportar los IDs numéricos como "622.0"; los normalizamos. */
+function normalizeId(raw: string): string {
+  const v = raw.trim();
+  return /^\d+\.0+$/.test(v) ? v.replace(/\.0+$/, "") : v;
+}
+
 /**
  * Imports CSV. Supports Azure DevOps export headers:
  *  ID, Work Item Type, Title, Parent, State, Effort/Story Points, Priority,
  *  Iteration Path, Tags, Description.
+ * También la estructura de Features:
+ *  ID, Title, EPIC ID, EPIC Title, Effort (h), Priority, Quarter, State, Owner, PBIs #, Comments
  * If "Work Item Type" is missing, falls back to `defaultType` for every row.
  */
 export function importCSV(text: string, defaultType: ItemType, existing: RoadmapItem[]): RoadmapItem[] {
@@ -313,7 +321,7 @@ export function importCSV(text: string, defaultType: ItemType, existing: Roadmap
   const newItems: RoadmapItem[] = rows.map((r) => {
     const wit = pick(r, ["work item type", "type", "item type"]);
     const type = detectType(wit, defaultType);
-    const id = pick(r, ["id", "key", "work item id"]) || `${type.toUpperCase()}-${uid().slice(0, 4)}`;
+    const id = normalizeId(pick(r, ["id", "key", "work item id"])) || `${type.toUpperCase()}-${uid().slice(0, 4)}`;
     const iter = pick(r, ["iteration path", "iteration", "sprint"]);
     return {
       uid: uid(),
@@ -321,13 +329,13 @@ export function importCSV(text: string, defaultType: ItemType, existing: Roadmap
       type,
       title: pick(r, ["title", "name", "summary"]),
       description: pick(r, ["description", "desc"]),
-      parentId: pick(r, ["parent", "parentid", "parent id", "parent work item"]) || undefined,
-      effort: Number(pick(r, ["effort", "hours", "estimate", "story points", "original estimate"])) || undefined,
+      parentId: normalizeId(pick(r, ["parent", "parentid", "parent id", "parent work item", "epic id", "epic"])) || undefined,
+      effort: Number(pick(r, ["effort", "effort (h)", "hours", "estimate", "story points", "original estimate"])) || undefined,
       priority: normalizePriority(pick(r, ["priority"])),
       quarter: normalizeQuarter(pick(r, ["quarter", "q"]) || iter),
       state: (pick(r, ["state", "status"]) as State) || "Backlog",
       notes: pick(r, ["notes", "comment", "comments"]),
-      tags: pick(r, ["tags", "labels"]),
+      tags: pick(r, ["tags", "labels", "owner"]),
     };
   });
   // dedupe by id keeping new
@@ -336,14 +344,34 @@ export function importCSV(text: string, defaultType: ItemType, existing: Roadmap
   return [...map.values()];
 }
 
-/** Serializa los items a CSV con las cabeceras que espera Azure DevOps. */
-export function toCSV(items: RoadmapItem[]): string {
-  const headers = ["ID", "Work Item Type", "Title", "Description", "Parent", "Effort", "Priority", "Quarter", "State", "Tags", "Notes"];
-  const witLabel: Record<ItemType, string> = { epic: "Epic", feature: "Feature", story: "User Story" };
+/**
+ * Serializa los items a CSV. Para Features usa exactamente la estructura del
+ * fichero de negocio (ID, Title, EPIC ID, EPIC Title, Effort (h), Priority,
+ * Quarter, State, Owner, PBIs #, Comments); el resto usa cabeceras Azure DevOps.
+ */
+export function toCSV(items: RoadmapItem[], type?: ItemType, all: RoadmapItem[] = items): string {
   const esc = (v: unknown) => {
     const s = v == null ? "" : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
+
+  if (type === "feature") {
+    const headers = ["ID", "Title", "EPIC ID", "EPIC Title", "Effort (h)", "Priority", "Quarter", "State", "Owner", "PBIs #", "Comments"];
+    const lines = [headers.join(",")];
+    items.forEach((it) => {
+      const epicTitle = all.find((p) => p.id === it.parentId)?.title ?? "";
+      const pbis = all.filter((c) => c.parentId === it.id).length;
+      lines.push([
+        it.id, it.title, it.parentId ?? "", epicTitle,
+        it.effort ?? "", it.priority ?? "", it.quarter ?? "", it.state ?? "",
+        it.tags ?? "", pbis, it.notes ?? "",
+      ].map(esc).join(","));
+    });
+    return lines.join("\n");
+  }
+
+  const headers = ["ID", "Work Item Type", "Title", "Description", "Parent", "Effort", "Priority", "Quarter", "State", "Tags", "Notes"];
+  const witLabel: Record<ItemType, string> = { epic: "Epic", feature: "Feature", story: "User Story" };
   const lines = [headers.join(",")];
   items.forEach((it) => {
     lines.push([
@@ -354,6 +382,7 @@ export function toCSV(items: RoadmapItem[]): string {
   });
   return lines.join("\n");
 }
+
 
 // ---------- Roadmap rollup logic ----------
 
