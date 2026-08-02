@@ -38,8 +38,40 @@ export function CapacityPanel({ cfg, roadmapId, onChange }: { cfg: CapacityConfi
     const n = Number(v);
     return Number.isFinite(n) && n >= 0 ? n : 0;
   };
+
+  /**
+   * Audit trail: se recarga poco después de cada cambio de `cfg` (el guardado
+   * va con debounce de 400 ms en el hook, así que esperamos algo más).
+   */
+  const historyFn = useServerFn(fetchCapacityHistory);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  useEffect(() => {
+    let alive = true;
+    const timer = setTimeout(() => {
+      historyFn({ data: { roadmapId } })
+        .then((rows) => { if (alive) setHistory(rows as HistoryEntry[]); })
+        .catch((e) => console.error(e));
+    }, 900);
+    return () => { alive = false; clearTimeout(timer); };
+  }, [roadmapId, cfg, historyFn]);
+
+  const fieldLabel = (f: string) => {
+    const map: Record<string, string> = {
+      developers: t("roadmap.cap.developers"),
+      dedicationPct: t("roadmap.cap.dedication"),
+      daysPerSprint: t("roadmap.cap.daysPerSprint"),
+      hoursPerDay: t("roadmap.cap.hoursPerDay"),
+      sprintsPerQuarter: t("roadmap.cap.sprintsPerQuarterDefault"),
+    };
+    if (f.startsWith("sprintsByQuarter.")) return `${t("roadmap.cap.sprintsByQuarter")} · ${f.split(".")[1]}`;
+    return map[f] ?? f;
+  };
+  const val = (v: string | null) => (v == null || v === "" ? t("roadmap.cap.historyEmptyValue") : v);
+
   return (
+    <div className="space-y-6">
     <div className="grid md:grid-cols-2 gap-6">
+
       <div className="rounded-xl border border-border bg-card p-6 space-y-3">
         <h3 className="font-semibold text-foreground mb-2">{t("roadmap.cap.global")}</h3>
         {fields.map((f) => (
