@@ -75,7 +75,7 @@ export function BacklogPanel({
     reader.readAsText(f);
   };
   const exportCsv = () => {
-    const blob = new Blob([toCSV(list)], { type: "text/csv" });
+    const blob = new Blob([toCSV(list, type, items)], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `${type}.csv`; a.click();
