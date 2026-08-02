@@ -12,11 +12,12 @@ import type { RoadmapItem } from "@/lib/roadmap";
 
 /** Combobox con búsqueda para elegir el padre de un Feature / User Story. */
 export function ParentPicker({
-  value, parents, onChange,
+  value, parents, onChange, showIdOnly,
 }: {
   value?: string;
   parents: RoadmapItem[];
   onChange: (v: string) => void;
+  showIdOnly?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const selected = parents.find((p) => p.id === value);
@@ -28,10 +29,14 @@ export function ParentPicker({
           className="flex h-8 w-full items-center justify-between gap-1 rounded-md border border-input bg-transparent px-2 text-xs shadow-sm hover:bg-muted/40"
         >
           {selected ? (
-            <span className="flex items-center gap-1 truncate">
-              <WorkItemIcon type={selected.type} className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{selected.id} · {selected.title.slice(0, 30)}</span>
-            </span>
+            showIdOnly ? (
+              <span className="truncate font-mono">{selected.id}</span>
+            ) : (
+              <span className="flex items-center gap-1 truncate">
+                <WorkItemIcon type={selected.type} className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{selected.id} · {selected.title.slice(0, 30)}</span>
+              </span>
+            )
           ) : (
             <span className="text-muted-foreground">—</span>
           )}
