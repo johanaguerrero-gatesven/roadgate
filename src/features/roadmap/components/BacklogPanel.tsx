@@ -290,6 +290,10 @@ export function BacklogPanel({
                           placeholder="—"
                         />
                       </td>
+                      {isFeature && (
+                        <td className="text-xs text-muted-foreground text-right pt-3">{kids.length}</td>
+                      )}
+
                       <td>
                         <Textarea
                           value={it.notes || ""}
