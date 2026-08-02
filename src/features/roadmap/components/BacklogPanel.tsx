@@ -259,6 +259,22 @@ export function BacklogPanel({
                         </Select>
                       </td>
                       <td>
+                        <Input
+                          value={it.state || ""}
+                          onChange={(e) => onUpdate(it.uid, { state: e.target.value as RoadmapItem["state"] })}
+                          className="h-8 text-xs"
+                          placeholder="—"
+                        />
+                      </td>
+                      <td>
+                        <Input
+                          value={it.tags || ""}
+                          onChange={(e) => onUpdate(it.uid, { tags: e.target.value })}
+                          className="h-8 text-xs"
+                          placeholder="—"
+                        />
+                      </td>
+                      <td>
                         <Textarea
                           value={it.notes || ""}
                           onChange={(e) => onUpdate(it.uid, { notes: e.target.value })}
