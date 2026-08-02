@@ -119,6 +119,21 @@ export function BacklogPanel({
         </span>
       </div>
 
+      <ImportReportDialog
+        report={pending?.report ?? null}
+        type={type}
+        fileName={pending?.name}
+        onCancel={() => setPending(null)}
+        onConfirm={() => {
+          if (!pending) return;
+          onImport(pending.csv);
+          toast.success(`${pending.report.validRows} filas importadas`);
+          setPending(null);
+        }}
+      />
+
+
+
       {list.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card/60 p-10 text-center">
           <FileSpreadsheet className="h-10 w-10 mx-auto text-primary" />
