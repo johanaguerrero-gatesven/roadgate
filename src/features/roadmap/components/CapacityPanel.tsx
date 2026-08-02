@@ -21,6 +21,14 @@ export function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange
     { key: "sprintsPerQuarter", label: t("roadmap.cap.sprintsPerQuarterDefault") },
   ];
   const sprint = capacityPerSprint(cfg);
+  /**
+   * Saneado de la entrada numérica: vaciar el campo o teclear texto producía
+   * `NaN`, que se propagaba a los cálculos ("NaN h") y al guardado.
+   */
+  const num = (v: string) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  };
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <div className="rounded-xl border border-border bg-card p-6 space-y-3">
@@ -31,7 +39,7 @@ export function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange
             <Input
               type="number" min={0}
               value={cfg[f.key]}
-              onChange={(e) => onChange({ ...cfg, [f.key]: Number(e.target.value) })}
+              onChange={(e) => onChange({ ...cfg, [f.key]: num(e.target.value) })}
               className="w-32 h-9"
             />
           </div>
@@ -47,7 +55,7 @@ export function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange
                 value={cfg.sprintsByQuarter?.[q] ?? cfg.sprintsPerQuarter}
                 onChange={(e) => onChange({
                   ...cfg,
-                  sprintsByQuarter: { ...(cfg.sprintsByQuarter || {}), [q]: Number(e.target.value) },
+                  sprintsByQuarter: { ...(cfg.sprintsByQuarter || {}), [q]: num(e.target.value) },
                 })}
                 className="w-24 h-9"
               />
