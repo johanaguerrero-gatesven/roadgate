@@ -57,7 +57,15 @@ export function BacklogPanel({
   /**
    * Acepta CSV y Excel (.xlsx/.xls). Los Excel se convierten a CSV en el
    * navegador (SheetJS) para reutilizar el mismo parser de importación.
+   * Antes de importar se valida la estructura y se muestra el informe.
    */
+  const review = (csv: string, name: string) => {
+    const report = validateImportCSV(csv, type, items);
+    setPending({ csv, name, report });
+    if (!report.ok) toast.error(`Importación bloqueada: ${report.errorCount} errores en el fichero`);
+    else if (report.warningCount) toast.warning(`${report.warningCount} avisos en el fichero`);
+  };
+
   const handleFile = async (f: File) => {
     const isExcel = /\.(xlsx|xlsm|xls)$/i.test(f.name);
     if (isExcel) {
@@ -65,7 +73,7 @@ export function BacklogPanel({
         const XLSX = await import("xlsx");
         const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
         const sheet = wb.Sheets[wb.SheetNames[0]];
-        onImport(XLSX.utils.sheet_to_csv(sheet));
+        review(XLSX.utils.sheet_to_csv(sheet), f.name);
       } catch (e) {
         console.error(e);
         toast.error("No se pudo leer el Excel");
@@ -73,7 +81,7 @@ export function BacklogPanel({
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => onImport(String(reader.result || ""));
+    reader.onload = () => review(String(reader.result || ""), f.name);
     reader.readAsText(f);
   };
   const exportCsv = () => {
