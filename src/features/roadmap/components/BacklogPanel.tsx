@@ -16,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { RoadmapItem, ItemType, Quarter, Priority, toCSV, rolledUpEffort } from "@/lib/roadmap";
-import { WorkItemIcon } from "@/lib/work-item-icons";
 import { PRIORITIES, PRIORITY_META, QUARTERS, type RealPriority } from "../constants";
 import { PriorityIcon } from "./PriorityIcon";
 import { ParentPicker } from "./ParentPicker";
@@ -121,8 +120,7 @@ export function BacklogPanel({
             <table className="w-full text-sm border-collapse">
               <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
                 <tr className="[&>th]:px-2 [&>th]:py-2 [&>th]:text-left [&>th]:font-semibold [&>th]:border-b [&>th]:border-border">
-                  <th className="w-8"></th>
-                  <th className="w-[110px]">ID</th>
+                  <th className="w-[170px]">ID</th>
                   <th className="min-w-[280px]">{t("roadmap.col.title")}</th>
                   {!isFeature && <th className="min-w-[220px]">Description</th>}
                   {type !== "epic" && <th className="w-[150px]">{isFeature ? "EPIC ID" : t("roadmap.col.parent")}</th>}
@@ -151,9 +149,6 @@ export function BacklogPanel({
                       key={it.uid}
                       className={`group border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors [&>td]:px-2 [&>td]:py-1.5 [&>td]:align-top ${hidden ? "opacity-60" : ""}`}
                     >
-                      <td className="text-center text-muted-foreground/50">
-                        <WorkItemIcon type={it.type} className="h-4 w-4 inline" />
-                      </td>
                       <td>
                         <IdInput value={it.id} onCommit={(v) => onUpdate(it.uid, { id: v })} />
                       </td>
