@@ -126,27 +126,9 @@ export function RoadmapView({
     setOverQ(null);
   };
 
-  const confirmPending = () => {
-    if (!pending) return;
-    const target = items.find((i) => i.uid === pending.uid);
-    if (!target) { setPending(null); return; }
-    const hasKids = items.some((c) => c.parentId === target.id);
-    const patch: Partial<RoadmapItem> = {};
-    if (!hasAssignedPriority(target.priority) && hasAssignedPriority(pendPriority)) patch.priority = pendPriority;
-    if (!hasKids) {
-      const n = Number(pendEffort);
-      if (n > 0) patch.effort = n;
-    }
-    if (Object.keys(patch).length) onUpdate(pending.uid, patch);
-    commitMove(pending.uid, pending.q);
-    setPending(null);
-  };
+  // Nota: mover una tarjeta al Roadmap (o entre Quarters) NO pide prioridad ni
+  // esfuerzo. El hook aplica la prioridad automáticamente y respeta la existente.
 
-  const pendingItem = pending ? items.find((i) => i.uid === pending.uid) : null;
-  const pendingHasKids = pendingItem ? items.some((c) => c.parentId === pendingItem.id) : false;
-  const pendingValid =
-    hasAssignedPriority(pendPriority) &&
-    (pendingHasKids ? rolledUpEffort(pendingItem!, items) > 0 : Number(pendEffort) > 0);
 
   const undo = () => {
     if (!lastSnapshot) return;
