@@ -3,14 +3,23 @@
  * Entradas: desarrolladores, % de dedicación, días por sprint, horas por día y
  * sprints por Quarter (con posibilidad de sobrescribir Quarter a Quarter).
  * Capacidad por sprint = devs x dedicación x días x horas.
+ * Incluye el audit trail de cambios (quién, cuándo, valor anterior → nuevo).
  */
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import { CapacityConfig, capacityPerQuarter, capacityPerSprint, sprintsForQuarter } from "@/lib/roadmap";
+import { fetchCapacityHistory } from "@/lib/roadmap.functions";
 import { QUARTERS } from "../constants";
 
+type HistoryEntry = {
+  id: string; field: string; oldValue: string | null; newValue: string | null; by: string; at: string;
+};
+
 /** Configuración de capacidad del equipo y su cálculo derivado. */
-export function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange: (c: CapacityConfig) => void }) {
+export function CapacityPanel({ cfg, roadmapId, onChange }: { cfg: CapacityConfig; roadmapId: string; onChange: (c: CapacityConfig) => void }) {
+
   const { t } = useI18n();
   type NumKey = "developers" | "dedicationPct" | "daysPerSprint" | "hoursPerDay" | "sprintsPerQuarter";
   const fields: { key: NumKey; label: string }[] = [
@@ -29,8 +38,40 @@ export function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange
     const n = Number(v);
     return Number.isFinite(n) && n >= 0 ? n : 0;
   };
+
+  /**
+   * Audit trail: se recarga poco después de cada cambio de `cfg` (el guardado
+   * va con debounce de 400 ms en el hook, así que esperamos algo más).
+   */
+  const historyFn = useServerFn(fetchCapacityHistory);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  useEffect(() => {
+    let alive = true;
+    const timer = setTimeout(() => {
+      historyFn({ data: { roadmapId } })
+        .then((rows) => { if (alive) setHistory(rows as HistoryEntry[]); })
+        .catch((e) => console.error(e));
+    }, 900);
+    return () => { alive = false; clearTimeout(timer); };
+  }, [roadmapId, cfg, historyFn]);
+
+  const fieldLabel = (f: string) => {
+    const map: Record<string, string> = {
+      developers: t("roadmap.cap.developers"),
+      dedicationPct: t("roadmap.cap.dedication"),
+      daysPerSprint: t("roadmap.cap.daysPerSprint"),
+      hoursPerDay: t("roadmap.cap.hoursPerDay"),
+      sprintsPerQuarter: t("roadmap.cap.sprintsPerQuarterDefault"),
+    };
+    if (f.startsWith("sprintsByQuarter.")) return `${t("roadmap.cap.sprintsByQuarter")} · ${f.split(".")[1]}`;
+    return map[f] ?? f;
+  };
+  const val = (v: string | null) => (v == null || v === "" ? t("roadmap.cap.historyEmptyValue") : v);
+
   return (
+    <div className="space-y-6">
     <div className="grid md:grid-cols-2 gap-6">
+
       <div className="rounded-xl border border-border bg-card p-6 space-y-3">
         <h3 className="font-semibold text-foreground mb-2">{t("roadmap.cap.global")}</h3>
         {fields.map((f) => (
@@ -82,5 +123,44 @@ export function CapacityPanel({ cfg, onChange }: { cfg: CapacityConfig; onChange
         </dl>
       </div>
     </div>
+
+    <section className="rounded-xl border border-border bg-card p-6">
+      <h3 className="font-semibold text-foreground">{t("roadmap.cap.history")}</h3>
+      <p className="text-xs text-muted-foreground mb-3">{t("roadmap.cap.historyHint")}</p>
+      {history.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("roadmap.cap.historyEmpty")}</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase text-muted-foreground border-b border-border">
+                <th className="py-2 pr-4 font-medium">{t("roadmap.cap.historyAt")}</th>
+                <th className="py-2 pr-4 font-medium">{t("roadmap.cap.historyBy")}</th>
+                <th className="py-2 pr-4 font-medium">{t("roadmap.cap.historyField")}</th>
+                <th className="py-2 font-medium">{t("roadmap.cap.historyChange")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.map((h) => (
+                <tr key={h.id} className="border-b border-border/50 last:border-0">
+                  <td className="py-1.5 pr-4 whitespace-nowrap text-muted-foreground">
+                    {new Date(h.at).toLocaleString()}
+                  </td>
+                  <td className="py-1.5 pr-4 whitespace-nowrap">{h.by || "—"}</td>
+                  <td className="py-1.5 pr-4">{fieldLabel(h.field)}</td>
+                  <td className="py-1.5 whitespace-nowrap">
+                    <span className="text-muted-foreground line-through">{val(h.oldValue)}</span>
+                    <span className="mx-2">→</span>
+                    <span className="font-semibold text-foreground">{val(h.newValue)}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+    </div>
   );
 }
+
