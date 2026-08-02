@@ -5,7 +5,7 @@
  * bloqueado: se muestra la suma (Σ) que calcula el dominio.
  * También ofrece importación CSV y exportación a Excel por tipo de item.
  */
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, Minus,
@@ -16,10 +16,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { RoadmapItem, ItemType, Quarter, Priority, toCSV, rolledUpEffort } from "@/lib/roadmap";
+import { validateImportCSV, type ImportReport } from "@/lib/csv-validation";
 import { PRIORITIES, PRIORITY_META, QUARTERS, type RealPriority } from "../constants";
 import { PriorityIcon } from "./PriorityIcon";
 import { ParentPicker } from "./ParentPicker";
 import { IdInput } from "./IdInput";
+import { ImportReportDialog } from "./ImportReportDialog";
 
 /** Tabla estilo Excel con todos los work items de un tipo. */
 export function BacklogPanel({
