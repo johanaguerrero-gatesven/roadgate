@@ -588,7 +588,7 @@ export function effortByQuarter(items: RoadmapItem[]): Record<Quarter, number> {
   const acc: Record<Quarter, number> = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, MULTI: 0, "": 0 };
   items.forEach((it) => {
     if (it.hiddenFromRoadmap) return;
-    const hasKids = items.some((c) => c.parentId === it.id);
+    const hasKids = items.some((c) => c.parentId === it.id && c.uid !== it.uid);
     if (hasKids) return;
     const q = effectiveQuarter(it, items);
     acc[q] += it.effort || 0;
@@ -600,10 +600,12 @@ export function effortByQuarter(items: RoadmapItem[]): Record<Quarter, number> {
  * Sum of effort of an item including all its descendants (leaves only count once).
  * Used to display roll-up effort on Epics/Features.
  */
-export function rolledUpEffort(item: RoadmapItem, items: RoadmapItem[]): number {
-  const kids = items.filter((c) => c.parentId === item.id);
+export function rolledUpEffort(item: RoadmapItem, items: RoadmapItem[], seen = new Set<string>()): number {
+  if (seen.has(item.uid)) return 0;
+  seen.add(item.uid);
+  const kids = items.filter((c) => c.parentId === item.id && !seen.has(c.uid));
   if (kids.length === 0) return item.effort || 0;
-  return kids.reduce((s, k) => s + rolledUpEffort(k, items), 0);
+  return kids.reduce((s, k) => s + rolledUpEffort(k, items, seen), 0);
 }
 
 /**
