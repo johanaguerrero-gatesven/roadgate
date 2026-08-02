@@ -203,7 +203,7 @@ export function BacklogPanel({
                           </div>
                         )}
                       </td>
-                      {!isFeature && (
+                      {!isFeature && !isStory && (
                         <td>
                           <Textarea
                             value={it.description || ""}
@@ -214,21 +214,25 @@ export function BacklogPanel({
                           />
                         </td>
                       )}
+                      {isStory && (
+                        <td className="text-xs text-muted-foreground pt-2">{parentTypeLabel || "—"}</td>
+                      )}
                       {type !== "epic" && (
                         <td>
                           <ParentPicker
                             value={it.parentId}
                             parents={parents}
                             onChange={(v) => onUpdate(it.uid, { parentId: v || undefined })}
-                            showIdOnly={isFeature}
+                            showIdOnly={isFeature || isStory}
                           />
                         </td>
                       )}
-                      {isFeature && (
+                      {(isFeature || isStory) && (
                         <td className="text-xs text-muted-foreground pt-2 leading-snug break-words">
                           {epicTitle || "—"}
                         </td>
                       )}
+
 
                       <td className="min-w-[64px] w-[64px]">
                         {hasKids ? (
