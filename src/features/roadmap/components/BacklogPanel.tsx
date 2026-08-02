@@ -173,7 +173,12 @@ export function BacklogPanel({
                   const hidden = !!it.hiddenFromRoadmap;
                   const kids = items.filter((c) => c.parentId === it.id);
                   const hasKids = type !== "story" && kids.length > 0;
-                  const epicTitle = items.find((p) => p.id === it.parentId)?.title || "";
+                  const parentItem = items.find((p) => p.id === it.parentId);
+                  const epicTitle = parentItem?.title || "";
+                  const parentTypeLabel = parentItem
+                    ? parentItem.type === "epic" ? "Epic" : parentItem.type === "feature" ? "Feature" : "User Story"
+                    : "";
+
 
                   return (
                     <tr
