@@ -61,6 +61,47 @@ export type Database = {
           },
         ]
       }
+      roadmap_capacity_history: {
+        Row: {
+          changed_by_email: string | null
+          created_at: string
+          field: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          roadmap_id: string
+          user_id: string
+        }
+        Insert: {
+          changed_by_email?: string | null
+          created_at?: string
+          field: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          roadmap_id: string
+          user_id: string
+        }
+        Update: {
+          changed_by_email?: string | null
+          created_at?: string
+          field?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          roadmap_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_capacity_history_roadmap_id_fkey"
+            columns: ["roadmap_id"]
+            isOneToOne: false
+            referencedRelation: "roadmaps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roadmap_items: {
         Row: {
           created_at: string
