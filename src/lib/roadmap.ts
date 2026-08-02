@@ -218,15 +218,21 @@ export function enforcePriorityInvariant(items: RoadmapItem[]): RoadmapItem[] {
  * Callers should run this before persisting so stored data stays consistent.
  */
 export function normalizeItems(items: RoadmapItem[]): RoadmapItem[] {
-  const rollup = (item: RoadmapItem): number => {
-    const kids = items.filter((c) => c.parentId === item.id);
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const childrenMap = buildChildrenMap(items, byId);
+  // `seen` evita el desbordamiento de pila si los datos importados traen un
+  // ciclo de parentId (A→B→A) o una auto-referencia.
+  const rollup = (item: RoadmapItem, seen: Set<string>): number => {
+    if (seen.has(item.uid)) return 0;
+    seen.add(item.uid);
+    const kids = childrenMap.get(item.id) ?? [];
     if (kids.length === 0) return item.effort || 0;
-    return kids.reduce((s, k) => s + rollup(k), 0);
+    return kids.reduce((s, k) => s + rollup(k, seen), 0);
   };
   const withEffort = items.map((it) => {
-    const hasKids = items.some((c) => c.parentId === it.id);
-    if (!hasKids) return it;
-    const sum = rollup(it);
+    const kids = childrenMap.get(it.id) ?? [];
+    if (kids.length === 0) return it;
+    const sum = rollup(it, new Set());
     return it.effort === sum ? it : { ...it, effort: sum };
   });
   return enforcePriorityInvariant(syncParentQuarters(withEffort));
