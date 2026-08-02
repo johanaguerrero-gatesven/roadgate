@@ -444,42 +444,8 @@ export function RoadmapView({
         );
       })()}
 
-      <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Completar antes de añadir al Roadmap</DialogTitle>
-            <DialogDescription>
-              {pendingItem ? `${pendingItem.id} · ${pendingItem.title}` : ""} requiere prioridad
-              {pendingHasKids ? "" : " y esfuerzo"} para ubicarse en {pending?.q}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-foreground">Prioridad</label>
-              <Select value={pendPriority || undefined} onValueChange={(v) => setPendPriority(v as Priority)}>
-                <SelectTrigger><SelectValue placeholder="Selecciona prioridad" /></SelectTrigger>
-                <SelectContent>
-                  {PRIORITIES.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-foreground">Esfuerzo (h)</label>
-              {pendingHasKids ? (
-                <div className="text-xs text-muted-foreground border border-dashed rounded-md px-3 py-2 bg-muted/30">
-                  Σ {pendingItem ? rolledUpEffort(pendingItem, items) : 0} h (suma de hijos)
-                </div>
-              ) : (
-                <Input type="number" min={0} value={pendEffort} onChange={(e) => setPendEffort(e.target.value)} placeholder="Ej. 8" />
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setPending(null)}>Cancelar</Button>
-            <Button onClick={confirmPending} disabled={!pendingValid}>Guardar y mover</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+
 
       <ItemDetailDialog
         item={detailUid ? items.find((i) => i.uid === detailUid) ?? null : null}
