@@ -53,7 +53,6 @@ export function RoadmapView({
   const [dragUid, setDragUid] = useState<string | null>(null);
   const [overQ, setOverQ] = useState<Quarter | null>(null);
   const [lastSnapshot, setLastSnapshot] = useState<{ items: RoadmapItem[]; fromQ: Quarter; toQ: Quarter; id: string } | null>(null);
-  const [pending, setPending] = useState<{ uid: string; q: Quarter } | null>(null);
   const [detailUid, setDetailUid] = useState<string | null>(null);
   // Los padres muestran su árbol de hijos EXPANDIDO por defecto; aquí guardamos
   // solo los que el usuario ha colapsado manualmente.
@@ -85,8 +84,6 @@ export function RoadmapView({
 
 
 
-  const [pendPriority, setPendPriority] = useState<Priority>("");
-  const [pendEffort, setPendEffort] = useState<string>("");
 
   const byQuarter = useMemo(() => {
     const map: Record<Quarter, { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[]> =
