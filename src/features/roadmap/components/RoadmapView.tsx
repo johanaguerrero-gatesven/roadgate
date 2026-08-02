@@ -318,7 +318,7 @@ export function RoadmapView({
         })}
       </div>
 
-      {byQuarter[""].length > 0 && (() => {
+      {(() => {
         const unassigned = byQuarter[""];
         const groups: { type: ItemType; label: string }[] = [
           { type: "epic", label: "Epics" },
