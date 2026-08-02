@@ -48,6 +48,8 @@ export function BacklogPanel({
 
   const list = items.filter((i) => i.type === type);
   const isFeature = type === "feature";
+  const isStory = type === "story";
+
 
   const parents = items.filter((i) =>
     type === "feature" ? i.type === "epic"
