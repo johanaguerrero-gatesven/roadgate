@@ -153,8 +153,8 @@ export function BacklogPanel({
                   {!isFeature && !isStory && <th className="min-w-[180px]">Description</th>}
                   {isStory && <th className="min-w-[90px]">Parent Type</th>}
                   {type !== "epic" && <th className={isFeature || isStory ? "min-w-[80px]" : "min-w-[120px]"}>{isFeature ? "EPIC ID" : isStory ? "Parent ID" : t("roadmap.col.parent")}</th>}
-                  {isFeature && <th className="min-w-[160px]">EPIC Title</th>}
-                  {isStory && <th className="min-w-[160px]">Parent Title</th>}
+                      {isFeature && <th className="min-w-[130px]">EPIC Title</th>}
+                      {isStory && <th className="min-w-[130px]">Parent Title</th>}
                   <th className="min-w-[64px] w-[64px] text-right">{isFeature || isStory ? "Effort (h)" : "Effort"}</th>
                   <th className="min-w-[120px]">Priority</th>
                   <th className="min-w-[95px]">Quarter</th>
