@@ -474,8 +474,11 @@ export function topAncestor(item: RoadmapItem, items: RoadmapItem[]): RoadmapIte
  */
 export function roadmapCoverage(item: RoadmapItem, items: RoadmapItem[]): { planned: number; total: number; pct: number } {
   const leaves: RoadmapItem[] = [];
+  const seen = new Set<string>();
   const collect = (n: RoadmapItem) => {
-    const kids = items.filter((c) => c.parentId === n.id);
+    if (seen.has(n.uid)) return;
+    seen.add(n.uid);
+    const kids = items.filter((c) => c.parentId === n.id && c.uid !== n.uid);
     if (kids.length === 0) leaves.push(n);
     else kids.forEach(collect);
   };
