@@ -126,7 +126,7 @@ export function BacklogPanel({
                   <th className="w-[80px] text-right">Effort</th>
                   <th className="w-[140px]">Priority</th>
                   <th className="w-[100px]">Quarter</th>
-                  <th className="min-w-[220px]">Notes</th>
+                  <th className="min-w-[220px]">{t("roadmap.col.notes")}</th>
                   <th className="w-[60px] text-center">Show</th>
                   <th className="w-[44px]"></th>
                 </tr>
