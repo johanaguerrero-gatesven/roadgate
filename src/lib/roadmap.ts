@@ -370,6 +370,21 @@ export function toCSV(items: RoadmapItem[], type?: ItemType, all: RoadmapItem[] 
     return lines.join("\n");
   }
 
+  if (type === "story") {
+    const headers = ["ID", "Title", "Parent Type", "Parent ID", "Parent Title", "Effort (h)", "Priority", "Quarter", "Comments"];
+    const witLabel: Record<ItemType, string> = { epic: "Epic", feature: "Feature", story: "User Story" };
+    const lines = [headers.join(",")];
+    items.forEach((it) => {
+      const parent = all.find((p) => p.id === it.parentId);
+      lines.push([
+        it.id, it.title, parent ? witLabel[parent.type] : "", it.parentId ?? "", parent?.title ?? "",
+        it.effort ?? "", it.priority ?? "", it.quarter ?? "", it.notes ?? "",
+      ].map(esc).join(","));
+    });
+    return lines.join("\n");
+  }
+
+
   const headers = ["ID", "Work Item Type", "Title", "Description", "Parent", "Effort", "Priority", "Quarter", "State", "Tags", "Notes"];
   const witLabel: Record<ItemType, string> = { epic: "Epic", feature: "Feature", story: "User Story" };
   const lines = [headers.join(",")];

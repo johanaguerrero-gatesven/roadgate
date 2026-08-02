@@ -116,10 +116,13 @@ function sheetDashboard(items: RoadmapItem[], cfg: CapacityConfig) {
 
 function sheetItems(items: RoadmapItem[], type: "epic" | "feature" | "story", title: string) {
   const list = items.filter((i) => i.type === type);
+  const witLabel: Record<string, string> = { epic: "Epic", feature: "Feature", story: "User Story" };
   const header =
     type === "epic"
       ? ["ID", "Title", "Description", "Effort (h)", "Priority", "Quarter", "State", "Tags", "Notes"]
-      : ["ID", "Title", "Parent", "Effort (h)", "Priority", "Quarter", "State", "Tags", "Notes"];
+      : type === "story"
+        ? ["ID", "Title", "Parent Type", "Parent ID", "Parent Title", "Effort (h)", "Priority", "Quarter", "Comments"]
+        : ["ID", "Title", "Parent", "Effort (h)", "Priority", "Quarter", "State", "Tags", "Notes"];
   const rows: any[][] = [[title], header];
   list.forEach((it) => {
     const effort = items.some((c) => c.parentId === it.id) ? rolledUpEffort(it, items) : it.effort ?? "";
@@ -128,6 +131,12 @@ function sheetItems(items: RoadmapItem[], type: "epic" | "feature" | "story", ti
         it.id, it.title, it.description || "", effort, prioNum(it.priority),
         it.quarter || "", it.state || "", it.tags || "", it.notes || "",
       ]);
+    } else if (type === "story") {
+      const parent = items.find((p) => p.id === it.parentId);
+      rows.push([
+        it.id, it.title, parent ? witLabel[parent.type] : "", it.parentId || "", parent?.title || "",
+        effort, prioNum(it.priority), it.quarter || "", it.notes || "",
+      ]);
     } else {
       rows.push([
         it.id, it.title, it.parentId || "", effort, prioNum(it.priority),
@@ -135,6 +144,7 @@ function sheetItems(items: RoadmapItem[], type: "epic" | "feature" | "story", ti
       ]);
     }
   });
+
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws["!cols"] = [
     { wch: 12 }, { wch: 60 }, { wch: 40 }, { wch: 10 },

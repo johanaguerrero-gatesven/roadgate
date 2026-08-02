@@ -48,6 +48,8 @@ export function BacklogPanel({
 
   const list = items.filter((i) => i.type === type);
   const isFeature = type === "feature";
+  const isStory = type === "story";
+
 
   const parents = items.filter((i) =>
     type === "feature" ? i.type === "epic"
@@ -148,18 +150,21 @@ export function BacklogPanel({
                 <tr className="[&>th]:px-2 [&>th]:py-1.5 [&>th]:text-left [&>th]:font-semibold [&>th]:whitespace-nowrap [&>th]:border-b [&>th]:border-border">
                   <th className="sticky left-0 z-20 bg-muted/95 backdrop-blur-sm border-r border-border w-[120px] min-w-[120px]">ID</th>
                   <th className="min-w-[200px]">{t("roadmap.col.title")}</th>
-                  {!isFeature && <th className="min-w-[180px]">Description</th>}
-                  {type !== "epic" && <th className={isFeature ? "min-w-[80px]" : "min-w-[120px]"}>{isFeature ? "EPIC ID" : t("roadmap.col.parent")}</th>}
+                  {!isFeature && !isStory && <th className="min-w-[180px]">Description</th>}
+                  {isStory && <th className="min-w-[90px]">Parent Type</th>}
+                  {type !== "epic" && <th className={isFeature || isStory ? "min-w-[80px]" : "min-w-[120px]"}>{isFeature ? "EPIC ID" : isStory ? "Parent ID" : t("roadmap.col.parent")}</th>}
                   {isFeature && <th className="min-w-[160px]">EPIC Title</th>}
-                  <th className="min-w-[64px] w-[64px] text-right">{isFeature ? "Effort (h)" : "Effort"}</th>
+                  {isStory && <th className="min-w-[160px]">Parent Title</th>}
+                  <th className="min-w-[64px] w-[64px] text-right">{isFeature || isStory ? "Effort (h)" : "Effort"}</th>
                   <th className="min-w-[120px]">Priority</th>
                   <th className="min-w-[95px]">Quarter</th>
-                  <th className="min-w-[105px]">State</th>
-                  {isFeature ? <th className="min-w-[80px] w-[80px]">Owner</th> : <th className="min-w-[80px] w-[80px]">Tags</th>}
+                  {!isStory && <th className="min-w-[105px]">State</th>}
+                  {isFeature ? <th className="min-w-[80px] w-[80px]">Owner</th> : !isStory && <th className="min-w-[80px] w-[80px]">Tags</th>}
                   {isFeature && <th className="min-w-[60px] w-[60px] text-right">PBIs #</th>}
-                  <th className="min-w-[180px]">{isFeature ? "Comments" : "Notes"}</th>
+                  <th className="min-w-[180px]">{isFeature || isStory ? "Comments" : "Notes"}</th>
                   <th className="min-w-[70px] text-center">Show</th>
                   <th className="min-w-[56px]"></th>
+
                 </tr>
               </thead>
 
@@ -168,7 +173,12 @@ export function BacklogPanel({
                   const hidden = !!it.hiddenFromRoadmap;
                   const kids = items.filter((c) => c.parentId === it.id);
                   const hasKids = type !== "story" && kids.length > 0;
-                  const epicTitle = items.find((p) => p.id === it.parentId)?.title || "";
+                  const parentItem = items.find((p) => p.id === it.parentId);
+                  const epicTitle = parentItem?.title || "";
+                  const parentTypeLabel = parentItem
+                    ? parentItem.type === "epic" ? "Epic" : parentItem.type === "feature" ? "Feature" : "User Story"
+                    : "";
+
 
                   return (
                     <tr
@@ -193,7 +203,7 @@ export function BacklogPanel({
                           </div>
                         )}
                       </td>
-                      {!isFeature && (
+                      {!isFeature && !isStory && (
                         <td>
                           <Textarea
                             value={it.description || ""}
@@ -204,21 +214,25 @@ export function BacklogPanel({
                           />
                         </td>
                       )}
+                      {isStory && (
+                        <td className="text-xs text-muted-foreground pt-2">{parentTypeLabel || "—"}</td>
+                      )}
                       {type !== "epic" && (
                         <td>
                           <ParentPicker
                             value={it.parentId}
                             parents={parents}
                             onChange={(v) => onUpdate(it.uid, { parentId: v || undefined })}
-                            showIdOnly={isFeature}
+                            showIdOnly={isFeature || isStory}
                           />
                         </td>
                       )}
-                      {isFeature && (
+                      {(isFeature || isStory) && (
                         <td className="text-xs text-muted-foreground pt-2 leading-snug break-words">
                           {epicTitle || "—"}
                         </td>
                       )}
+
 
                       <td className="min-w-[64px] w-[64px]">
                         {hasKids ? (
@@ -297,22 +311,27 @@ export function BacklogPanel({
                           </SelectContent>
                         </Select>
                       </td>
-                      <td className="min-w-[80px] w-[80px]">
-                        <Input
-                          value={it.state || ""}
-                          onChange={(e) => onUpdate(it.uid, { state: e.target.value as RoadmapItem["state"] })}
-                          className="h-7 text-xs px-1.5"
-                          placeholder="—"
-                        />
-                      </td>
-                      <td className="min-w-[80px] w-[80px]">
-                        <Input
-                          value={it.tags || ""}
-                          onChange={(e) => onUpdate(it.uid, { tags: e.target.value })}
-                          className="h-7 text-xs px-1.5"
-                          placeholder="—"
-                        />
-                      </td>
+                      {!isStory && (
+                        <td className="min-w-[80px] w-[80px]">
+                          <Input
+                            value={it.state || ""}
+                            onChange={(e) => onUpdate(it.uid, { state: e.target.value as RoadmapItem["state"] })}
+                            className="h-7 text-xs px-1.5"
+                            placeholder="—"
+                          />
+                        </td>
+                      )}
+                      {!isStory && (
+                        <td className="min-w-[80px] w-[80px]">
+                          <Input
+                            value={it.tags || ""}
+                            onChange={(e) => onUpdate(it.uid, { tags: e.target.value })}
+                            className="h-7 text-xs px-1.5"
+                            placeholder="—"
+                          />
+                        </td>
+                      )}
+
                       {isFeature && (
                         <td className="text-xs text-muted-foreground text-right pt-2">{kids.length}</td>
                       )}

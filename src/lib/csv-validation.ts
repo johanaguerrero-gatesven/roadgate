@@ -33,7 +33,7 @@ export type ImportReport = {
 /** Estructura canónica por tipo (la misma que exporta la app). */
 export const EXPECTED_COLUMNS: Record<ItemType, string[]> = {
   epic: ["ID", "Work Item Type", "Title", "Description", "Parent", "Effort", "Priority", "Quarter", "State", "Tags", "Notes"],
-  story: ["ID", "Work Item Type", "Title", "Description", "Parent", "Effort", "Priority", "Quarter", "State", "Tags", "Notes"],
+  story: ["ID", "Title", "Parent Type", "Parent ID", "Parent Title", "Effort (h)", "Priority", "Quarter", "Comments"],
   feature: ["ID", "Title", "EPIC ID", "EPIC Title", "Effort (h)", "Priority", "Quarter", "State", "Owner", "PBIs #", "Comments"],
 };
 
