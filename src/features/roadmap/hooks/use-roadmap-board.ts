@@ -10,11 +10,14 @@
  *  2. Invariantes de datos vía `normalizeItems` en cada escritura:
  *       - esfuerzo del padre = Σ esfuerzo de sus hojas
  *       - quarter del padre derivado de sus hijos (Q concreto | "MULTI" | "")
- *  3. Reglas de priorización de RoadGate:
+ *  3. Semántica ÚNICA del gate de prioridad: ASIGNAR, nunca bloquear.
+ *     Planificar nunca se rechaza por falta de prioridad; la prioridad se
+ *     asigna automáticamente al item y a TODA su descendencia arrastrada, así
+ *     que ningún hijo "se cuela" en el Roadmap sin prioridad.
  *       R1 Todo item nuevo nace con prioridad Baja (`DEFAULT_PRIORITY`).
  *       R2 Herencia estricta top-down: cambiar la prioridad de un padre la
- *          propaga a TODOS sus descendientes.
- *       R3 Planificar (mover a Q1–Q4) fuerza prioridad Alta en toda la rama.
+ *          propaga a TODOS sus descendientes (los que siguen en Backlog).
+ *       R3 Planificar (mover a Q1–Q4) fuerza Alta (o respeta Media) en toda la rama.
  *       R4 El Backlog no admite prioridad Alta; volver al Backlog rebaja la
  *          rama a Baja.
  *  4. Herencia de Quarter: mover un agrupador arrastra a toda su descendencia;
