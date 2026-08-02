@@ -65,6 +65,29 @@ export const defaultCapacity: CapacityConfig = {
 };
 
 /**
+ * Índice `parentId -> hijos directos`, ignorando padres inexistentes y
+ * auto-referencias (`parentId === id`), que provocaban recursión infinita.
+ */
+function buildChildrenMap(
+  list: RoadmapItem[],
+  byId: Map<string, RoadmapItem>,
+): Map<string, RoadmapItem[]> {
+  const map = new Map<string, RoadmapItem[]>();
+  list.forEach((i) => {
+    if (!i.parentId || i.parentId === i.id || !byId.has(i.parentId)) return;
+    const arr = map.get(i.parentId) ?? [];
+    arr.push(i);
+    map.set(i.parentId, arr);
+  });
+  return map;
+}
+
+/** Items sin padre válido: raíces del árbol para los recorridos top-down. */
+function rootsOf(list: RoadmapItem[], byId: Map<string, RoadmapItem>): RoadmapItem[] {
+  return list.filter((i) => !i.parentId || i.parentId === i.id || !byId.has(i.parentId));
+}
+
+/**
  * Deriva el Quarter de los items agrupadores (los que tienen hijos) a partir de
  * sus descendientes, de abajo hacia arriba:
  *  - todos los hijos en el mismo Q  → el padre queda en ese Q
@@ -74,43 +97,52 @@ export const defaultCapacity: CapacityConfig = {
  */
 export function syncParentQuarters(input: RoadmapItem[]): RoadmapItem[] {
   // --- Fase 0 (top-down): materializar la herencia de Quarter -------------
-  // Un hijo sin quarter propio cuyo padre SÍ está planificado en un Q concreto
-  // hereda ese Q de forma explícita. Sin este paso, la tarjeta del hijo se
-  // pintaba bajo el padre "prestada" y, al pasar el padre a MULTI (porque otro
-  // hermano se movió), los hermanos caían al Backlog sin que nadie los tocara.
+  // Un padre planificado en un Q concreto cuya rama entera está SIN planificar
+  // baja ese Q a todos sus descendientes (caso típico de importación o de un
+  // padre recién arrastrado). Si algún descendiente ya tiene Q propio, NO se
+  // hereda nada: así devolver un hijo suelto al Backlog es una acción estable
+  // y el padre pasa a MULTI en la fase 1 en vez de "recapturar" al hijo.
   const items = (() => {
     const byIdIn = new Map(input.map((i) => [i.id, i]));
-    const kidsIn = new Map<string, RoadmapItem[]>();
-    input.forEach((i) => {
-      if (!i.parentId || !byIdIn.has(i.parentId)) return;
-      const arr = kidsIn.get(i.parentId) ?? [];
-      arr.push(i);
-      kidsIn.set(i.parentId, arr);
-    });
+    const kidsIn = buildChildrenMap(input, byIdIn);
     const patched = new Map<string, Quarter>();
-    const pushDown = (node: RoadmapItem, inherited: Quarter) => {
-      const own = (patched.get(node.uid) ?? node.quarter ?? "") as Quarter;
-      let effective = own;
-      if (own === "" && inherited !== "" && inherited !== "MULTI") {
-        effective = inherited;
-        patched.set(node.uid, inherited);
-      }
-      (kidsIn.get(node.id) ?? []).forEach((k) => pushDown(k, effective));
+
+    const subtreeUnassigned = (node: RoadmapItem, seen: Set<string>): boolean => {
+      if (seen.has(node.uid)) return true;
+      seen.add(node.uid);
+      const kids = kidsIn.get(node.id) ?? [];
+      if (kids.length === 0) return (node.quarter ?? "") === "";
+      if ((node.quarter ?? "") !== "" && (node.quarter ?? "") !== "MULTI") return false;
+      return kids.every((k) => subtreeUnassigned(k, seen));
     };
-    input.filter((i) => !i.parentId || !byIdIn.has(i.parentId)).forEach((r) => pushDown(r, ""));
+    const markAll = (node: RoadmapItem, q: Quarter, seen: Set<string>) => {
+      (kidsIn.get(node.id) ?? []).forEach((k) => {
+        if (seen.has(k.uid)) return;
+        seen.add(k.uid);
+        patched.set(k.uid, q);
+        markAll(k, q, seen);
+      });
+    };
+    const walkDown = (node: RoadmapItem, seen: Set<string>) => {
+      if (seen.has(node.uid)) return;
+      seen.add(node.uid);
+      const kids = kidsIn.get(node.id) ?? [];
+      if (kids.length === 0) return;
+      const own = (node.quarter ?? "") as Quarter;
+      if (own !== "" && own !== "MULTI" && kids.every((k) => subtreeUnassigned(k, new Set()))) {
+        markAll(node, own, seen);
+        return;
+      }
+      kids.forEach((k) => walkDown(k, seen));
+    };
+    rootsOf(input, byIdIn).forEach((r) => walkDown(r, new Set()));
     return patched.size
       ? input.map((i) => (patched.has(i.uid) ? { ...i, quarter: patched.get(i.uid)! } : i))
       : input;
   })();
 
   const byId = new Map(items.map((i) => [i.id, i]));
-  const childrenMap = new Map<string, RoadmapItem[]>();
-  items.forEach((i) => {
-    if (!i.parentId || !byId.has(i.parentId)) return;
-    const arr = childrenMap.get(i.parentId) ?? [];
-    arr.push(i);
-    childrenMap.set(i.parentId, arr);
-  });
+  const childrenMap = buildChildrenMap(items, byId);
 
 
   const memo = new Map<string, Quarter>();
@@ -186,15 +218,21 @@ export function enforcePriorityInvariant(items: RoadmapItem[]): RoadmapItem[] {
  * Callers should run this before persisting so stored data stays consistent.
  */
 export function normalizeItems(items: RoadmapItem[]): RoadmapItem[] {
-  const rollup = (item: RoadmapItem): number => {
-    const kids = items.filter((c) => c.parentId === item.id);
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const childrenMap = buildChildrenMap(items, byId);
+  // `seen` evita el desbordamiento de pila si los datos importados traen un
+  // ciclo de parentId (A→B→A) o una auto-referencia.
+  const rollup = (item: RoadmapItem, seen: Set<string>): number => {
+    if (seen.has(item.uid)) return 0;
+    seen.add(item.uid);
+    const kids = childrenMap.get(item.id) ?? [];
     if (kids.length === 0) return item.effort || 0;
-    return kids.reduce((s, k) => s + rollup(k), 0);
+    return kids.reduce((s, k) => s + rollup(k, seen), 0);
   };
   const withEffort = items.map((it) => {
-    const hasKids = items.some((c) => c.parentId === it.id);
-    if (!hasKids) return it;
-    const sum = rollup(it);
+    const kids = childrenMap.get(it.id) ?? [];
+    if (kids.length === 0) return it;
+    const sum = rollup(it, new Set());
     return it.effort === sum ? it : { ...it, effort: sum };
   });
   return enforcePriorityInvariant(syncParentQuarters(withEffort));
@@ -407,10 +445,12 @@ function findById(items: RoadmapItem[], id?: string) {
   return items.find((i) => i.id === id);
 }
 
-/** All descendants of `item` (children, grandchildren, ...). */
-export function descendantsOf(item: RoadmapItem, items: RoadmapItem[]): RoadmapItem[] {
-  const kids = items.filter((c) => c.parentId === item.id);
-  return [...kids, ...kids.flatMap((k) => descendantsOf(k, items))];
+/** All descendants of `item` (children, grandchildren, ...); a prueba de ciclos. */
+export function descendantsOf(item: RoadmapItem, items: RoadmapItem[], seen = new Set<string>()): RoadmapItem[] {
+  if (seen.has(item.uid)) return [];
+  seen.add(item.uid);
+  const kids = items.filter((c) => c.parentId === item.id && c.uid !== item.uid && !seen.has(c.uid));
+  return kids.flatMap((k) => [k, ...descendantsOf(k, items, seen)]);
 }
 
 /** Topmost ancestor of `item`, walking up via parentId. Returns undefined if none. */
@@ -434,8 +474,11 @@ export function topAncestor(item: RoadmapItem, items: RoadmapItem[]): RoadmapIte
  */
 export function roadmapCoverage(item: RoadmapItem, items: RoadmapItem[]): { planned: number; total: number; pct: number } {
   const leaves: RoadmapItem[] = [];
+  const seen = new Set<string>();
   const collect = (n: RoadmapItem) => {
-    const kids = items.filter((c) => c.parentId === n.id);
+    if (seen.has(n.uid)) return;
+    seen.add(n.uid);
+    const kids = items.filter((c) => c.parentId === n.id && c.uid !== n.uid);
     if (kids.length === 0) leaves.push(n);
     else kids.forEach(collect);
   };
@@ -461,7 +504,7 @@ export function effectiveQuarter(item: RoadmapItem, _items: RoadmapItem[]): Quar
 
 /** Hijos directos de `parent` (relación por `parentId` = `id` del padre). */
 function childrenOf(parent: RoadmapItem, items: RoadmapItem[]) {
-  return items.filter((i) => i.parentId === parent.id);
+  return items.filter((i) => i.parentId === parent.id && i.uid !== parent.uid);
 }
 
 /**
@@ -479,10 +522,7 @@ export function buildRoadmapView(items: RoadmapItem[]): { item: RoadmapItem; qua
   const out: { item: RoadmapItem; quarter: Quarter; rolledUp: boolean }[] = [];
   const visited = new Set<string>();
 
-  const allDescendants = (node: RoadmapItem): RoadmapItem[] => {
-    const kids = childrenOf(node, items);
-    return [...kids, ...kids.flatMap(allDescendants)];
-  };
+  const allDescendants = (node: RoadmapItem): RoadmapItem[] => descendantsOf(node, items);
 
   /**
    * Returns the single shared quarter of all descendants (ignoring unassigned),
@@ -548,7 +588,7 @@ export function effortByQuarter(items: RoadmapItem[]): Record<Quarter, number> {
   const acc: Record<Quarter, number> = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, MULTI: 0, "": 0 };
   items.forEach((it) => {
     if (it.hiddenFromRoadmap) return;
-    const hasKids = items.some((c) => c.parentId === it.id);
+    const hasKids = items.some((c) => c.parentId === it.id && c.uid !== it.uid);
     if (hasKids) return;
     const q = effectiveQuarter(it, items);
     acc[q] += it.effort || 0;
@@ -560,10 +600,12 @@ export function effortByQuarter(items: RoadmapItem[]): Record<Quarter, number> {
  * Sum of effort of an item including all its descendants (leaves only count once).
  * Used to display roll-up effort on Epics/Features.
  */
-export function rolledUpEffort(item: RoadmapItem, items: RoadmapItem[]): number {
-  const kids = items.filter((c) => c.parentId === item.id);
+export function rolledUpEffort(item: RoadmapItem, items: RoadmapItem[], seen = new Set<string>()): number {
+  if (seen.has(item.uid)) return 0;
+  seen.add(item.uid);
+  const kids = items.filter((c) => c.parentId === item.id && !seen.has(c.uid));
   if (kids.length === 0) return item.effort || 0;
-  return kids.reduce((s, k) => s + rolledUpEffort(k, items), 0);
+  return kids.reduce((s, k) => s + rolledUpEffort(k, items, seen), 0);
 }
 
 /**
