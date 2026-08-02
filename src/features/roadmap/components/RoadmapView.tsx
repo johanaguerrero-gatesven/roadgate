@@ -29,7 +29,7 @@ import {
   sprintsForQuarter, rolledUpEffort, topAncestor, roadmapCoverage,
 } from "@/lib/roadmap";
 import { WORK_ITEM_ICONS, WorkItemIcon } from "@/lib/work-item-icons";
-import { QUARTERS, hasAssignedPriority, utilizationBarColor } from "../constants";
+import { QUARTERS, utilizationBarColor } from "../constants";
 import { PriorityPicker } from "./PriorityPicker";
 import { ItemDetailDialog } from "./ItemDetailDialog";
 
@@ -208,8 +208,7 @@ export function RoadmapView({
                         const eff = hasKids ? rolledUpEffort(it, items) : (it.effort ?? 0);
                         // Regla 0h: nada planificado en un Quarter puede tener 0h de esfuerzo.
                         const zeroEffort = eff <= 0;
-                        // Regla de prioridad: en el Roadmap solo Alta o Media.
-                        const lowPriority = it.priority !== "1-High" && it.priority !== "2-Medium";
+
 
                         return (
                           <div
@@ -262,15 +261,8 @@ export function RoadmapView({
                                 </div>
                               )}
 
-                              {lowPriority && (
-                                <div
-                                  className="mt-1 flex items-center gap-1 rounded bg-amber-500/10 px-1.5 py-1 text-[10px] font-medium text-amber-700 dark:text-amber-400"
-                                  title="Roadmap items must be High or Medium priority"
-                                >
-                                  <AlertTriangle className="h-3 w-3 shrink-0" />
-                                  <span>Update priority (High/Medium) or move to Backlog</span>
-                                </div>
-                              )}
+
+
 
 
 
@@ -353,9 +345,6 @@ export function RoadmapView({
                     ) : (
                       <div className="flex flex-col gap-2">
                         {list.map((v) => {
-                          const missingPriority = !hasAssignedPriority(v.item.priority);
-                          // En "No quarter assigned" el esfuerzo 0h es legítimo: no se alerta.
-                          const canAssignQuarter = true;
                           return (
                             <div
                               key={v.item.uid}
@@ -363,9 +352,8 @@ export function RoadmapView({
                               onDragStart={(e) => { setDragUid(v.item.uid); e.dataTransfer.effectAllowed = "move"; }}
                               onDragEnd={() => { setDragUid(null); setOverQ(null); }}
                               className={`cursor-grab active:cursor-grabbing flex items-center gap-1 ${dragUid === v.item.uid ? "opacity-40" : ""}`}
-                              title={missingPriority ? "Falta prioridad" : ""}
                             >
-                              <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} ${missingPriority ? "ring-1 ring-amber-500/60" : ""} flex items-center gap-1 flex-1 min-w-0`}>
+                              <Badge variant="outline" className={`${WORK_ITEM_ICONS[v.item.type].badgeClass} flex items-center gap-1 flex-1 min-w-0`}>
                                 <PriorityPicker
                                   value={v.item.priority}
                                   onChange={(p) => onUpdate(v.item.uid, { priority: p })}
@@ -375,28 +363,18 @@ export function RoadmapView({
                                   className="truncate cursor-pointer hover:underline"
                                   onClick={(e) => { e.stopPropagation(); setDetailUid(v.item.uid); }}
                                 >{v.item.id} · {v.item.title}</span>
-
-                                {missingPriority && (
-                                  <span
-                                    className="ml-1 text-amber-600 dark:text-amber-400 shrink-0 cursor-help"
-                                    title="Falta prioridad. Asigna Alta/Media/Baja/Muy baja en el selector de prioridad."
-                                  >
-                                    <AlertTriangle className="h-3.5 w-3.5" />
-                                  </span>
-                                )}
                               </Badge>
 
 
                               <Select
                                 value={v.item.quarter || "__bl"}
-                                disabled={!canAssignQuarter}
                                 onValueChange={(val) => commitMove(v.item.uid, (val === "__bl" ? "" : val) as Quarter)}
                               >
                                 <SelectTrigger
                                   className="h-6 w-[68px] text-[10px] px-1.5 shrink-0"
                                   onPointerDown={(e) => e.stopPropagation()}
                                   onClick={(e) => e.stopPropagation()}
-                                  title={canAssignQuarter ? "Asignar Quarter" : "Asigna una prioridad para poder mover al Roadmap"}
+                                  title="Asignar Quarter"
                                 >
                                   <SelectValue placeholder="Q?" />
                                 </SelectTrigger>
