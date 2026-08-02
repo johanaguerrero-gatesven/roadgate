@@ -16,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { RoadmapItem, ItemType, Quarter, Priority, toCSV, rolledUpEffort } from "@/lib/roadmap";
-import { WorkItemIcon } from "@/lib/work-item-icons";
 import { PRIORITIES, PRIORITY_META, QUARTERS, type RealPriority } from "../constants";
 import { PriorityIcon } from "./PriorityIcon";
 import { ParentPicker } from "./ParentPicker";
