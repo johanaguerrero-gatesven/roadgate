@@ -246,7 +246,16 @@ export function parseCSV(text: string): Record<string, string>[] {
   const filtered = rows.filter((r) => r.some((c) => c.trim() !== ""));
   if (!filtered.length) return [];
   const headers = filtered[0].map((h) => h.trim());
-  return filtered.slice(1).map((r) => {
+  // Tolerancia a exportaciones de Azure DevOps donde la columna
+  // "Work Item Type" viene vacía y directamente OMITIDA en las filas:
+  // la fila tiene una columna menos que la cabecera y todo se desplaza
+  // (el título caía en "Work Item Type", el esfuerzo en "Parent", etc.).
+  const witIdx = headers.findIndex((h) => /^work item type$|^item type$|^type$/i.test(h.trim()));
+  return filtered.slice(1).map((row) => {
+    let r = row;
+    if (witIdx >= 0 && r.length === headers.length - 1) {
+      r = [...r.slice(0, witIdx), "", ...r.slice(witIdx)];
+    }
     const o: Record<string, string> = {};
     headers.forEach((h, idx) => { o[h] = (r[idx] ?? "").trim(); });
     return o;
