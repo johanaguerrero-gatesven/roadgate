@@ -74,43 +74,52 @@ export const defaultCapacity: CapacityConfig = {
  */
 export function syncParentQuarters(input: RoadmapItem[]): RoadmapItem[] {
   // --- Fase 0 (top-down): materializar la herencia de Quarter -------------
-  // Un hijo sin quarter propio cuyo padre SÍ está planificado en un Q concreto
-  // hereda ese Q de forma explícita. Sin este paso, la tarjeta del hijo se
-  // pintaba bajo el padre "prestada" y, al pasar el padre a MULTI (porque otro
-  // hermano se movió), los hermanos caían al Backlog sin que nadie los tocara.
+  // Un padre planificado en un Q concreto cuya rama entera está SIN planificar
+  // baja ese Q a todos sus descendientes (caso típico de importación o de un
+  // padre recién arrastrado). Si algún descendiente ya tiene Q propio, NO se
+  // hereda nada: así devolver un hijo suelto al Backlog es una acción estable
+  // y el padre pasa a MULTI en la fase 1 en vez de "recapturar" al hijo.
   const items = (() => {
     const byIdIn = new Map(input.map((i) => [i.id, i]));
-    const kidsIn = new Map<string, RoadmapItem[]>();
-    input.forEach((i) => {
-      if (!i.parentId || !byIdIn.has(i.parentId)) return;
-      const arr = kidsIn.get(i.parentId) ?? [];
-      arr.push(i);
-      kidsIn.set(i.parentId, arr);
-    });
+    const kidsIn = buildChildrenMap(input, byIdIn);
     const patched = new Map<string, Quarter>();
-    const pushDown = (node: RoadmapItem, inherited: Quarter) => {
-      const own = (patched.get(node.uid) ?? node.quarter ?? "") as Quarter;
-      let effective = own;
-      if (own === "" && inherited !== "" && inherited !== "MULTI") {
-        effective = inherited;
-        patched.set(node.uid, inherited);
-      }
-      (kidsIn.get(node.id) ?? []).forEach((k) => pushDown(k, effective));
+
+    const subtreeUnassigned = (node: RoadmapItem, seen: Set<string>): boolean => {
+      if (seen.has(node.uid)) return true;
+      seen.add(node.uid);
+      const kids = kidsIn.get(node.id) ?? [];
+      if (kids.length === 0) return (node.quarter ?? "") === "";
+      if ((node.quarter ?? "") !== "" && (node.quarter ?? "") !== "MULTI") return false;
+      return kids.every((k) => subtreeUnassigned(k, seen));
     };
-    input.filter((i) => !i.parentId || !byIdIn.has(i.parentId)).forEach((r) => pushDown(r, ""));
+    const markAll = (node: RoadmapItem, q: Quarter, seen: Set<string>) => {
+      (kidsIn.get(node.id) ?? []).forEach((k) => {
+        if (seen.has(k.uid)) return;
+        seen.add(k.uid);
+        patched.set(k.uid, q);
+        markAll(k, q, seen);
+      });
+    };
+    const walkDown = (node: RoadmapItem, seen: Set<string>) => {
+      if (seen.has(node.uid)) return;
+      seen.add(node.uid);
+      const kids = kidsIn.get(node.id) ?? [];
+      if (kids.length === 0) return;
+      const own = (node.quarter ?? "") as Quarter;
+      if (own !== "" && own !== "MULTI" && kids.every((k) => subtreeUnassigned(k, new Set()))) {
+        markAll(node, own, seen);
+        return;
+      }
+      kids.forEach((k) => walkDown(k, seen));
+    };
+    rootsOf(input, byIdIn).forEach((r) => walkDown(r, new Set()));
     return patched.size
       ? input.map((i) => (patched.has(i.uid) ? { ...i, quarter: patched.get(i.uid)! } : i))
       : input;
   })();
 
   const byId = new Map(items.map((i) => [i.id, i]));
-  const childrenMap = new Map<string, RoadmapItem[]>();
-  items.forEach((i) => {
-    if (!i.parentId || !byId.has(i.parentId)) return;
-    const arr = childrenMap.get(i.parentId) ?? [];
-    arr.push(i);
-    childrenMap.set(i.parentId, arr);
-  });
+  const childrenMap = buildChildrenMap(items, byId);
 
 
   const memo = new Map<string, Quarter>();
