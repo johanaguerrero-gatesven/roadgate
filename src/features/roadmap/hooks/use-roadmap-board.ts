@@ -211,6 +211,16 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     if (!target) return;
     if (target.quarter === quarter) return;
     const planning = quarter !== "" && quarter !== "MULTI";
+    // Gate de planificación: sin esfuerzo (propio o de sus hojas) el item no
+    // aportaría carga al Quarter, así que se bloquea el movimiento.
+    if (planning && rolledUpEffort(target, items) <= 0) {
+      toast.error("No se puede planificar sin esfuerzo", {
+        description: `${target.id}: asigna las horas de esfuerzo${
+          descendantsOf(target, items).length ? " en sus hijos" : ""
+        } antes de moverlo a ${quarter}.`,
+      });
+      return;
+    }
     // En el Roadmap solo caben Alta o Media: se respeta Media si ya la tenía,
     // el resto (Baja/Mínima/sin prioridad) sube a Alta.
     const priorityFor = (it: { priority?: string }) =>
