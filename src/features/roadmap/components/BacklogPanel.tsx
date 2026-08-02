@@ -6,6 +6,7 @@
  * También ofrece importación CSV y exportación a Excel por tipo de item.
  */
 import { useRef } from "react";
+import { toast } from "sonner";
 import {
   Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, Minus,
 } from "lucide-react";
@@ -50,7 +51,24 @@ export function BacklogPanel({
     : false
   );
 
-  const handleFile = (f: File) => {
+  /**
+   * Acepta CSV y Excel (.xlsx/.xls). Los Excel se convierten a CSV en el
+   * navegador (SheetJS) para reutilizar el mismo parser de importación.
+   */
+  const handleFile = async (f: File) => {
+    const isExcel = /\.(xlsx|xlsm|xls)$/i.test(f.name);
+    if (isExcel) {
+      try {
+        const XLSX = await import("xlsx");
+        const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        onImport(XLSX.utils.sheet_to_csv(sheet));
+      } catch (e) {
+        console.error(e);
+        toast.error("No se pudo leer el Excel");
+      }
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => onImport(String(reader.result || ""));
     reader.readAsText(f);
@@ -80,7 +98,7 @@ export function BacklogPanel({
           <Trash2 className="h-4 w-4" /> Reset demo data
         </Button>
         <input
-          ref={fileRef} type="file" accept=".csv,text/csv" className="hidden"
+          ref={fileRef} type="file" accept=".csv,text/csv,.xlsx,.xls,.xlsm" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }}
         />
 

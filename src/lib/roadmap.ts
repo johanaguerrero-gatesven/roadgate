@@ -245,8 +245,22 @@ export function parseCSV(text: string): Record<string, string>[] {
   if (field.length || cur.length) { cur.push(field); rows.push(cur); }
   const filtered = rows.filter((r) => r.some((c) => c.trim() !== ""));
   if (!filtered.length) return [];
+  // Excel con TODO el CSV pegado dentro de una sola columna: al convertirlo
+  // a CSV cada fila queda como un único campo entrecomillado. Lo reprocesamos.
+  if (filtered.every((r) => r.length === 1) && filtered[0][0].includes(",")) {
+    return parseCSV(filtered.map((r) => r[0]).join("\n"));
+  }
   const headers = filtered[0].map((h) => h.trim());
-  return filtered.slice(1).map((r) => {
+  // Tolerancia a exportaciones de Azure DevOps donde la columna
+  // "Work Item Type" viene vacía y directamente OMITIDA en las filas:
+  // la fila tiene una columna menos que la cabecera y todo se desplaza
+  // (el título caía en "Work Item Type", el esfuerzo en "Parent", etc.).
+  const witIdx = headers.findIndex((h) => /^work item type$|^item type$|^type$/i.test(h.trim()));
+  return filtered.slice(1).map((row) => {
+    let r = row;
+    if (witIdx >= 0 && r.length === headers.length - 1) {
+      r = [...r.slice(0, witIdx), "", ...r.slice(witIdx)];
+    }
     const o: Record<string, string> = {};
     headers.forEach((h, idx) => { o[h] = (r[idx] ?? "").trim(); });
     return o;
