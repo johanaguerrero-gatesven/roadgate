@@ -302,15 +302,55 @@ export const persistItems = createServerFn({ method: "POST" })
   });
 
 /**
+ * Devuelve la capacidad actual del roadmap como pares campo→valor "planos",
+ * para poder comparar el estado anterior y el nuevo en el audit trail.
+ */
+function flattenCapacity(c: CapacityConfig): Record<string, string> {
+  const flat: Record<string, string> = {
+    developers: String(c.developers ?? 0),
+    dedicationPct: String(c.dedicationPct ?? 0),
+    daysPerSprint: String(c.daysPerSprint ?? 0),
+    hoursPerDay: String(c.hoursPerDay ?? 0),
+    sprintsPerQuarter: String(c.sprintsPerQuarter ?? 0),
+  };
+  const byQ = (c.sprintsByQuarter ?? {}) as Record<string, number>;
+  Object.keys(byQ).forEach((q) => {
+    flat[`sprintsByQuarter.${q}`] = String(byQ[q] ?? "");
+  });
+  return flat;
+}
+
+/**
  * Guarda la configuración de capacidad del roadmap (delete + insert: solo hay
  * una fila por roadmap, así que reemplazarla evita conflictos de upsert).
+ * Antes de sobrescribir se registra en `roadmap_capacity_history` un apunte por
+ * cada campo modificado (quién, cuándo, valor anterior → valor nuevo).
  */
 export const persistCapacity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string; capacity: CapacityConfig }) => d)
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId, claims } = context;
     await assertRoadmapOwned(supabase as never, data.roadmapId, userId);
+    const { data: prevRow } = await supabase
+      .from("roadmap_capacity").select("*").eq("roadmap_id", data.roadmapId).maybeSingle();
+    const prev = prevRow as unknown as {
+      developers: number; dedication_pct: number | string; days_per_sprint: number;
+      hours_per_day: number | string; sprints_per_quarter: number;
+      sprints_by_quarter: Record<string, number> | null;
+    } | null;
+    const before = prev
+      ? flattenCapacity({
+          developers: prev.developers,
+          dedicationPct: Number(prev.dedication_pct),
+          daysPerSprint: prev.days_per_sprint,
+          hoursPerDay: Number(prev.hours_per_day),
+          sprintsPerQuarter: prev.sprints_per_quarter,
+          sprintsByQuarter: (prev.sprints_by_quarter ?? {}) as CapacityConfig["sprintsByQuarter"],
+        })
+      : null;
+    const after = flattenCapacity(data.capacity);
+
     const { error: delErr } = await supabase
       .from("roadmap_capacity")
       .delete()
@@ -327,8 +367,54 @@ export const persistCapacity = createServerFn({ method: "POST" })
       sprints_by_quarter: data.capacity.sprintsByQuarter ?? {},
     });
     if (error) throw new Error(error.message);
-    return { ok: true as const };
+
+    // Audit trail: solo los campos cuyo valor ha cambiado realmente.
+    const email = (claims as { email?: string }).email ?? null;
+    const fields = new Set([...Object.keys(after), ...Object.keys(before ?? {})]);
+    const entries = [...fields]
+      .filter((f) => (before?.[f] ?? null) !== (after[f] ?? null))
+      .map((f) => ({
+        roadmap_id: data.roadmapId,
+        user_id: userId,
+        changed_by_email: email,
+        field: f,
+        old_value: before ? (before[f] ?? null) : null,
+        new_value: after[f] ?? null,
+      }));
+    if (entries.length) {
+      const { error: hErr } = await supabase.from("roadmap_capacity_history").insert(entries);
+      if (hErr) console.error("capacity history:", hErr.message);
+    }
+    return { ok: true as const, logged: entries.length };
   });
+
+/**
+ * Historial de cambios de capacidad del roadmap (más recientes primero).
+ * Se limita a 200 apuntes para no crecer sin control en la UI.
+ */
+export const fetchCapacityHistory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { roadmapId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertRoadmapOwned(supabase as never, data.roadmapId, userId);
+    const { data: rows, error } = await supabase
+      .from("roadmap_capacity_history")
+      .select("id, field, old_value, new_value, changed_by_email, created_at")
+      .eq("roadmap_id", data.roadmapId)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return (rows ?? []).map((r) => ({
+      id: r.id as string,
+      field: r.field as string,
+      oldValue: (r.old_value ?? null) as string | null,
+      newValue: (r.new_value ?? null) as string | null,
+      by: (r.changed_by_email ?? "") as string,
+      at: r.created_at as string,
+    }));
+  });
+
 
 /**
  * Vacía por completo un roadmap (items + capacidad) sin borrar la cabecera.
