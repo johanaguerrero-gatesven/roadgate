@@ -14,7 +14,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { clearSession } from "@/lib/auth";
-import { Map, Users, ListChecks, Plus, User, Settings, LogOut, CalendarDays } from "lucide-react";
+import { Map, Users, ListChecks, Plus, User, Settings, LogOut, CalendarDays, ChevronRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useServerFn } from "@tanstack/react-start";
 import { getWorkspaceStats, listRoadmaps } from "@/lib/roadmap.functions";
