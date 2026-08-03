@@ -130,8 +130,8 @@ const dict = {
     "app.empty.lead":
       "Crea tu primer roadmap para empezar a planificar iniciativas, asignarlas a equipos y validar contra la capacidad real.",
     "app.empty.create": "Crear mi primer roadmap",
-    "app.recent.h2": "Tus hojas de ruta recientes",
-    "app.recent.viewAll": "Ver todos mis roadmaps",
+    "app.recent.h2": "Roadmaps recientes",
+    "app.recent.viewAll": "Ver todos",
     "app.recent.open": "Abrir",
     "app.recent.items": "items",
     "app.recent.updated": "Actualizado",
@@ -445,8 +445,8 @@ const dict = {
     "app.empty.lead":
       "Create your first roadmap to start planning initiatives, assigning teams and validating against real capacity.",
     "app.empty.create": "Create my first roadmap",
-    "app.recent.h2": "Your recent roadmaps",
-    "app.recent.viewAll": "View all my roadmaps",
+    "app.recent.h2": "Recent roadmaps",
+    "app.recent.viewAll": "View all",
     "app.recent.open": "Open",
     "app.recent.items": "items",
     "app.recent.updated": "Updated",
