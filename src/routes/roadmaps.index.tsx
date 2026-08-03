@@ -83,7 +83,7 @@ function RoadmapsListPage() {
           <Logo />
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/app"><ArrowLeft className="h-4 w-4" /> App</Link>
+              <Link to="/app"><ArrowLeft className="h-4 w-4" /> Dashboard</Link>
             </Button>
             <LanguageSwitcher />
           </div>
