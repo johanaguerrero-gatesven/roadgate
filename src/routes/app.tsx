@@ -69,12 +69,13 @@ function AppHome() {
       value: stats ? String(stats.roadmapsCount) : "…",
       hint: t("app.stats.roadmaps.hint"),
     },
-    {
-      icon: Users,
-      title: t("app.stats.teams"),
-      value: stats ? String(stats.teamsCount) : "…",
-      hint: t("app.stats.teams.hint"),
-    },
+    // Teams card hidden — no functionality wired up yet. Re-enable when team features are added.
+    // {
+    //   icon: Users,
+    //   title: t("app.stats.teams"),
+    //   value: stats ? String(stats.teamsCount) : "…",
+    //   hint: t("app.stats.teams.hint"),
+    // },
     {
       icon: ListChecks,
       title: t("app.stats.items"),
