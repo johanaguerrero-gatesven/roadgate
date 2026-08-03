@@ -193,15 +193,20 @@ export const getWorkspaceStats = createServerFn({ method: "GET" })
     const selectedId = data?.roadmapId ?? null;
     const rmIds = selectedId && allIds.includes(selectedId) ? [selectedId] : allIds;
     let totalItems = 0;
+    const byType = { epic: 0, feature: 0, story: 0 };
     if (rmIds.length > 0) {
-      const { count, error: itErr } = await supabase
+      const { data: rows, error: itErr } = await supabase
         .from("roadmap_items")
-        .select("id", { count: "exact", head: true })
+        .select("id, type")
         .in("roadmap_id", rmIds);
       if (itErr) throw new Error(itErr.message);
-      totalItems = count ?? 0;
+      const list = (rows ?? []) as Array<{ type: string | null }>;
+      totalItems = list.length;
+      for (const r of list) {
+        if (r.type === "epic" || r.type === "feature" || r.type === "story") byType[r.type] += 1;
+      }
     }
-    return { roadmapsCount, teamsCount, totalDevelopers, totalItems };
+    return { roadmapsCount, teamsCount, totalDevelopers, totalItems, byType };
   });
 
 
