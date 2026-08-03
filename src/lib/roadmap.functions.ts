@@ -183,12 +183,21 @@ export const getWorkspaceStats = createServerFn({ method: "GET" })
       dedication_pct: number | string;
     }>;
     const teamsCount = caps.length;
-    const totalFTE = caps.reduce(
-      (acc, c) => acc + Number(c.developers ?? 0) * (Number(c.dedication_pct ?? 0) / 100),
-      0,
-    );
     const totalDevelopers = caps.reduce((acc, c) => acc + Number(c.developers ?? 0), 0);
-    return { roadmapsCount, teamsCount, totalFTE, totalDevelopers };
+    // Total de work items en todos los roadmaps del usuario (suma de Epics,
+    // Features y User Stories). La capacidad (FTE) no tiene sentido a nivel
+    // global — depende de cada roadmap — por eso no se devuelve aquí.
+    const rmIds = (rmRes.data ?? []).map((r) => (r as { id: string }).id);
+    let totalItems = 0;
+    if (rmIds.length > 0) {
+      const { count, error: itErr } = await supabase
+        .from("roadmap_items")
+        .select("id", { count: "exact", head: true })
+        .in("roadmap_id", rmIds);
+      if (itErr) throw new Error(itErr.message);
+      totalItems = count ?? 0;
+    }
+    return { roadmapsCount, teamsCount, totalDevelopers, totalItems };
   });
 
 /**
