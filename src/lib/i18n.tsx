@@ -122,8 +122,8 @@ const dict = {
     "app.stats.roadmaps.hint": "Crea tu primer roadmap",
     "app.stats.teams": "Equipos",
     "app.stats.teams.hint": "Define quiénes ejecutan",
-    "app.stats.capacity": "Capacidad disponible",
-    "app.stats.capacity.hint": "Configura FTEs por equipo",
+    "app.stats.items": "Items totales",
+    "app.stats.items.hint": "Epics, Features y User Stories",
     "app.empty.h2": "Aún no hay roadmaps",
     "app.empty.lead":
       "Crea tu primer roadmap para empezar a planificar iniciativas, asignarlas a equipos y validar contra la capacidad real.",
@@ -433,8 +433,8 @@ const dict = {
     "app.stats.roadmaps.hint": "Create your first roadmap",
     "app.stats.teams": "Teams",
     "app.stats.teams.hint": "Define who executes",
-    "app.stats.capacity": "Available capacity",
-    "app.stats.capacity.hint": "Set FTEs per team",
+    "app.stats.items": "Total items",
+    "app.stats.items.hint": "Epics, Features and User Stories",
     "app.empty.h2": "No roadmaps yet",
     "app.empty.lead":
       "Create your first roadmap to start planning initiatives, assigning teams and validating against real capacity.",
