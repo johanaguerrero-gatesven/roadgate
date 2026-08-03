@@ -135,10 +135,10 @@ export function RoadmapView({
       {lastSnapshot && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
           <span className="text-muted-foreground">
-            {lastSnapshot.id}: {lastSnapshot.fromQ || "Sin quarter"} → {lastSnapshot.toQ || "Sin quarter"}
+            {lastSnapshot.id}: {lastSnapshot.fromQ || t("roadmap.q.unassigned")} → {lastSnapshot.toQ || t("roadmap.q.unassigned")}
           </span>
           <Button variant="outline" size="sm" onClick={undo}>
-            <ArrowLeft className="h-3.5 w-3.5" /> Deshacer
+            <ArrowLeft className="h-3.5 w-3.5" /> {t("roadmap.undo")}
           </Button>
         </div>
       )}
@@ -254,10 +254,10 @@ export function RoadmapView({
                               {zeroEffort && (
                                 <div
                                   className="mt-1 flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-1 text-[10px] font-medium text-destructive"
-                                  title="Update effort (>0h) or move to Backlog"
+                                  title={t("roadmap.zeroEffortWarn")}
                                 >
                                   <AlertTriangle className="h-3 w-3 shrink-0" />
-                                  <span>Update effort (&gt;0h) or move to Backlog</span>
+                                  <span>{t("roadmap.zeroEffortWarn")}</span>
                                 </div>
                               )}
 

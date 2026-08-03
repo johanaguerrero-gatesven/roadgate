@@ -164,7 +164,7 @@ export function validateImportCSV(text: string, type: ItemType, existing: Roadma
 
     const q = cell(r, ["quarter", "q", "iteration path", "iteration", "sprint"]);
     if (q.value && !looksQuarter(q.value)) {
-      issues.push({ severity: "warning", row: n, column: q.key ?? "Quarter", message: `Quarter no reconocido ("${q.value}"): quedará sin asignar.` });
+      issues.push({ severity: "warning", row: n, column: q.key ?? "Quarter", message: `Quarter no reconocido ("${q.value}"): quedará en Backlog.` });
     }
 
     const st = cell(r, ["state", "status"]);

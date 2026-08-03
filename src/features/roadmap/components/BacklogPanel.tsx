@@ -301,7 +301,7 @@ export function BacklogPanel({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__bl" className="text-xs">Backlog</SelectItem>
+                            <SelectItem value="__bl" className="text-xs">{t("roadmap.q.unassigned")}</SelectItem>
                             {QUARTERS.map((q) => (
                               <SelectItem key={q} value={q} className="text-xs">{q}</SelectItem>
                             ))}
