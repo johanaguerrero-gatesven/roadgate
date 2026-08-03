@@ -22,8 +22,19 @@ export function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: Capa
   const prioEffort = useMemo(() => effortByPriority(items), [items]);
 
   const totalEffort = QUARTERS.reduce((s, q) => s + effortMap[q], 0);
+  const backlogEffort = effortMap[""] || 0;
   const totalCap = QUARTERS.reduce((s, q) => s + capacityPerQuarter(cfg, q), 0);
   const globalPct = totalCap > 0 ? (totalEffort / totalCap) * 100 : 0;
+
+  // Ítems planificados = con Quarter efectivo (Q1..Q4 o MULTI); el resto es backlog.
+  const planned = useMemo(
+    () => items.filter((i) => {
+      const q = effectiveQuarter(i, items);
+      return q !== "";
+    }).length,
+    [items],
+  );
+  const backlogCount = items.length - planned;
 
   const counts = {
     epic: items.filter((i) => i.type === "epic").length,
@@ -47,6 +58,9 @@ export function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: Capa
           <div className="text-xs text-muted-foreground">{t("roadmap.dash.itemsTotal")}</div>
           <div className="mt-1 text-2xl font-bold">{items.length}</div>
           <div className="mt-1 text-xs text-muted-foreground">
+            {planned} {t("roadmap.dash.inRoadmap")} · {backlogCount} {t("roadmap.dash.inBacklog")}
+          </div>
+          <div className="mt-0.5 text-xs text-muted-foreground">
             {counts.epic} {t("roadmap.dash.epics")} · {counts.feature} {t("roadmap.dash.features")} · {counts.story} {t("roadmap.dash.stories")}
           </div>
         </div>
@@ -54,6 +68,7 @@ export function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: Capa
           <div className="text-xs text-muted-foreground">{t("roadmap.dash.plannedEffort")}</div>
           <div className="mt-1 text-2xl font-bold">{totalEffort.toFixed(0)} h</div>
           <div className="mt-1 text-xs text-muted-foreground">{t("roadmap.dash.of")} {totalCap.toFixed(0)} h {t("roadmap.dash.available")}</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">{t("roadmap.dash.plannedHint")}</div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="text-xs text-muted-foreground">{t("roadmap.dash.annualUtil")}</div>
@@ -61,15 +76,19 @@ export function DashboardPanel({ items, cfg }: { items: RoadmapItem[]; cfg: Capa
           <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
             <div className={`h-full ${utilizationBarColor(globalPct)}`} style={{ width: `${Math.min(globalPct, 150)}%` }} />
           </div>
+          <div className="mt-1.5 text-xs text-muted-foreground">{t("roadmap.dash.utilScope")}</div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="text-xs text-muted-foreground">{t("roadmap.dash.globalState")}</div>
           <div className={`mt-1 text-lg font-semibold ${globalStatus.cls}`}>{globalStatus.label}</div>
-          <div className="mt-1 text-xs text-muted-foreground">
-            {effortMap[""] > 0 && <>· {effortMap[""]} {t("roadmap.dash.noQuarterEff")}</>}
-          </div>
+          {backlogEffort > 0 && (
+            <div className="mt-1 text-xs text-muted-foreground">
+              {backlogEffort.toFixed(0)} {t("roadmap.dash.noQuarterEff")} · {t("roadmap.dash.backlogNote")}
+            </div>
+          )}
         </div>
       </div>
+
 
       {/* Capacidad por Q */}
       <div className="rounded-xl border border-border bg-card p-6">
