@@ -163,7 +163,18 @@ function AppHome() {
             <div className="mt-4 text-4xl font-semibold tracking-tight text-primary">
               {stats ? stats.roadmapsCount : "…"}
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">{t("app.stats.roadmaps.hint")}</p>
+            {/* Mini timeline decorativa: representa los 4 quarters del roadmap */}
+            <div className="mt-5 flex items-center gap-1.5" aria-hidden="true">
+              {["Q1", "Q2", "Q3", "Q4"].map((q, i) => (
+                <div key={q} className="flex-1">
+                  <div
+                    className="h-1.5 rounded-full bg-primary/70"
+                    style={{ opacity: 1 - i * 0.2 }}
+                  />
+                  <div className="mt-1.5 text-[10px] font-medium tracking-wide text-muted-foreground">{q}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Tarjeta 2 — métricas del roadmap seleccionado */}
