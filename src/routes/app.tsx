@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { clearSession } from "@/lib/auth";
-import { Map, Users, Gauge, Plus, User, Settings, LogOut, CalendarDays } from "lucide-react";
+import { Map, Users, ListChecks, Plus, User, Settings, LogOut, CalendarDays } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useServerFn } from "@tanstack/react-start";
 import { getWorkspaceStats, listRoadmaps } from "@/lib/roadmap.functions";
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/app")({
   component: AppHome,
 });
 
-type Stats = { roadmapsCount: number; teamsCount: number; totalFTE: number; totalDevelopers: number };
+type Stats = { roadmapsCount: number; teamsCount: number; totalDevelopers: number; totalItems: number };
 type RoadmapSummary = { id: string; name: string; createdAt: string; updatedAt: string; itemCount: number };
 
 
@@ -46,21 +46,13 @@ function AppHome() {
     if (!session?.userId) { setStats(null); setRecent(null); return; }
     statsFn()
       .then((s) => setStats(s as Stats))
-      .catch((e) => { console.error(e); setStats({ roadmapsCount: 0, teamsCount: 0, totalFTE: 0, totalDevelopers: 0 }); });
+      .catch((e) => { console.error(e); setStats({ roadmapsCount: 0, teamsCount: 0, totalDevelopers: 0, totalItems: 0 }); });
     listFn()
       .then((rows) => setRecent((rows as RoadmapSummary[]).slice(0, 5)))
       .catch((e) => { console.error(e); setRecent([]); });
   }, [session?.userId, statsFn, listFn]);
 
   if (!ready || !session) return null;
-
-  const fteLabel = stats
-    ? stats.totalFTE > 0
-      ? `${stats.totalFTE.toFixed(1)} FTE`
-      : stats.totalDevelopers > 0
-        ? `${stats.totalDevelopers}`
-        : "—"
-    : "…";
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "es-ES", {
@@ -84,10 +76,10 @@ function AppHome() {
       hint: t("app.stats.teams.hint"),
     },
     {
-      icon: Gauge,
-      title: t("app.stats.capacity"),
-      value: fteLabel,
-      hint: t("app.stats.capacity.hint"),
+      icon: ListChecks,
+      title: t("app.stats.items"),
+      value: stats ? String(stats.totalItems) : "…",
+      hint: t("app.stats.items.hint"),
     },
   ];
 
