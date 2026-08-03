@@ -135,10 +135,10 @@ export function RoadmapView({
       {lastSnapshot && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
           <span className="text-muted-foreground">
-            {lastSnapshot.id}: {lastSnapshot.fromQ || "Sin quarter"} → {lastSnapshot.toQ || "Sin quarter"}
+            {lastSnapshot.id}: {lastSnapshot.fromQ || t("roadmap.q.unassigned")} → {lastSnapshot.toQ || t("roadmap.q.unassigned")}
           </span>
           <Button variant="outline" size="sm" onClick={undo}>
-            <ArrowLeft className="h-3.5 w-3.5" /> Deshacer
+            <ArrowLeft className="h-3.5 w-3.5" /> {t("roadmap.undo")}
           </Button>
         </div>
       )}
