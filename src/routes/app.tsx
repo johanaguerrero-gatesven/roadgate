@@ -151,8 +151,24 @@ function AppHome() {
           </div>
         </div>
 
+        {roadmaps && roadmaps.length > 0 && (
+          <div className="mt-8 flex items-center gap-3 flex-wrap">
+            <span className="text-sm text-muted-foreground">{t("app.stats.scope")}</span>
+            <Select value={scope} onValueChange={setScope}>
+              <SelectTrigger className="w-[260px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("app.stats.scope.all")}</SelectItem>
+                {roadmaps.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-        <div className="mt-10 grid md:grid-cols-2 gap-5">
+        <div className="mt-6 grid md:grid-cols-2 gap-5">
           {cards.map((c) => (
             <div key={c.title} className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
               <div className="flex items-center justify-between">
@@ -165,7 +181,8 @@ function AppHome() {
           ))}
         </div>
 
-        {stats && stats.roadmapsCount > 0 ? (
+        {(roadmaps?.length ?? 0) > 0 ? (
+
           <div className="mt-10">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">{t("app.recent.h2")}</h2>
