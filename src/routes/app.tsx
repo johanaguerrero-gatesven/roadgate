@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { clearSession } from "@/lib/auth";
 import { Map, Users, ListChecks, Plus, User, Settings, LogOut, CalendarDays } from "lucide-react";
