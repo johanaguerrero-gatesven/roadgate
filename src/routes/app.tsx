@@ -140,7 +140,7 @@ function AppHome() {
         </div>
 
 
-        <div className="mt-10 grid md:grid-cols-3 gap-5">
+        <div className="mt-10 grid md:grid-cols-2 gap-5">
           {cards.map((c) => (
             <div key={c.title} className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
               <div className="flex items-center justify-between">
