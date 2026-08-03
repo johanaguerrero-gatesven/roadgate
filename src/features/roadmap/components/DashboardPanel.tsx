@@ -10,7 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import {
   RoadmapItem, CapacityConfig,
   effortByQuarter, countByPriority, effortByPriority,
-  capacityPerQuarter, sprintsForQuarter,
+  capacityPerQuarter, sprintsForQuarter, effectiveQuarter,
 } from "@/lib/roadmap";
 import { QUARTERS, utilizationBarColor, priorityBarColor } from "../constants";
 
