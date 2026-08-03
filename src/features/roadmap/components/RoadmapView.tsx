@@ -254,10 +254,10 @@ export function RoadmapView({
                               {zeroEffort && (
                                 <div
                                   className="mt-1 flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-1 text-[10px] font-medium text-destructive"
-                                  title="Update effort (>0h) or move to Backlog"
+                                  title={t("roadmap.zeroEffortWarn")}
                                 >
                                   <AlertTriangle className="h-3 w-3 shrink-0" />
-                                  <span>Update effort (&gt;0h) or move to Backlog</span>
+                                  <span>{t("roadmap.zeroEffortWarn")}</span>
                                 </div>
                               )}
 
