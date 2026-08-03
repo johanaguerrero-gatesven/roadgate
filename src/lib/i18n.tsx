@@ -437,6 +437,8 @@ const dict = {
     "app.stats.roadmaps.hint": "Create your first roadmap",
     "app.stats.teams": "Teams",
     "app.stats.teams.hint": "Define who executes",
+    "app.stats.scope": "Show metrics for:",
+    "app.stats.scope.all": "All roadmaps",
     "app.stats.items": "Total items",
     "app.stats.items.hint": "Epics, Features and User Stories",
     "app.empty.h2": "No roadmaps yet",
