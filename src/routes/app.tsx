@@ -69,12 +69,13 @@ function AppHome() {
       value: stats ? String(stats.roadmapsCount) : "…",
       hint: t("app.stats.roadmaps.hint"),
     },
-    {
-      icon: Users,
-      title: t("app.stats.teams"),
-      value: stats ? String(stats.teamsCount) : "…",
-      hint: t("app.stats.teams.hint"),
-    },
+    // Teams card hidden — no functionality wired up yet. Re-enable when team features are added.
+    // {
+    //   icon: Users,
+    //   title: t("app.stats.teams"),
+    //   value: stats ? String(stats.teamsCount) : "…",
+    //   hint: t("app.stats.teams.hint"),
+    // },
     {
       icon: ListChecks,
       title: t("app.stats.items"),
@@ -139,7 +140,7 @@ function AppHome() {
         </div>
 
 
-        <div className="mt-10 grid md:grid-cols-3 gap-5">
+        <div className="mt-10 grid md:grid-cols-2 gap-5">
           {cards.map((c) => (
             <div key={c.title} className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
               <div className="flex items-center justify-between">
