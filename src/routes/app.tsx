@@ -26,8 +26,13 @@ export const Route = createFileRoute("/app")({
   component: AppHome,
 });
 
-type Stats = { roadmapsCount: number; teamsCount: number; totalDevelopers: number; totalItems: number };
-type RoadmapSummary = { id: string; name: string; createdAt: string; updatedAt: string; itemCount: number };
+type Stats = {
+  roadmapsCount: number;
+  teamsCount: number;
+  totalDevelopers: number;
+  totalItems: number;
+  byType: { epic: number; feature: number; story: number };
+};
 
 
 function AppHome() {
