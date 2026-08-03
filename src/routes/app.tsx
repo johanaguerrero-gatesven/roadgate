@@ -151,35 +151,67 @@ function AppHome() {
           </div>
         </div>
 
-        {roadmaps && roadmaps.length > 0 && (
-          <div className="mt-8 flex items-center gap-3 flex-wrap">
-            <span className="text-sm text-muted-foreground">{t("app.stats.scope")}</span>
-            <Select value={scope} onValueChange={setScope}>
-              <SelectTrigger className="w-[260px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("app.stats.scope.all")}</SelectItem>
-                {roadmaps.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        <div className="mt-6 grid md:grid-cols-2 gap-5">
-          {cards.map((c) => (
-            <div key={c.title} className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">{c.title}</span>
-                <c.icon className="h-4 w-4 text-primary" />
-              </div>
-              <div className="mt-3 text-3xl font-bold text-foreground">{c.value}</div>
-              <p className="mt-1 text-xs text-muted-foreground">{c.hint}</p>
+        <div className="mt-8 grid gap-5 lg:grid-cols-3">
+          {/* Tarjeta 1 — resumen del espacio */}
+          <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm">
+            <div className="flex items-start justify-between">
+              <span className="text-sm text-muted-foreground">{t("app.stats.roadmaps")}</span>
+              <span className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Map className="h-4 w-4" />
+              </span>
             </div>
-          ))}
+            <div className="mt-4 text-4xl font-semibold tracking-tight text-primary">
+              {stats ? stats.roadmapsCount : "…"}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">{t("app.stats.roadmaps.hint")}</p>
+          </div>
+
+          {/* Tarjeta 2 — métricas del roadmap seleccionado */}
+          <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm lg:col-span-2">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <span className="text-sm text-muted-foreground">{t("app.stats.items")}</span>
+                <div className="mt-1 truncate text-xs text-muted-foreground/80">{scopeName}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                {roadmaps && roadmaps.length > 0 && (
+                  <Select value={scope} onValueChange={setScope}>
+                    <SelectTrigger className="h-9 w-[220px] rounded-lg border-border/70 bg-background text-sm">
+                      <SelectValue placeholder={t("app.stats.scope")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roadmaps.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <span className="rounded-lg bg-primary/10 p-2 text-primary">
+                  <ListChecks className="h-4 w-4" />
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-end gap-3">
+              <div className="text-4xl font-semibold tracking-tight text-primary">
+                {stats ? stats.totalItems : "…"}
+              </div>
+              <div className="pb-1.5 text-xs text-muted-foreground">{t("app.stats.items.hint")}</div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-3 gap-3 border-t border-border/60 pt-4">
+              {breakdown.map((b) => (
+                <div key={b.key}>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">{b.label}</div>
+                  <div className="mt-1 text-xl font-semibold text-foreground">
+                    {stats ? b.value : "…"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+
 
         {(roadmaps?.length ?? 0) > 0 ? (
 
