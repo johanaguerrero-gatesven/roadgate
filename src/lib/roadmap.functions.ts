@@ -160,13 +160,15 @@ export const listRoadmaps = createServerFn({ method: "GET" })
 
 /**
  * KPIs del workspace mostrados en la portada del usuario.
- * `totalItems` = número total de work items (Epics, Features y User Stories)
- * sumados en todos los roadmaps del usuario. La capacidad (FTE) se gestiona y
- * muestra dentro de cada roadmap individual, no a nivel global.
+ * `totalItems` = número de work items (Epics, Features y User Stories). Si se
+ * indica `roadmapId`, el conteo se limita a ese roadmap; si no, suma todos los
+ * roadmaps del usuario. La capacidad (FTE) se gestiona y muestra dentro de cada
+ * roadmap individual, no a nivel global.
  */
 export const getWorkspaceStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d?: { roadmapId?: string | null }) => d ?? {})
+  .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const [rmRes, capRes] = await Promise.all([
       supabase.from("roadmaps").select("id").eq("user_id", userId),
@@ -185,10 +187,11 @@ export const getWorkspaceStats = createServerFn({ method: "GET" })
     }>;
     const teamsCount = caps.length;
     const totalDevelopers = caps.reduce((acc, c) => acc + Number(c.developers ?? 0), 0);
-    // Total de work items en todos los roadmaps del usuario (suma de Epics,
-    // Features y User Stories). La capacidad (FTE) no tiene sentido a nivel
-    // global — depende de cada roadmap — por eso no se devuelve aquí.
-    const rmIds = (rmRes.data ?? []).map((r) => (r as { id: string }).id);
+    const allIds = (rmRes.data ?? []).map((r) => (r as { id: string }).id);
+    // Segmentación por roadmap: si llega un roadmapId válido del usuario se
+    // cuenta sólo ese; en caso contrario se suman todos sus roadmaps.
+    const selectedId = data?.roadmapId ?? null;
+    const rmIds = selectedId && allIds.includes(selectedId) ? [selectedId] : allIds;
     let totalItems = 0;
     if (rmIds.length > 0) {
       const { count, error: itErr } = await supabase
@@ -200,6 +203,7 @@ export const getWorkspaceStats = createServerFn({ method: "GET" })
     }
     return { roadmapsCount, teamsCount, totalDevelopers, totalItems };
   });
+
 
 /**
  * Crea un roadmap vacío (sin items ni capacidad) y devuelve su id para navegar.

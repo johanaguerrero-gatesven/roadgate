@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { clearSession } from "@/lib/auth";
 import { Map, Users, ListChecks, Plus, User, Settings, LogOut, CalendarDays } from "lucide-react";
@@ -36,23 +37,33 @@ function AppHome() {
   const statsFn = useServerFn(getWorkspaceStats);
   const listFn = useServerFn(listRoadmaps);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [recent, setRecent] = useState<RoadmapSummary[] | null>(null);
+  const [roadmaps, setRoadmaps] = useState<RoadmapSummary[] | null>(null);
+  const [scope, setScope] = useState<string>("all");
 
   useEffect(() => {
     if (ready && !session) navigate({ to: "/login" });
   }, [ready, session, navigate]);
 
   useEffect(() => {
-    if (!session?.userId) { setStats(null); setRecent(null); return; }
-    statsFn()
+    if (!session?.userId) { setRoadmaps(null); return; }
+    listFn()
+      .then((rows) => setRoadmaps(rows as RoadmapSummary[]))
+      .catch((e) => { console.error(e); setRoadmaps([]); });
+  }, [session?.userId, listFn]);
+
+  // Los KPIs se recalculan cada vez que cambia el roadmap seleccionado, de modo
+  // que "Items totales" refleja únicamente el roadmap activo (o todos si scope=all).
+  useEffect(() => {
+    if (!session?.userId) { setStats(null); return; }
+    setStats(null);
+    statsFn({ data: { roadmapId: scope === "all" ? null : scope } })
       .then((s) => setStats(s as Stats))
       .catch((e) => { console.error(e); setStats({ roadmapsCount: 0, teamsCount: 0, totalDevelopers: 0, totalItems: 0 }); });
-    listFn()
-      .then((rows) => setRecent((rows as RoadmapSummary[]).slice(0, 5)))
-      .catch((e) => { console.error(e); setRecent([]); });
-  }, [session?.userId, statsFn, listFn]);
+  }, [session?.userId, statsFn, scope]);
 
   if (!ready || !session) return null;
+
+  const recent = roadmaps === null ? null : roadmaps.slice(0, 5);
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "es-ES", {
@@ -61,6 +72,7 @@ function AppHome() {
       year: "numeric",
     });
 
+  const scopeName = scope === "all" ? null : roadmaps?.find((r) => r.id === scope)?.name ?? null;
 
   const cards = [
     {
@@ -80,9 +92,10 @@ function AppHome() {
       icon: ListChecks,
       title: t("app.stats.items"),
       value: stats ? String(stats.totalItems) : "…",
-      hint: t("app.stats.items.hint"),
+      hint: scopeName ?? t("app.stats.items.hint"),
     },
   ];
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -139,8 +152,24 @@ function AppHome() {
           </div>
         </div>
 
+        {roadmaps && roadmaps.length > 0 && (
+          <div className="mt-8 flex items-center gap-3 flex-wrap">
+            <span className="text-sm text-muted-foreground">{t("app.stats.scope")}</span>
+            <Select value={scope} onValueChange={setScope}>
+              <SelectTrigger className="w-[260px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("app.stats.scope.all")}</SelectItem>
+                {roadmaps.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-        <div className="mt-10 grid md:grid-cols-2 gap-5">
+        <div className="mt-6 grid md:grid-cols-2 gap-5">
           {cards.map((c) => (
             <div key={c.title} className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
               <div className="flex items-center justify-between">
@@ -153,7 +182,8 @@ function AppHome() {
           ))}
         </div>
 
-        {stats && stats.roadmapsCount > 0 ? (
+        {(roadmaps?.length ?? 0) > 0 ? (
+
           <div className="mt-10">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">{t("app.recent.h2")}</h2>
