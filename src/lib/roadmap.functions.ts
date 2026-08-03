@@ -160,8 +160,9 @@ export const listRoadmaps = createServerFn({ method: "GET" })
 
 /**
  * KPIs del workspace mostrados en la portada del usuario.
- * `totalFTE` = Σ(developers × dedicationPct/100) de todas las configuraciones
- * de capacidad, es decir el equivalente a personas a tiempo completo.
+ * `totalItems` = número total de work items (Epics, Features y User Stories)
+ * sumados en todos los roadmaps del usuario. La capacidad (FTE) se gestiona y
+ * muestra dentro de cada roadmap individual, no a nivel global.
  */
 export const getWorkspaceStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
