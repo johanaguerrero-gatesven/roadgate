@@ -254,10 +254,33 @@ export function sprintsForQuarter(c: CapacityConfig, q: RealQuarter) {
 export function capacityPerSprint(c: CapacityConfig) {
   return c.developers * (c.dedicationPct / 100) * c.daysPerSprint * c.hoursPerDay;
 }
+/** ¿Ese Quarter tiene horas fijadas a mano? */
+export function isQuarterOverridden(c: CapacityConfig, q: RealQuarter) {
+  const v = c.hoursByQuarter?.[q];
+  return typeof v === "number" && Number.isFinite(v) && v >= 0;
+}
 export function capacityPerQuarter(c: CapacityConfig, q?: RealQuarter) {
+  if (q && isQuarterOverridden(c, q)) return c.hoursByQuarter![q] as number;
   const sprints = q ? sprintsForQuarter(c, q) : c.sprintsPerQuarter;
   return capacityPerSprint(c) * sprints;
 }
+/** Capacidad anual = suma de los cuatro Quarters (con overrides aplicados). */
+export function annualCapacity(c: CapacityConfig) {
+  return (["Q1", "Q2", "Q3", "Q4"] as RealQuarter[]).reduce((s, q) => s + capacityPerQuarter(c, q), 0);
+}
+/**
+ * Fija la capacidad anual repartiendo las horas a partes iguales entre los
+ * cuatro Quarters (como override manual). Redondeo al entero más cercano.
+ */
+export function setAnnualCapacity(c: CapacityConfig, hours: number): CapacityConfig {
+  const per = Math.max(0, hours) / 4;
+  return { ...c, hoursByQuarter: { Q1: per, Q2: per, Q3: per, Q4: per } };
+}
+/** Elimina los overrides manuales y vuelve al cálculo por sprints. */
+export function clearHoursOverrides(c: CapacityConfig): CapacityConfig {
+  return { ...c, hoursByQuarter: {} };
+}
+
 
 export function uid() {
   return Math.random().toString(36).slice(2, 10);
