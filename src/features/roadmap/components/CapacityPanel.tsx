@@ -108,21 +108,54 @@ export function CapacityPanel({ cfg, roadmapId, onChange }: { cfg: CapacityConfi
         <h3 className="font-semibold text-foreground mb-3">{t("roadmap.cap.calculated")}</h3>
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between"><dt>{t("roadmap.cap.perSprint")}</dt><dd className="font-semibold">{sprint.toFixed(0)} h</dd></div>
+        </dl>
+
+        <div className="mt-4 pt-4 border-t border-border space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <h4 className="text-sm font-semibold text-foreground">{t("roadmap.cap.manualHours")}</h4>
+            {hasOverrides && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs"
+                onClick={() => onChange(clearHoursOverrides(cfg))}>
+                {t("roadmap.cap.resetHours")}
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">{t("roadmap.cap.manualHoursHint")}</p>
           {QUARTERS.map((q) => (
-            <div key={q} className="flex justify-between">
-              <dt>{q} ({sprintsForQuarter(cfg, q)} {t("roadmap.cap.sprints")})</dt>
-              <dd className="font-semibold">{capacityPerQuarter(cfg, q).toFixed(0)} h</dd>
+            <div key={q} className="flex items-center justify-between gap-3">
+              <dt className="text-sm text-muted-foreground">
+                {q}
+                <span className="ml-2 text-[11px] uppercase tracking-wide">
+                  {isQuarterOverridden(cfg, q)
+                    ? t("roadmap.cap.manual")
+                    : `${sprintsForQuarter(cfg, q)} ${t("roadmap.cap.sprints")}`}
+                </span>
+              </dt>
+              <Input
+                type="number" min={0} step="1"
+                value={Math.round(capacityPerQuarter(cfg, q))}
+                onChange={(e) => onChange({
+                  ...cfg,
+                  hoursByQuarter: { ...(cfg.hoursByQuarter || {}), [q]: num(e.target.value) },
+                })}
+                className="w-28 h-9"
+              />
             </div>
           ))}
-          <div className="flex justify-between border-t border-border pt-2">
-            <dt>{t("roadmap.cap.annual")}</dt>
-            <dd className="font-semibold">
-              {QUARTERS.reduce((s, q) => s + capacityPerQuarter(cfg, q), 0).toFixed(0)} h
-            </dd>
+          <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+            <dt className="text-sm font-semibold text-foreground">{t("roadmap.cap.annual")}</dt>
+            <Input
+              type="number" min={0} step="1"
+              value={Math.round(annual)}
+              onChange={(e) => onChange(setAnnualCapacity(cfg, num(e.target.value)))}
+              className="w-28 h-9 font-semibold"
+            />
           </div>
-        </dl>
+          <p className="text-xs text-muted-foreground">{t("roadmap.cap.annualHint")}</p>
+        </div>
       </div>
     </div>
+
 
     <section className="rounded-xl border border-border bg-card p-6">
       <h3 className="font-semibold text-foreground">{t("roadmap.cap.history")}</h3>
