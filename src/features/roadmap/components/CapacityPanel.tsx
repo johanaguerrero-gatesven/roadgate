@@ -35,6 +35,8 @@ export function CapacityPanel({ cfg, roadmapId, onChange }: { cfg: CapacityConfi
     { key: "sprintsPerQuarter", label: t("roadmap.cap.sprintsPerQuarterDefault") },
   ];
   const sprint = capacityPerSprint(cfg);
+  const annual = annualCapacity(cfg);
+  const hasOverrides = QUARTERS.some((q) => isQuarterOverridden(cfg, q));
   /**
    * Saneado de la entrada numérica: vaciar el campo o teclear texto producía
    * `NaN`, que se propagaba a los cálculos ("NaN h") y al guardado.
