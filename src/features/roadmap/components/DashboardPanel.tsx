@@ -20,7 +20,7 @@ import { QUARTERS, utilizationBarColor, priorityBarColor } from "../constants";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** Pequeño icono de ayuda con tooltip explicativo. */
-function InfoTip({ label }: { label: string }) {
+function InfoTip({ label }: { label: TKey }) {
   const { t } = useI18n();
   return (
     <Tooltip>
@@ -41,7 +41,7 @@ function InfoTip({ label }: { label: string }) {
 }
 
 /** Cabecera de tarjeta con título y tooltip opcional. */
-function CardTitle({ children, tip }: { children: ReactNode; tip?: string }) {
+function CardTitle({ children, tip }: { children: ReactNode; tip?: TKey }) {
   return (
     <div className="flex items-start justify-between gap-2">
       <div className="text-xs text-muted-foreground">{children}</div>
