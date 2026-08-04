@@ -53,6 +53,11 @@ export type CapacityConfig = {
   hoursPerDay: number;
   sprintsPerQuarter: number;             // default for every quarter
   sprintsByQuarter?: Partial<Record<RealQuarter, number>>; // per-Q override
+  /**
+   * Override manual de horas disponibles por Quarter. Si un Quarter tiene un
+   * número aquí, esas horas MANDAN sobre el cálculo devs x dedicación x sprints.
+   */
+  hoursByQuarter?: Partial<Record<RealQuarter, number>>;
 };
 
 export const defaultCapacity: CapacityConfig = {
@@ -62,7 +67,9 @@ export const defaultCapacity: CapacityConfig = {
   hoursPerDay: 5,
   sprintsPerQuarter: 5,
   sprintsByQuarter: {},
+  hoursByQuarter: {},
 };
+
 
 /**
  * Índice `parentId -> hijos directos`, ignorando padres inexistentes y
