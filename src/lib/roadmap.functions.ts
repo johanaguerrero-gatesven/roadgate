@@ -276,6 +276,7 @@ export const fetchRoadmap = createServerFn({ method: "GET" })
       developers: number; dedication_pct: number | string; days_per_sprint: number;
       hours_per_day: number | string; sprints_per_quarter: number;
       sprints_by_quarter: Record<string, number> | null;
+      hours_by_quarter: Record<string, number> | null;
     } | null;
     const capacity: CapacityConfig = capRow
       ? {
@@ -285,6 +286,7 @@ export const fetchRoadmap = createServerFn({ method: "GET" })
           hoursPerDay: Number(capRow.hours_per_day),
           sprintsPerQuarter: capRow.sprints_per_quarter,
           sprintsByQuarter: (capRow.sprints_by_quarter ?? {}) as CapacityConfig["sprintsByQuarter"],
+          hoursByQuarter: (capRow.hours_by_quarter ?? {}) as CapacityConfig["hoursByQuarter"],
         }
       : defaultCapacity;
     const rm = rmRes.data as { id: string; name: string };
@@ -336,6 +338,10 @@ function flattenCapacity(c: CapacityConfig): Record<string, string> {
   Object.keys(byQ).forEach((q) => {
     flat[`sprintsByQuarter.${q}`] = String(byQ[q] ?? "");
   });
+  const hByQ = (c.hoursByQuarter ?? {}) as Record<string, number>;
+  Object.keys(hByQ).forEach((q) => {
+    flat[`hoursByQuarter.${q}`] = String(hByQ[q] ?? "");
+  });
   return flat;
 }
 
@@ -357,6 +363,7 @@ export const persistCapacity = createServerFn({ method: "POST" })
       developers: number; dedication_pct: number | string; days_per_sprint: number;
       hours_per_day: number | string; sprints_per_quarter: number;
       sprints_by_quarter: Record<string, number> | null;
+      hours_by_quarter: Record<string, number> | null;
     } | null;
     const before = prev
       ? flattenCapacity({
@@ -366,6 +373,7 @@ export const persistCapacity = createServerFn({ method: "POST" })
           hoursPerDay: Number(prev.hours_per_day),
           sprintsPerQuarter: prev.sprints_per_quarter,
           sprintsByQuarter: (prev.sprints_by_quarter ?? {}) as CapacityConfig["sprintsByQuarter"],
+          hoursByQuarter: (prev.hours_by_quarter ?? {}) as CapacityConfig["hoursByQuarter"],
         })
       : null;
     const after = flattenCapacity(data.capacity);
@@ -384,6 +392,7 @@ export const persistCapacity = createServerFn({ method: "POST" })
       hours_per_day: data.capacity.hoursPerDay,
       sprints_per_quarter: data.capacity.sprintsPerQuarter,
       sprints_by_quarter: data.capacity.sprintsByQuarter ?? {},
+      hours_by_quarter: data.capacity.hoursByQuarter ?? {},
     });
     if (error) throw new Error(error.message);
 

@@ -20,6 +20,7 @@ export type Database = {
           days_per_sprint: number
           dedication_pct: number
           developers: number
+          hours_by_quarter: Json
           hours_per_day: number
           roadmap_id: string
           sprints_by_quarter: Json
@@ -32,6 +33,7 @@ export type Database = {
           days_per_sprint?: number
           dedication_pct?: number
           developers?: number
+          hours_by_quarter?: Json
           hours_per_day?: number
           roadmap_id: string
           sprints_by_quarter?: Json
@@ -44,6 +46,7 @@ export type Database = {
           days_per_sprint?: number
           dedication_pct?: number
           developers?: number
+          hours_by_quarter?: Json
           hours_per_day?: number
           roadmap_id?: string
           sprints_by_quarter?: Json
