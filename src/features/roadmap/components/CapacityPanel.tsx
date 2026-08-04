@@ -8,8 +8,13 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
-import { CapacityConfig, capacityPerQuarter, capacityPerSprint, sprintsForQuarter } from "@/lib/roadmap";
+import {
+  CapacityConfig, capacityPerQuarter, capacityPerSprint, sprintsForQuarter,
+  annualCapacity, setAnnualCapacity, clearHoursOverrides, isQuarterOverridden,
+} from "@/lib/roadmap";
+
 import { fetchCapacityHistory } from "@/lib/roadmap.functions";
 import { QUARTERS } from "../constants";
 
