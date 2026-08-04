@@ -1,0 +1,1 @@
+ALTER TABLE public.roadmap_capacity ADD COLUMN IF NOT EXISTS hours_by_quarter jsonb NOT NULL DEFAULT '{}'::jsonb;
