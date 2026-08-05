@@ -61,6 +61,10 @@ export const openApiDocument = {
       "## Errores",
       "Todo error devuelve `{ \"error\": { \"code\", \"message\", \"details?\" } }`.",
       "El `code` es estable y es lo que debe inspeccionar un integrador.",
+      "",
+      "## CORS",
+      "Todos los endpoints admiten `OPTIONS` (preflight) y responden con",
+      "`Access-Control-Allow-Origin: *`, por lo que la API puede consumirse desde el navegador.",
     ].join("\n"),
   },
   servers: [{ url: "/api/public/v1", description: "Versión 1 de la API" }],
@@ -124,7 +128,6 @@ export const openApiDocument = {
           ...COMMON_ERRORS,
         },
       },
-      options: { tags: ["Roadmaps"], summary: "Preflight CORS", responses: { "204": { description: "Sin contenido." } }, security: [] },
     },
 
     "/roadmaps/{roadmapId}": {
@@ -172,7 +175,6 @@ export const openApiDocument = {
         security: [{ bearerAuth: ["roadmaps:write"] }],
         responses: { "200": { $ref: "#/components/responses/Ok" }, ...COMMON_ERRORS },
       },
-      options: { tags: ["Roadmaps"], summary: "Preflight CORS", responses: { "204": { description: "Sin contenido." } }, security: [] },
     },
 
     "/roadmaps/{roadmapId}/items": {
@@ -218,7 +220,6 @@ export const openApiDocument = {
           ...COMMON_ERRORS,
         },
       },
-      options: { tags: ["Work items"], summary: "Preflight CORS", responses: { "204": { description: "Sin contenido." } }, security: [] },
     },
 
     "/roadmaps/{roadmapId}/capacity": {
@@ -245,7 +246,6 @@ export const openApiDocument = {
         },
         responses: { "200": { $ref: "#/components/responses/Ok" }, ...COMMON_ERRORS },
       },
-      options: { tags: ["Capacity"], summary: "Preflight CORS", responses: { "204": { description: "Sin contenido." } }, security: [] },
     },
 
     "/roadmaps/{roadmapId}/capacity/history": {
@@ -270,7 +270,6 @@ export const openApiDocument = {
           ...COMMON_ERRORS,
         },
       },
-      options: { tags: ["Capacity"], summary: "Preflight CORS", responses: { "204": { description: "Sin contenido." } }, security: [] },
     },
 
     "/stats": {
@@ -299,7 +298,6 @@ export const openApiDocument = {
           ...COMMON_ERRORS,
         },
       },
-      options: { tags: ["Stats"], summary: "Preflight CORS", responses: { "204": { description: "Sin contenido." } }, security: [] },
     },
 
     "/api-keys": {
@@ -362,7 +360,6 @@ export const openApiDocument = {
           ...COMMON_ERRORS,
         },
       },
-      options: { tags: ["API keys"], summary: "Preflight CORS", responses: { "204": { description: "Sin contenido." } }, security: [] },
     },
 
     "/api-keys/{keyId}": {
@@ -393,7 +390,6 @@ export const openApiDocument = {
         ],
         responses: { "200": { $ref: "#/components/responses/Ok" }, ...COMMON_ERRORS },
       },
-      options: { tags: ["API keys"], summary: "Preflight CORS", responses: { "204": { description: "Sin contenido." } }, security: [] },
     },
   },
 
