@@ -17,6 +17,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RoadmapsIndexRouteImport } from './routes/roadmaps.index'
 import { Route as RoadmapsRoadmapIdRouteImport } from './routes/roadmaps.$roadmapId'
 import { Route as RoadmapsNewRouteImport } from './routes/roadmaps.new'
+import { Route as SettingsApiKeysRouteImport } from './routes/settings.api-keys'
 import { Route as SettingsBillingRouteImport } from './routes/settings.billing'
 import { Route as SettingsCompanyRouteImport } from './routes/settings.company'
 import { Route as SettingsIntegrationsRouteImport } from './routes/settings.integrations'
@@ -70,6 +71,11 @@ const RoadmapsNewRoute = RoadmapsNewRouteImport.update({
   id: '/roadmaps/new',
   path: '/roadmaps/new',
   getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsApiKeysRoute = SettingsApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsBillingRoute = SettingsBillingRouteImport.update({
   id: '/billing',
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRouteWithChildren
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -222,6 +231,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -268,6 +279,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -360,6 +372,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/roadmaps/new'
       preLoaderRoute: typeof RoadmapsNewRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/settings/api-keys': {
+      id: '/settings/api-keys'
+      path: '/api-keys'
+      fullPath: '/settings/api-keys'
+      preLoaderRoute: typeof SettingsApiKeysRouteImport
+      parentRoute: typeof SettingsRoute
     }
     '/settings/billing': {
       id: '/settings/billing'
@@ -456,6 +475,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface SettingsRouteChildren {
+  SettingsApiKeysRoute: typeof SettingsApiKeysRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
   SettingsCompanyRoute: typeof SettingsCompanyRoute
   SettingsIntegrationsRoute: typeof SettingsIntegrationsRoute
@@ -464,6 +484,7 @@ interface SettingsRouteChildren {
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsApiKeysRoute: SettingsApiKeysRoute,
   SettingsBillingRoute: SettingsBillingRoute,
   SettingsCompanyRoute: SettingsCompanyRoute,
   SettingsIntegrationsRoute: SettingsIntegrationsRoute,
