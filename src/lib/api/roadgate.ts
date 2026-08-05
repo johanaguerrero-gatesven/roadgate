@@ -39,11 +39,14 @@ export type WorkspaceStats = {
 
 export type CapacityHistoryEntry = {
   id: string;
-  changedAt: string;
-  changedByEmail: string | null;
+  /** Campo modificado, en notación plana (p. ej. `hoursByQuarter.Q3`). */
   field: string;
   oldValue: string | null;
   newValue: string | null;
+  /** Email de quien hizo el cambio. */
+  by: string;
+  /** Timestamp ISO del cambio. */
+  at: string;
 };
 
 // --- Roadmaps ----------------------------------------------------------------
