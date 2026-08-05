@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Logo } from "./Logo";
 import { useI18n } from "@/lib/i18n";
 
@@ -12,9 +13,15 @@ export function SiteFooter() {
             {t("footer.tagline")} <span className="text-foreground font-medium">GATES</span>.
           </p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} GATES. {t("footer.rights")}
-        </p>
+        <div className="flex flex-col items-start gap-2 md:items-end">
+          <Link to="/docs/api" className="text-xs text-muted-foreground hover:text-foreground">
+            {t("footer.apidocs")}
+          </Link>
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} GATES. {t("footer.rights")}
+          </p>
+        </div>
+
       </div>
     </footer>
   );
