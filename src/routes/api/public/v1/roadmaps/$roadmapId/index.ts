@@ -12,7 +12,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import * as core from "@/core";
-import { createRestContext } from "@/lib/rest/context";
+import { createRestContext, requireScope } from "@/lib/rest/context";
 import { handle, json, preflight, readJson } from "@/lib/rest/respond";
 
 export const Route = createFileRoute("/api/public/v1/roadmaps/$roadmapId/")({
@@ -23,12 +23,14 @@ export const Route = createFileRoute("/api/public/v1/roadmaps/$roadmapId/")({
       GET: async ({ request, params }) =>
         handle(async () => {
           const ctx = await createRestContext(request);
+          requireScope(ctx, "roadmaps:read");
           return json(await core.getRoadmap(ctx, { roadmapId: params.roadmapId }));
         }),
 
       PATCH: async ({ request, params }) =>
         handle(async () => {
           const ctx = await createRestContext(request);
+          requireScope(ctx, "roadmaps:write");
           const body = (await readJson(request)) as { name?: string };
           return json(
             await core.renameRoadmap(ctx, { roadmapId: params.roadmapId, name: body.name }),
@@ -38,6 +40,7 @@ export const Route = createFileRoute("/api/public/v1/roadmaps/$roadmapId/")({
       DELETE: async ({ request, params }) =>
         handle(async () => {
           const ctx = await createRestContext(request);
+          requireScope(ctx, "roadmaps:write");
           return json(await core.deleteRoadmap(ctx, { roadmapId: params.roadmapId }));
         }),
     },

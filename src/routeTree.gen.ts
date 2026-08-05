@@ -17,12 +17,15 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RoadmapsIndexRouteImport } from './routes/roadmaps.index'
 import { Route as RoadmapsRoadmapIdRouteImport } from './routes/roadmaps.$roadmapId'
 import { Route as RoadmapsNewRouteImport } from './routes/roadmaps.new'
+import { Route as SettingsApiKeysRouteImport } from './routes/settings.api-keys'
 import { Route as SettingsBillingRouteImport } from './routes/settings.billing'
 import { Route as SettingsCompanyRouteImport } from './routes/settings.company'
 import { Route as SettingsIntegrationsRouteImport } from './routes/settings.integrations'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsUsersRouteImport } from './routes/settings.users'
 import { Route as ApiPublicV1StatsRouteImport } from './routes/api/public/v1/stats'
+import { Route as ApiPublicV1ApiKeysIndexRouteImport } from './routes/api/public/v1/api-keys/index'
+import { Route as ApiPublicV1ApiKeysKeyIdRouteImport } from './routes/api/public/v1/api-keys/$keyId'
 import { Route as ApiPublicV1RoadmapsIndexRouteImport } from './routes/api/public/v1/roadmaps/index'
 import { Route as ApiPublicV1RoadmapsRoadmapIdIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/index'
 import { Route as ApiPublicV1RoadmapsRoadmapIdItemsRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/items'
@@ -69,6 +72,11 @@ const RoadmapsNewRoute = RoadmapsNewRouteImport.update({
   path: '/roadmaps/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsApiKeysRoute = SettingsApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsBillingRoute = SettingsBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
@@ -97,6 +105,16 @@ const SettingsUsersRoute = SettingsUsersRouteImport.update({
 const ApiPublicV1StatsRoute = ApiPublicV1StatsRouteImport.update({
   id: '/api/public/v1/stats',
   path: '/api/public/v1/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1ApiKeysIndexRoute = ApiPublicV1ApiKeysIndexRouteImport.update({
+  id: '/api/public/v1/api-keys/',
+  path: '/api/public/v1/api-keys/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1ApiKeysKeyIdRoute = ApiPublicV1ApiKeysKeyIdRouteImport.update({
+  id: '/api/public/v1/api-keys/$keyId',
+  path: '/api/public/v1/api-keys/$keyId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicV1RoadmapsIndexRoute =
@@ -138,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -145,6 +164,8 @@ export interface FileRoutesByFullPath {
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps/': typeof RoadmapsIndexRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
+  '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/api-keys/': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
   '/api/public/v1/roadmaps/$roadmapId/': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
@@ -159,6 +180,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRouteWithChildren
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -166,6 +188,8 @@ export interface FileRoutesByTo {
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps': typeof RoadmapsIndexRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
+  '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/api-keys': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps': typeof ApiPublicV1RoadmapsIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
   '/api/public/v1/roadmaps/$roadmapId': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
@@ -181,6 +205,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
   '/settings/integrations': typeof SettingsIntegrationsRoute
@@ -188,6 +213,8 @@ export interface FileRoutesById {
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps/': typeof RoadmapsIndexRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
+  '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/api-keys/': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
   '/api/public/v1/roadmaps/$roadmapId/': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
@@ -204,6 +231,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -211,6 +239,8 @@ export interface FileRouteTypes {
     | '/settings/users'
     | '/roadmaps/'
     | '/api/public/v1/stats'
+    | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/api-keys/'
     | '/api/public/v1/roadmaps/'
     | '/api/public/v1/roadmaps/$roadmapId/items'
     | '/api/public/v1/roadmaps/$roadmapId/'
@@ -225,6 +255,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -232,6 +263,8 @@ export interface FileRouteTypes {
     | '/settings/users'
     | '/roadmaps'
     | '/api/public/v1/stats'
+    | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/api-keys'
     | '/api/public/v1/roadmaps'
     | '/api/public/v1/roadmaps/$roadmapId/items'
     | '/api/public/v1/roadmaps/$roadmapId'
@@ -246,6 +279,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
     | '/settings/integrations'
@@ -253,6 +287,8 @@ export interface FileRouteTypes {
     | '/settings/users'
     | '/roadmaps/'
     | '/api/public/v1/stats'
+    | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/api-keys/'
     | '/api/public/v1/roadmaps/'
     | '/api/public/v1/roadmaps/$roadmapId/items'
     | '/api/public/v1/roadmaps/$roadmapId/'
@@ -270,6 +306,8 @@ export interface RootRouteChildren {
   RoadmapsNewRoute: typeof RoadmapsNewRoute
   RoadmapsIndexRoute: typeof RoadmapsIndexRoute
   ApiPublicV1StatsRoute: typeof ApiPublicV1StatsRoute
+  ApiPublicV1ApiKeysKeyIdRoute: typeof ApiPublicV1ApiKeysKeyIdRoute
+  ApiPublicV1ApiKeysIndexRoute: typeof ApiPublicV1ApiKeysIndexRoute
   ApiPublicV1RoadmapsIndexRoute: typeof ApiPublicV1RoadmapsIndexRoute
   ApiPublicV1RoadmapsRoadmapIdItemsRoute: typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
   ApiPublicV1RoadmapsRoadmapIdIndexRoute: typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
@@ -335,6 +373,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoadmapsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/api-keys': {
+      id: '/settings/api-keys'
+      path: '/api-keys'
+      fullPath: '/settings/api-keys'
+      preLoaderRoute: typeof SettingsApiKeysRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/settings/billing': {
       id: '/settings/billing'
       path: '/billing'
@@ -377,6 +422,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/api-keys/': {
+      id: '/api/public/v1/api-keys/'
+      path: '/api/public/v1/api-keys'
+      fullPath: '/api/public/v1/api-keys/'
+      preLoaderRoute: typeof ApiPublicV1ApiKeysIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/api-keys/$keyId': {
+      id: '/api/public/v1/api-keys/$keyId'
+      path: '/api/public/v1/api-keys/$keyId'
+      fullPath: '/api/public/v1/api-keys/$keyId'
+      preLoaderRoute: typeof ApiPublicV1ApiKeysKeyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/roadmaps/': {
       id: '/api/public/v1/roadmaps/'
       path: '/api/public/v1/roadmaps'
@@ -416,6 +475,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface SettingsRouteChildren {
+  SettingsApiKeysRoute: typeof SettingsApiKeysRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
   SettingsCompanyRoute: typeof SettingsCompanyRoute
   SettingsIntegrationsRoute: typeof SettingsIntegrationsRoute
@@ -424,6 +484,7 @@ interface SettingsRouteChildren {
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsApiKeysRoute: SettingsApiKeysRoute,
   SettingsBillingRoute: SettingsBillingRoute,
   SettingsCompanyRoute: SettingsCompanyRoute,
   SettingsIntegrationsRoute: SettingsIntegrationsRoute,
@@ -445,6 +506,8 @@ const rootRouteChildren: RootRouteChildren = {
   RoadmapsNewRoute: RoadmapsNewRoute,
   RoadmapsIndexRoute: RoadmapsIndexRoute,
   ApiPublicV1StatsRoute: ApiPublicV1StatsRoute,
+  ApiPublicV1ApiKeysKeyIdRoute: ApiPublicV1ApiKeysKeyIdRoute,
+  ApiPublicV1ApiKeysIndexRoute: ApiPublicV1ApiKeysIndexRoute,
   ApiPublicV1RoadmapsIndexRoute: ApiPublicV1RoadmapsIndexRoute,
   ApiPublicV1RoadmapsRoadmapIdItemsRoute:
     ApiPublicV1RoadmapsRoadmapIdItemsRoute,

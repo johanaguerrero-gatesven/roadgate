@@ -9,7 +9,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import * as core from "@/core";
-import { createRestContext } from "@/lib/rest/context";
+import { createRestContext, requireScope } from "@/lib/rest/context";
 import { handle, json, preflight, readJson } from "@/lib/rest/respond";
 
 export const Route = createFileRoute("/api/public/v1/roadmaps/")({
@@ -20,12 +20,14 @@ export const Route = createFileRoute("/api/public/v1/roadmaps/")({
       GET: async ({ request }) =>
         handle(async () => {
           const ctx = await createRestContext(request);
+          requireScope(ctx, "roadmaps:read");
           return json(await core.listRoadmaps(ctx));
         }),
 
       POST: async ({ request }) =>
         handle(async () => {
           const ctx = await createRestContext(request);
+          requireScope(ctx, "roadmaps:write");
           const body = await readJson(request);
           // 201 Created: el cuerpo devuelve el id para construir la URL del recurso.
           return json(await core.createRoadmap(ctx, body), 201);

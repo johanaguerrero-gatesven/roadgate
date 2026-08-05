@@ -19,7 +19,15 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { UnauthorizedError, type RoadGateContext } from "@/core";
+import {
+  UnauthorizedError,
+  ForbiddenError,
+  API_KEY_PREFIX,
+  API_SCOPES,
+  resolveApiKey,
+  type ApiScope,
+  type RoadGateContext,
+} from "@/core";
 
 /** ¿Es una API key opaca del formato nuevo (no un JWT)? */
 function isOpaqueApiKey(value: string): boolean {
@@ -50,8 +58,17 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 /**
  * Verifica las credenciales de la petición y devuelve el contexto del core.
- * @throws UnauthorizedError si falta la cabecera, el esquema no es Bearer o el
- *         token no es válido. El handler lo traduce a 401 con `toErrorResponse`.
+ *
+ * Dos esquemas de autenticación, ambos por `Authorization: Bearer <…>`:
+ *   1. JWT de la sesión de RoadGate  → cliente con la clave publicable y el
+ *      token del usuario, por lo que RLS actúa como ese usuario. Scopes: todos.
+ *   2. API key de integración (`rg_live_…`, Fase 4) → se resuelve su dueño con
+ *      un cliente privilegiado y el contexto queda acotado a ese `userId` y a
+ *      los scopes con los que se emitió la clave. RLS no aplica aquí, pero
+ *      TODOS los servicios del core filtran por `user_id` de forma explícita.
+ *
+ * @throws UnauthorizedError si falta la cabecera, el esquema no es Bearer o la
+ *         credencial no es válida. El handler lo traduce a 401.
  */
 export async function createRestContext(request: Request): Promise<RoadGateContext> {
   // Las variables de entorno se leen AQUÍ (dentro del handler) y no a nivel de
@@ -69,9 +86,25 @@ export async function createRestContext(request: Request): Promise<RoadGateConte
   }
 
   const token = authHeader.slice("Bearer ".length).trim();
-  if (!token || token.split(".").length !== 3) {
-    throw new UnauthorizedError("Invalid access token");
+  if (!token) throw new UnauthorizedError("Missing credentials");
+
+  // --- Camino 2: API key de integración --------------------------------------
+  if (token.startsWith(API_KEY_PREFIX)) {
+    // Se carga dentro del handler para que el módulo server-only no entre en el
+    // grafo del bundle de cliente.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const resolved = await resolveApiKey(supabaseAdmin, token);
+    return {
+      db: supabaseAdmin,
+      userId: resolved.userId,
+      email: null,
+      scopes: resolved.scopes,
+      authMethod: "api_key",
+    };
   }
+
+  // --- Camino 1: sesión de usuario (JWT) -------------------------------------
+  if (token.split(".").length !== 3) throw new UnauthorizedError("Invalid access token");
 
   const db = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {
@@ -88,5 +121,29 @@ export async function createRestContext(request: Request): Promise<RoadGateConte
     db,
     userId: data.claims.sub,
     email: (data.claims as { email?: string }).email ?? null,
+    scopes: [...API_SCOPES],
+    authMethod: "session",
   };
+}
+
+/**
+ * Comprueba que el contexto tiene el permiso necesario.
+ * Una sesión de usuario siempre lo tiene; una API key sólo si se emitió con él.
+ * @throws ForbiddenError (403) si el scope no está concedido.
+ */
+export function requireScope(ctx: RoadGateContext, scope: ApiScope): void {
+  if (ctx.authMethod !== "api_key") return;
+  if (!ctx.scopes?.includes(scope)) {
+    throw new ForbiddenError(`Missing required scope: ${scope}`);
+  }
+}
+
+/**
+ * Endpoints que sólo pueden usarse con una sesión de la aplicación (p. ej. la
+ * gestión de API keys): una API key no puede emitir ni revocar otras claves.
+ */
+export function requireSession(ctx: RoadGateContext): void {
+  if (ctx.authMethod === "api_key") {
+    throw new ForbiddenError("This endpoint requires a user session, not an API key");
+  }
 }

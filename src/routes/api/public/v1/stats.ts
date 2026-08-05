@@ -10,7 +10,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import * as core from "@/core";
-import { createRestContext } from "@/lib/rest/context";
+import { createRestContext, requireScope } from "@/lib/rest/context";
 import { handle, json, preflight } from "@/lib/rest/respond";
 
 export const Route = createFileRoute("/api/public/v1/stats")({
@@ -21,6 +21,7 @@ export const Route = createFileRoute("/api/public/v1/stats")({
       GET: async ({ request }) =>
         handle(async () => {
           const ctx = await createRestContext(request);
+          requireScope(ctx, "roadmaps:read");
           const roadmapId = new URL(request.url).searchParams.get("roadmapId");
           return json(await core.getWorkspaceStats(ctx, { roadmapId }));
         }),
