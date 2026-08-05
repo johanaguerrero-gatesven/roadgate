@@ -12,7 +12,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { openApiDocument } from "@/lib/rest/openapi";
 import { preflight } from "@/lib/rest/respond";
 
-export const Route = createFileRoute("/api/public/v1/openapi[.]json")({
+export const Route = createFileRoute("/api/public/v1/openapi.json")({
   server: {
     handlers: {
       OPTIONS: async () => preflight(),
