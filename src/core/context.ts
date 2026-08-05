@@ -42,4 +42,12 @@ export type RoadGateActor = {
 /** Contexto completo que reciben todos los servicios del core. */
 export type RoadGateContext = RoadGateActor & {
   db: RoadGateDb;
+  /**
+   * Permisos concedidos al llamante (Fase 4). Una sesión de usuario tiene
+   * permiso total; una API key sólo los scopes con los que fue emitida.
+   * El adaptador es quien lo comprueba antes de invocar el caso de uso.
+   */
+  scopes?: string[];
+  /** Cómo se autenticó el llamante: sesión de la app o API key de integración. */
+  authMethod?: "session" | "api_key";
 };
