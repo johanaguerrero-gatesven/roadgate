@@ -26,14 +26,13 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import {
   RoadmapItem, ItemType, Quarter, Priority,
   CapacityConfig, defaultCapacity, uid, normalizeItems, descendantsOf, rolledUpEffort,
 } from "@/lib/roadmap";
-import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/roadmap.functions";
+import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/api/roadgate";
 
 /** Regla 1: prioridad por defecto de cualquier item nuevo o devuelto al Backlog. */
 const DEFAULT_PRIORITY: Priority = "3-Low";
@@ -51,15 +50,12 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
   const [cfg, setCfg] = useState<CapacityConfig>(defaultCapacity);
   const [roadmapName, setRoadmapName] = useState<string>("");
 
-  const fetchRoadmapFn = useServerFn(fetchRoadmap);
-  const persistItemsFn = useServerFn(persistItems);
-  const persistCapacityFn = useServerFn(persistCapacity);
 
   // Hidratación desde el backend al cambiar la identidad o el roadmap.
   useEffect(() => {
     if (!userId || !roadmapId) { setItems([]); setCfg(defaultCapacity); return; }
     let cancelled = false;
-    fetchRoadmapFn({ data: { roadmapId } })
+    fetchRoadmap({ roadmapId })
       .then((r) => {
         if (cancelled) return;
         setItems(r.items);
@@ -72,14 +68,14 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
         navigate({ to: "/roadmaps" });
       });
     return () => { cancelled = true; };
-  }, [userId, roadmapId, fetchRoadmapFn, navigate]);
+  }, [userId, roadmapId, navigate]);
 
   // Persistencia con debounce: ráfagas de ediciones colapsan en una escritura.
   const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const schedulePersist = (next: RoadmapItem[]) => {
     if (persistTimer.current) clearTimeout(persistTimer.current);
     persistTimer.current = setTimeout(() => {
-      persistItemsFn({ data: { roadmapId, items: next } }).catch((e) => {
+      persistItems({ roadmapId, items: next }).catch((e) => {
         console.error(e); toast.error("Error al guardar en el backend");
       });
     }, 350);
@@ -107,7 +103,7 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     setCfg(c);
     if (capacityTimer.current) clearTimeout(capacityTimer.current);
     capacityTimer.current = setTimeout(() => {
-      persistCapacityFn({ data: { roadmapId, capacity: c } }).catch((e) => {
+      persistCapacity({ roadmapId, capacity: c }).catch((e) => {
         console.error(e); toast.error("Error al guardar capacity");
       });
     }, 400);

@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/use-auth";
-import { useServerFn } from "@tanstack/react-start";
 import {
   listRoadmaps, deleteRoadmap, renameRoadmap,
-} from "@/lib/roadmap.functions";
+} from "@/lib/api/roadgate";
 
 export const Route = createFileRoute("/roadmaps/")({
   head: () => ({ meta: [{ title: "Mis roadmaps — RoadGate" }] }),
@@ -31,9 +30,6 @@ function formatDate(iso: string) {
 function RoadmapsListPage() {
   const { session, ready } = useAuth();
   const navigate = useNavigate();
-  const listFn = useServerFn(listRoadmaps);
-  const deleteFn = useServerFn(deleteRoadmap);
-  const renameFn = useServerFn(renameRoadmap);
   const [rows, setRows] = useState<Row[] | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [draftName, setDraftName] = useState<string>("");
@@ -43,7 +39,7 @@ function RoadmapsListPage() {
   }, [ready, session, navigate]);
 
   const reload = () => {
-    listFn()
+    listRoadmaps()
       .then((r) => setRows(r))
       .catch((e) => { console.error(e); toast.error("No se pudieron cargar los roadmaps"); });
   };
@@ -62,7 +58,7 @@ function RoadmapsListPage() {
     const name = draftName.trim();
     if (!name || name === r.name) { cancelEdit(); return; }
     try {
-      await renameFn({ data: { roadmapId: r.id, name } });
+      await renameRoadmap({ roadmapId: r.id, name });
       cancelEdit();
       reload();
     } catch (e) { console.error(e); toast.error("Error al renombrar"); }
@@ -70,7 +66,7 @@ function RoadmapsListPage() {
   const remove = async (r: Row) => {
     if (!window.confirm(`¿Eliminar el roadmap "${r.name}" y todos sus datos? Esta acción no se puede deshacer.`)) return;
     try {
-      await deleteFn({ data: { roadmapId: r.id } });
+      await deleteRoadmap({ roadmapId: r.id });
       toast.success("Roadmap eliminado");
       reload();
     } catch (e) { console.error(e); toast.error("Error al eliminar"); }

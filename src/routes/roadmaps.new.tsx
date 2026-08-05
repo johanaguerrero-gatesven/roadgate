@@ -8,8 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/use-auth";
-import { useServerFn } from "@tanstack/react-start";
-import { createRoadmap } from "@/lib/roadmap.functions";
+import { createRoadmap } from "@/lib/api/roadgate";
 
 export const Route = createFileRoute("/roadmaps/new")({
   head: () => ({ meta: [{ title: "Nuevo roadmap — RoadGate" }] }),
@@ -24,7 +23,6 @@ function defaultName() {
 function NewRoadmapPage() {
   const { session, ready } = useAuth();
   const navigate = useNavigate();
-  const createFn = useServerFn(createRoadmap);
   const [name, setName] = useState(defaultName());
   const [submitting, setSubmitting] = useState(false);
 
@@ -39,7 +37,7 @@ function NewRoadmapPage() {
     const finalName = name.trim() || defaultName();
     setSubmitting(true);
     try {
-      const { id } = await createFn({ data: { name: finalName } });
+      const { id } = await createRoadmap({ name: finalName });
       toast.success("Roadmap creado");
       navigate({ to: "/roadmaps/$roadmapId", params: { roadmapId: id } });
     } catch (err) {

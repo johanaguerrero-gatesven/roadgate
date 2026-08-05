@@ -16,8 +16,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { clearSession } from "@/lib/auth";
 import { Map, Users, ListChecks, Plus, User, Settings, LogOut, CalendarDays, ChevronRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { useServerFn } from "@tanstack/react-start";
-import { getWorkspaceStats, listRoadmaps } from "@/lib/roadmap.functions";
+import { getWorkspaceStats, listRoadmaps } from "@/lib/api/roadgate";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -44,8 +43,6 @@ function AppHome() {
   const { session, ready } = useAuth();
   const navigate = useNavigate();
   const { t, locale } = useI18n();
-  const statsFn = useServerFn(getWorkspaceStats);
-  const listFn = useServerFn(listRoadmaps);
   const [stats, setStats] = useState<Stats | null>(null);
   const [roadmaps, setRoadmaps] = useState<RoadmapSummary[] | null>(null);
   const [scope, setScope] = useState<string>("all");
@@ -56,7 +53,7 @@ function AppHome() {
 
   useEffect(() => {
     if (!session?.userId) { setRoadmaps(null); return; }
-    listFn()
+    listRoadmaps()
       .then((rows) => {
         const list = rows as RoadmapSummary[];
         setRoadmaps(list);
@@ -65,16 +62,16 @@ function AppHome() {
         setScope((s) => (s === "all" && list.length > 0 ? list[0]!.id : s));
       })
       .catch((e) => { console.error(e); setRoadmaps([]); });
-  }, [session?.userId, listFn]);
+  }, [session?.userId]);
 
   // Los KPIs del roadmap se recalculan cada vez que cambia la selección.
   useEffect(() => {
     if (!session?.userId) { setStats(null); return; }
     setStats(null);
-    statsFn({ data: { roadmapId: scope === "all" ? null : scope } })
+    getWorkspaceStats({ roadmapId: scope === "all" ? null : scope })
       .then((s) => setStats(s as Stats))
       .catch((e) => { console.error(e); setStats(EMPTY_STATS); });
-  }, [session?.userId, statsFn, scope]);
+  }, [session?.userId, scope]);
 
   if (!ready || !session) return null;
 
