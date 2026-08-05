@@ -118,3 +118,50 @@ export function fetchCapacityHistory(input: {
 export function getWorkspaceStats(input?: { roadmapId?: string | null }): Promise<WorkspaceStats> {
   return apiFetch<WorkspaceStats>("/stats", { query: { roadmapId: input?.roadmapId ?? null } });
 }
+
+// --- API keys de integración (Fase 4) ----------------------------------------
+
+export type ApiKeySummary = {
+  id: string;
+  name: string;
+  /** Prefijo visible (`rg_live_xxxxxxxx`). El secreto completo no se almacena. */
+  prefix: string;
+  scopes: string[];
+  createdAt: string;
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+  revokedAt: string | null;
+};
+
+/** GET /api-keys — claves del usuario (nunca incluye secretos). */
+export function listApiKeys(): Promise<ApiKeySummary[]> {
+  return apiFetch<ApiKeySummary[]>("/api-keys");
+}
+
+/**
+ * POST /api-keys — emite una clave nueva.
+ * `key` es el secreto en claro y sólo se devuelve en esta respuesta.
+ */
+export function createApiKey(input: {
+  name: string;
+  scopes: string[];
+  expiresInDays?: number;
+}): Promise<{ key: string; apiKey: ApiKeySummary }> {
+  return apiFetch<{ key: string; apiKey: ApiKeySummary }>("/api-keys", {
+    method: "POST",
+    body: input,
+  });
+}
+
+/** DELETE /api-keys/:id — revoca la clave (deja de funcionar de inmediato). */
+export function revokeApiKey(input: { keyId: string }): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/api-keys/${input.keyId}`, { method: "DELETE" });
+}
+
+/** DELETE /api-keys/:id?purge=true — elimina la clave del listado. */
+export function deleteApiKey(input: { keyId: string }): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/api-keys/${input.keyId}`, {
+    method: "DELETE",
+    query: { purge: "true" },
+  });
+}
