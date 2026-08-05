@@ -2,14 +2,18 @@
  * =============================================================================
  * Página pública de documentación de la API (Fase 5)
  * =============================================================================
- * Ruta `/docs/api`. Renderiza el contrato de `/api/public/v1/openapi.json` con
- * Scalar (referencia interactiva) cargado desde CDN sólo en cliente: es una
- * librería que manipula el DOM y no debe ejecutarse durante el SSR.
+ * Ruta `/docs/api`. Renderiza el contrato servido en
+ * `/api/public/v1/openapi.json` con una referencia interactiva (Scalar).
+ *
+ * El visor se carga con `React.lazy` dentro de `<ClientOnly>`: manipula el DOM
+ * y no debe evaluarse durante el SSR.
  */
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { ClientOnly, createFileRoute } from "@tanstack/react-router";
+import { Suspense, lazy } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+
+const ApiReferenceViewer = lazy(() => import("@/components/ApiReferenceViewer"));
 
 export const Route = createFileRoute("/docs/api")({
   head: () => ({
@@ -33,37 +37,15 @@ export const Route = createFileRoute("/docs/api")({
   component: ApiDocs,
 });
 
-const SCALAR_CDN = "https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.25.28/dist/browser/standalone.js";
+function Loading() {
+  return (
+    <div className="mx-auto max-w-6xl px-6 py-16 text-muted-foreground">
+      Cargando la referencia de la API…
+    </div>
+  );
+}
 
 function ApiDocs() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    // Scalar lee la configuración de un <script type="application/json"> con
-    // id `api-reference` y monta la referencia en su lugar.
-    const config = document.createElement("script");
-    config.id = "api-reference";
-    config.type = "application/json";
-    config.textContent = JSON.stringify({
-      url: "/api/public/v1/openapi.json",
-      theme: "default",
-      hideDownloadButton: false,
-    });
-    containerRef.current?.appendChild(config);
-
-    const script = document.createElement("script");
-    script.src = SCALAR_CDN;
-    script.async = true;
-    script.onerror = () => setFailed(true);
-    document.body.appendChild(script);
-
-    return () => {
-      config.remove();
-      script.remove();
-    };
-  }, []);
-
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
@@ -85,13 +67,11 @@ function ApiDocs() {
             </a>
           </div>
         </div>
-        {failed && (
-          <div className="mx-auto max-w-6xl px-6 py-10 text-muted-foreground">
-            No se pudo cargar el visor interactivo. Puedes usar la especificación en crudo
-            desde el enlace anterior.
-          </div>
-        )}
-        <div ref={containerRef} />
+        <ClientOnly fallback={<Loading />}>
+          <Suspense fallback={<Loading />}>
+            <ApiReferenceViewer />
+          </Suspense>
+        </ClientOnly>
       </main>
       <SiteFooter />
     </div>
