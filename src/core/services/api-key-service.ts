@@ -137,6 +137,7 @@ export async function createApiKey(
     "createApiKey",
   );
 
+  if (!row) throw new ValidationError("Could not create API key");
   return { key: raw, apiKey: toSummary(row) };
 }
 
