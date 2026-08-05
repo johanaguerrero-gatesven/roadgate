@@ -56,3 +56,16 @@ export {
 } from "./services/capacity-service";
 
 export { getWorkspaceStats, type WorkspaceStats } from "./services/stats-service";
+
+export {
+  API_SCOPES,
+  API_KEY_PREFIX,
+  listApiKeys,
+  createApiKey,
+  revokeApiKey,
+  deleteApiKey,
+  resolveApiKey,
+  hashApiKey,
+  type ApiScope,
+  type ApiKeySummary,
+} from "./services/api-key-service";
