@@ -11,7 +11,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import * as core from "@/core";
-import { createRestContext } from "@/lib/rest/context";
+import { createRestContext, requireScope } from "@/lib/rest/context";
 import { handle, json, preflight, readJson } from "@/lib/rest/respond";
 
 export const Route = createFileRoute("/api/public/v1/roadmaps/$roadmapId/capacity/")({
@@ -22,12 +22,14 @@ export const Route = createFileRoute("/api/public/v1/roadmaps/$roadmapId/capacit
       GET: async ({ request, params }) =>
         handle(async () => {
           const ctx = await createRestContext(request);
+          requireScope(ctx, "roadmaps:read");
           return json(await core.getCapacity(ctx, { roadmapId: params.roadmapId }));
         }),
 
       PUT: async ({ request, params }) =>
         handle(async () => {
           const ctx = await createRestContext(request);
+          requireScope(ctx, "roadmaps:write");
           const body = (await readJson(request)) as { capacity?: unknown };
           return json(
             await core.saveCapacity(ctx, {
