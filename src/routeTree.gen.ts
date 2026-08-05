@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as RoadmapsIndexRouteImport } from './routes/roadmaps.index'
 import { Route as RoadmapsRoadmapIdRouteImport } from './routes/roadmaps.$roadmapId'
 import { Route as RoadmapsNewRouteImport } from './routes/roadmaps.new'
@@ -56,6 +57,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsApiRoute = DocsApiRouteImport.update({
+  id: '/docs/api',
+  path: '/docs/api',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoadmapsIndexRoute = RoadmapsIndexRouteImport.update({
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/docs/api': typeof DocsApiRoute
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
   '/settings/api-keys': typeof SettingsApiKeysRoute
@@ -186,6 +193,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/docs/api': typeof DocsApiRoute
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
   '/settings/api-keys': typeof SettingsApiKeysRoute
@@ -212,6 +220,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/docs/api': typeof DocsApiRoute
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
   '/settings/api-keys': typeof SettingsApiKeysRoute
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/settings'
+    | '/docs/api'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
     | '/settings/api-keys'
@@ -264,6 +274,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/settings'
+    | '/docs/api'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
     | '/settings/api-keys'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/settings'
+    | '/docs/api'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
     | '/settings/api-keys'
@@ -315,6 +327,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   SettingsRoute: typeof SettingsRouteWithChildren
+  DocsApiRoute: typeof DocsApiRoute
   RoadmapsRoadmapIdRoute: typeof RoadmapsRoadmapIdRoute
   RoadmapsNewRoute: typeof RoadmapsNewRoute
   RoadmapsIndexRoute: typeof RoadmapsIndexRoute
@@ -364,6 +377,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/api': {
+      id: '/docs/api'
+      path: '/docs/api'
+      fullPath: '/docs/api'
+      preLoaderRoute: typeof DocsApiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/roadmaps/': {
@@ -523,6 +543,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   SettingsRoute: SettingsRouteWithChildren,
+  DocsApiRoute: DocsApiRoute,
   RoadmapsRoadmapIdRoute: RoadmapsRoadmapIdRoute,
   RoadmapsNewRoute: RoadmapsNewRoute,
   RoadmapsIndexRoute: RoadmapsIndexRoute,
@@ -543,3 +564,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
