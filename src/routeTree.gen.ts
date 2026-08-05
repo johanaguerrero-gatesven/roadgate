@@ -22,6 +22,7 @@ import { Route as SettingsCompanyRouteImport } from './routes/settings.company'
 import { Route as SettingsIntegrationsRouteImport } from './routes/settings.integrations'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsUsersRouteImport } from './routes/settings.users'
+import { Route as ApiPublicV1RoadmapsIndexRouteImport } from './routes/api/public/v1/roadmaps/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -88,6 +89,12 @@ const SettingsUsersRoute = SettingsUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => SettingsRoute,
 } as any)
+const ApiPublicV1RoadmapsIndexRoute =
+  ApiPublicV1RoadmapsIndexRouteImport.update({
+    id: '/api/public/v1/roadmaps/',
+    path: '/api/public/v1/roadmaps/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps/': typeof RoadmapsIndexRoute
+  '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +126,7 @@ export interface FileRoutesByTo {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps': typeof RoadmapsIndexRoute
+  '/api/public/v1/roadmaps': typeof ApiPublicV1RoadmapsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +143,7 @@ export interface FileRoutesById {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps/': typeof RoadmapsIndexRoute
+  '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/users'
     | '/roadmaps/'
+    | '/api/public/v1/roadmaps/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +177,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/users'
     | '/roadmaps'
+    | '/api/public/v1/roadmaps'
   id:
     | '__root__'
     | '/'
@@ -181,6 +193,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/users'
     | '/roadmaps/'
+    | '/api/public/v1/roadmaps/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -192,6 +205,7 @@ export interface RootRouteChildren {
   RoadmapsRoadmapIdRoute: typeof RoadmapsRoadmapIdRoute
   RoadmapsNewRoute: typeof RoadmapsNewRoute
   RoadmapsIndexRoute: typeof RoadmapsIndexRoute
+  ApiPublicV1RoadmapsIndexRoute: typeof ApiPublicV1RoadmapsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -287,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsUsersRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/api/public/v1/roadmaps/': {
+      id: '/api/public/v1/roadmaps/'
+      path: '/api/public/v1/roadmaps'
+      fullPath: '/api/public/v1/roadmaps/'
+      preLoaderRoute: typeof ApiPublicV1RoadmapsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -319,17 +340,8 @@ const rootRouteChildren: RootRouteChildren = {
   RoadmapsRoadmapIdRoute: RoadmapsRoadmapIdRoute,
   RoadmapsNewRoute: RoadmapsNewRoute,
   RoadmapsIndexRoute: RoadmapsIndexRoute,
+  ApiPublicV1RoadmapsIndexRoute: ApiPublicV1RoadmapsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
