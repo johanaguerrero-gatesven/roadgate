@@ -6,7 +6,6 @@
  * Incluye el audit trail de cambios (quién, cuándo, valor anterior → nuevo).
  */
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -15,7 +14,7 @@ import {
   annualCapacity, setAnnualCapacity, clearHoursOverrides, isQuarterOverridden,
 } from "@/lib/roadmap";
 
-import { fetchCapacityHistory } from "@/lib/roadmap.functions";
+import { fetchCapacityHistory } from "@/lib/api/roadgate";
 import { QUARTERS } from "../constants";
 
 type HistoryEntry = {
@@ -50,17 +49,16 @@ export function CapacityPanel({ cfg, roadmapId, onChange }: { cfg: CapacityConfi
    * Audit trail: se recarga poco después de cada cambio de `cfg` (el guardado
    * va con debounce de 400 ms en el hook, así que esperamos algo más).
    */
-  const historyFn = useServerFn(fetchCapacityHistory);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   useEffect(() => {
     let alive = true;
     const timer = setTimeout(() => {
-      historyFn({ data: { roadmapId } })
+      fetchCapacityHistory({ roadmapId })
         .then((rows) => { if (alive) setHistory(rows as HistoryEntry[]); })
         .catch((e) => console.error(e));
     }, 900);
     return () => { alive = false; clearTimeout(timer); };
-  }, [roadmapId, cfg, historyFn]);
+  }, [roadmapId, cfg]);
 
   const fieldLabel = (f: string) => {
     const map: Record<string, string> = {
