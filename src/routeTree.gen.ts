@@ -22,6 +22,12 @@ import { Route as SettingsCompanyRouteImport } from './routes/settings.company'
 import { Route as SettingsIntegrationsRouteImport } from './routes/settings.integrations'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsUsersRouteImport } from './routes/settings.users'
+import { Route as ApiPublicV1StatsRouteImport } from './routes/api/public/v1/stats'
+import { Route as ApiPublicV1RoadmapsIndexRouteImport } from './routes/api/public/v1/roadmaps/index'
+import { Route as ApiPublicV1RoadmapsRoadmapIdIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/index'
+import { Route as ApiPublicV1RoadmapsRoadmapIdItemsRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/items'
+import { Route as ApiPublicV1RoadmapsRoadmapIdCapacityIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/capacity/index'
+import { Route as ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/capacity/history'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -88,6 +94,41 @@ const SettingsUsersRoute = SettingsUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => SettingsRoute,
 } as any)
+const ApiPublicV1StatsRoute = ApiPublicV1StatsRouteImport.update({
+  id: '/api/public/v1/stats',
+  path: '/api/public/v1/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1RoadmapsIndexRoute =
+  ApiPublicV1RoadmapsIndexRouteImport.update({
+    id: '/api/public/v1/roadmaps/',
+    path: '/api/public/v1/roadmaps/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1RoadmapsRoadmapIdIndexRoute =
+  ApiPublicV1RoadmapsRoadmapIdIndexRouteImport.update({
+    id: '/api/public/v1/roadmaps/$roadmapId/',
+    path: '/api/public/v1/roadmaps/$roadmapId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1RoadmapsRoadmapIdItemsRoute =
+  ApiPublicV1RoadmapsRoadmapIdItemsRouteImport.update({
+    id: '/api/public/v1/roadmaps/$roadmapId/items',
+    path: '/api/public/v1/roadmaps/$roadmapId/items',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute =
+  ApiPublicV1RoadmapsRoadmapIdCapacityIndexRouteImport.update({
+    id: '/api/public/v1/roadmaps/$roadmapId/capacity/',
+    path: '/api/public/v1/roadmaps/$roadmapId/capacity/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute =
+  ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRouteImport.update({
+    id: '/api/public/v1/roadmaps/$roadmapId/capacity/history',
+    path: '/api/public/v1/roadmaps/$roadmapId/capacity/history',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +144,12 @@ export interface FileRoutesByFullPath {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps/': typeof RoadmapsIndexRoute
+  '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
+  '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
+  '/api/public/v1/roadmaps/$roadmapId/': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/capacity/history': typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
+  '/api/public/v1/roadmaps/$roadmapId/capacity/': typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +165,12 @@ export interface FileRoutesByTo {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps': typeof RoadmapsIndexRoute
+  '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
+  '/api/public/v1/roadmaps': typeof ApiPublicV1RoadmapsIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
+  '/api/public/v1/roadmaps/$roadmapId': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/capacity/history': typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
+  '/api/public/v1/roadmaps/$roadmapId/capacity': typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +187,12 @@ export interface FileRoutesById {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps/': typeof RoadmapsIndexRoute
+  '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
+  '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
+  '/api/public/v1/roadmaps/$roadmapId/': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/capacity/history': typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
+  '/api/public/v1/roadmaps/$roadmapId/capacity/': typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +210,12 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/users'
     | '/roadmaps/'
+    | '/api/public/v1/stats'
+    | '/api/public/v1/roadmaps/'
+    | '/api/public/v1/roadmaps/$roadmapId/items'
+    | '/api/public/v1/roadmaps/$roadmapId/'
+    | '/api/public/v1/roadmaps/$roadmapId/capacity/history'
+    | '/api/public/v1/roadmaps/$roadmapId/capacity/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +231,12 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/users'
     | '/roadmaps'
+    | '/api/public/v1/stats'
+    | '/api/public/v1/roadmaps'
+    | '/api/public/v1/roadmaps/$roadmapId/items'
+    | '/api/public/v1/roadmaps/$roadmapId'
+    | '/api/public/v1/roadmaps/$roadmapId/capacity/history'
+    | '/api/public/v1/roadmaps/$roadmapId/capacity'
   id:
     | '__root__'
     | '/'
@@ -181,6 +252,12 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/users'
     | '/roadmaps/'
+    | '/api/public/v1/stats'
+    | '/api/public/v1/roadmaps/'
+    | '/api/public/v1/roadmaps/$roadmapId/items'
+    | '/api/public/v1/roadmaps/$roadmapId/'
+    | '/api/public/v1/roadmaps/$roadmapId/capacity/history'
+    | '/api/public/v1/roadmaps/$roadmapId/capacity/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -192,6 +269,12 @@ export interface RootRouteChildren {
   RoadmapsRoadmapIdRoute: typeof RoadmapsRoadmapIdRoute
   RoadmapsNewRoute: typeof RoadmapsNewRoute
   RoadmapsIndexRoute: typeof RoadmapsIndexRoute
+  ApiPublicV1StatsRoute: typeof ApiPublicV1StatsRoute
+  ApiPublicV1RoadmapsIndexRoute: typeof ApiPublicV1RoadmapsIndexRoute
+  ApiPublicV1RoadmapsRoadmapIdItemsRoute: typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
+  ApiPublicV1RoadmapsRoadmapIdIndexRoute: typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
+  ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute: typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
+  ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute: typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -287,6 +370,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsUsersRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/api/public/v1/stats': {
+      id: '/api/public/v1/stats'
+      path: '/api/public/v1/stats'
+      fullPath: '/api/public/v1/stats'
+      preLoaderRoute: typeof ApiPublicV1StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/roadmaps/': {
+      id: '/api/public/v1/roadmaps/'
+      path: '/api/public/v1/roadmaps'
+      fullPath: '/api/public/v1/roadmaps/'
+      preLoaderRoute: typeof ApiPublicV1RoadmapsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/roadmaps/$roadmapId/': {
+      id: '/api/public/v1/roadmaps/$roadmapId/'
+      path: '/api/public/v1/roadmaps/$roadmapId'
+      fullPath: '/api/public/v1/roadmaps/$roadmapId/'
+      preLoaderRoute: typeof ApiPublicV1RoadmapsRoadmapIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/roadmaps/$roadmapId/items': {
+      id: '/api/public/v1/roadmaps/$roadmapId/items'
+      path: '/api/public/v1/roadmaps/$roadmapId/items'
+      fullPath: '/api/public/v1/roadmaps/$roadmapId/items'
+      preLoaderRoute: typeof ApiPublicV1RoadmapsRoadmapIdItemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/roadmaps/$roadmapId/capacity/': {
+      id: '/api/public/v1/roadmaps/$roadmapId/capacity/'
+      path: '/api/public/v1/roadmaps/$roadmapId/capacity'
+      fullPath: '/api/public/v1/roadmaps/$roadmapId/capacity/'
+      preLoaderRoute: typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/roadmaps/$roadmapId/capacity/history': {
+      id: '/api/public/v1/roadmaps/$roadmapId/capacity/history'
+      path: '/api/public/v1/roadmaps/$roadmapId/capacity/history'
+      fullPath: '/api/public/v1/roadmaps/$roadmapId/capacity/history'
+      preLoaderRoute: typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -319,17 +444,17 @@ const rootRouteChildren: RootRouteChildren = {
   RoadmapsRoadmapIdRoute: RoadmapsRoadmapIdRoute,
   RoadmapsNewRoute: RoadmapsNewRoute,
   RoadmapsIndexRoute: RoadmapsIndexRoute,
+  ApiPublicV1StatsRoute: ApiPublicV1StatsRoute,
+  ApiPublicV1RoadmapsIndexRoute: ApiPublicV1RoadmapsIndexRoute,
+  ApiPublicV1RoadmapsRoadmapIdItemsRoute:
+    ApiPublicV1RoadmapsRoadmapIdItemsRoute,
+  ApiPublicV1RoadmapsRoadmapIdIndexRoute:
+    ApiPublicV1RoadmapsRoadmapIdIndexRoute,
+  ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute:
+    ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute,
+  ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute:
+    ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

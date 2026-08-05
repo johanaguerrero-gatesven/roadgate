@@ -1,462 +1,101 @@
 /**
  * =============================================================================
- * Capa de persistencia de RoadGate (server functions)
+ * Adaptador RPC (TanStack Start) del core de RoadGate
  * =============================================================================
- * Único punto de entrada del cliente al backend para leer/escribir roadmaps.
+ * Este fichero YA NO contiene lógica de negocio. Desde la Fase 1 su única
+ * responsabilidad es adaptar el transporte:
  *
- * Reglas transversales:
- *  - Todas las funciones exigen sesión (`requireSupabaseAuth`) y operan como el
- *    usuario autenticado, por lo que RLS aplica además de los filtros `user_id`.
- *  - Antes de tocar los datos de un roadmap concreto se comprueba la propiedad
- *    con `assertRoadmapOwned` (defensa en profundidad frente a RLS).
- *  - El dominio (camelCase, ver `./roadmap`) y la base de datos (snake_case)
- *    se traducen exclusivamente en `rowToItem` / `itemToRow`.
+ *   1. Autenticar la petición (`requireSupabaseAuth`) y construir el
+ *      `RoadGateContext` que espera el core.
+ *   2. Delegar en el servicio correspondiente de `@/core`.
+ *   3. Devolver el DTO plano que el servicio produce.
  *
- * Modelo de datos:
- *  - `roadmaps`          → cabecera (id, nombre) de cada hoja de ruta.
- *  - `roadmap_items`     → Epics / Features / User Stories de un roadmap.
- *  - `roadmap_capacity`  → configuración de capacidad (1 fila por roadmap).
+ * Toda la lógica (validación, autorización sobre el recurso, mapeo BD↔dominio,
+ * audit trail) vive en `src/core/`. La API REST pública de la Fase 2 será otro
+ * adaptador igual de fino sobre exactamente los mismos servicios, de forma que
+ * frontend y terceros compartan comportamiento sin duplicar código.
+ *
+ * Los nombres exportados se mantienen intactos para no romper las pantallas que
+ * ya los consumen.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  defaultCapacity,
-  type CapacityConfig,
-  type DisplayMode,
-  type ItemType,
-  type Priority,
-  type Quarter,
-  type RoadmapItem,
-  type State,
-} from "./roadmap";
-
-/** Fila tal cual llega de la tabla `roadmap_items` (snake_case, nullables). */
-type ItemRow = {
-  item_uid: string;
-  item_code: string;
-  type: string;
-  title: string;
-  description: string | null;
-  parent_id: string | null;
-  effort: number | string | null;
-  priority: string | null;
-  quarter: string | null;
-  sprint: number | null;
-  state: string | null;
-  notes: string | null;
-  tags: string | null;
-  display_mode: string | null;
-  hidden_from_roadmap: boolean;
-};
+import * as core from "@/core";
+import type { RoadGateContext } from "@/core";
+import type { CapacityConfig, RoadmapItem } from "./roadmap";
 
 /**
- * Adapta una fila de BD al modelo de dominio.
- * Los `null` se normalizan a `undefined` o a cadena vacía según el campo, para
- * que la lógica de negocio nunca tenga que distinguir entre ambos.
- * Ojo: `item_uid` es la clave estable en cliente (drag & drop, edición) y
- * `item_code` es el ID visible/editable por el usuario (EPIC-01, 14385, …).
+ * Construye el contexto del core a partir del contexto del middleware.
+ * El middleware ya ha verificado el bearer token, así que aquí sólo se traduce
+ * la forma: cliente Supabase autenticado + identidad del actor.
  */
-function rowToItem(r: ItemRow): RoadmapItem {
+function toCoreContext(context: {
+  supabase: unknown;
+  userId: string;
+  claims: unknown;
+}): RoadGateContext {
   return {
-    uid: r.item_uid,
-    id: r.item_code,
-    type: r.type as ItemType,
-    title: r.title ?? "",
-    description: r.description ?? undefined,
-    parentId: r.parent_id ?? undefined,
-    effort: r.effort == null ? undefined : Number(r.effort),
-    priority: (r.priority ?? "") as Priority,
-    quarter: (r.quarter ?? "") as Quarter,
-    sprint: r.sprint ?? undefined,
-    state: (r.state ?? "Backlog") as State,
-    notes: r.notes ?? undefined,
-    tags: r.tags ?? undefined,
-    displayMode: (r.display_mode ?? undefined) as DisplayMode | undefined,
-    hiddenFromRoadmap: !!r.hidden_from_roadmap,
+    db: context.supabase as RoadGateContext["db"],
+    userId: context.userId,
+    email: (context.claims as { email?: string }).email ?? null,
   };
 }
 
-/**
- * Adapta un item de dominio a fila insertable.
- * `priority` y `quarter` usan `|| null` (no `??`) a propósito: la cadena vacía
- * significa "sin asignar" y debe guardarse como NULL, no como "".
- */
-function itemToRow(it: RoadmapItem, userId: string, roadmapId: string) {
-  return {
-    user_id: userId,
-    roadmap_id: roadmapId,
-    item_uid: it.uid,
-    item_code: it.id,
-    type: it.type,
-    title: it.title ?? "",
-    description: it.description ?? null,
-    parent_id: it.parentId ?? null,
-    effort: it.effort ?? null,
-    priority: it.priority || null,
-    quarter: it.quarter || null,
-    sprint: it.sprint ?? null,
-    state: it.state ?? null,
-    notes: it.notes ?? null,
-    tags: it.tags ?? null,
-    display_mode: it.displayMode ?? null,
-    hidden_from_roadmap: !!it.hiddenFromRoadmap,
-  };
-}
-
-/**
- * Verifica que el roadmap pertenece al usuario de la sesión.
- * Se ejecuta antes de cualquier lectura/escritura de items o capacidad para
- * garantizar el aislamiento de datos entre cuentas (además de RLS).
- * @throws Error("Roadmap not found") si no existe o no es del usuario.
- */
-async function assertRoadmapOwned(
-  supabase: { from: (t: string) => { select: (c: string) => { eq: (col: string, v: string) => { eq: (col: string, v: string) => { maybeSingle: () => Promise<{ data: unknown; error: { message: string } | null }> } } } } },
-  roadmapId: string,
-  userId: string,
-) {
-  const { data, error } = await supabase
-    .from("roadmaps").select("id").eq("id", roadmapId).eq("user_id", userId).maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Roadmap not found");
-}
-
-/**
- * Lista los roadmaps del usuario (más recientes primero) enriquecidos con el
- * número de work items de cada uno, en una única consulta agregada en memoria
- * para evitar N+1.
- */
-
+/** Lista los roadmaps del usuario con su número de work items. */
 export const listRoadmaps = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const { data, error } = await supabase
-      .from("roadmaps")
-      .select("id, name, created_at, updated_at")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    // enrich with counts
-    const ids = (data ?? []).map((r) => r.id as string);
-    let countsByRoadmap: Record<string, number> = {};
-    if (ids.length) {
-      const { data: rows, error: e2 } = await supabase
-        .from("roadmap_items").select("roadmap_id").in("roadmap_id", ids);
-      if (e2) throw new Error(e2.message);
-      countsByRoadmap = (rows ?? []).reduce<Record<string, number>>((acc, r) => {
-        const rid = (r as { roadmap_id: string }).roadmap_id;
-        acc[rid] = (acc[rid] ?? 0) + 1;
-        return acc;
-      }, {});
-    }
-    return (data ?? []).map((r) => ({
-      id: r.id as string,
-      name: r.name as string,
-      createdAt: r.created_at as string,
-      updatedAt: r.updated_at as string,
-      itemCount: countsByRoadmap[r.id as string] ?? 0,
-    }));
-  });
+  .handler(async ({ context }) => core.listRoadmaps(toCoreContext(context)));
 
-/**
- * KPIs del workspace mostrados en la portada del usuario.
- * `totalItems` = número de work items (Epics, Features y User Stories). Si se
- * indica `roadmapId`, el conteo se limita a ese roadmap; si no, suma todos los
- * roadmaps del usuario. La capacidad (FTE) se gestiona y muestra dentro de cada
- * roadmap individual, no a nivel global.
- */
+/** Métricas del workspace, opcionalmente acotadas a un roadmap concreto. */
 export const getWorkspaceStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d?: { roadmapId?: string | null }) => d ?? {})
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-    const [rmRes, capRes] = await Promise.all([
-      supabase.from("roadmaps").select("id").eq("user_id", userId),
-      supabase
-        .from("roadmap_capacity")
-        .select("roadmap_id, developers, dedication_pct")
-        .eq("user_id", userId),
-    ]);
-    if (rmRes.error) throw new Error(rmRes.error.message);
-    if (capRes.error) throw new Error(capRes.error.message);
-    const roadmapsCount = (rmRes.data ?? []).length;
-    const caps = (capRes.data ?? []) as Array<{
-      roadmap_id: string;
-      developers: number;
-      dedication_pct: number | string;
-    }>;
-    const teamsCount = caps.length;
-    const totalDevelopers = caps.reduce((acc, c) => acc + Number(c.developers ?? 0), 0);
-    const allIds = (rmRes.data ?? []).map((r) => (r as { id: string }).id);
-    // Segmentación por roadmap: si llega un roadmapId válido del usuario se
-    // cuenta sólo ese; en caso contrario se suman todos sus roadmaps.
-    const selectedId = data?.roadmapId ?? null;
-    const rmIds = selectedId && allIds.includes(selectedId) ? [selectedId] : allIds;
-    let totalItems = 0;
-    const byType = { epic: 0, feature: 0, story: 0 };
-    if (rmIds.length > 0) {
-      const { data: rows, error: itErr } = await supabase
-        .from("roadmap_items")
-        .select("id, type")
-        .in("roadmap_id", rmIds);
-      if (itErr) throw new Error(itErr.message);
-      const list = (rows ?? []) as Array<{ type: string | null }>;
-      totalItems = list.length;
-      for (const r of list) {
-        if (r.type === "epic" || r.type === "feature" || r.type === "story") byType[r.type] += 1;
-      }
-    }
-    return { roadmapsCount, teamsCount, totalDevelopers, totalItems, byType };
-  });
+  .handler(async ({ context, data }) => core.getWorkspaceStats(toCoreContext(context), data));
 
-
-/**
- * Crea un roadmap vacío (sin items ni capacidad) y devuelve su id para navegar.
- * Si no se indica nombre se usa un título por defecto.
- */
+/** Crea un roadmap vacío y devuelve su id para navegar. */
 export const createRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { name: string }) => d)
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const name = (data.name ?? "").trim() || "Hoja de ruta sin título";
-    const { data: row, error } = await supabase
-      .from("roadmaps").insert({ user_id: userId, name }).select("id").single();
-    if (error) throw new Error(error.message);
-    return { id: (row as { id: string }).id };
-  });
+  .handler(async ({ data, context }) => core.createRoadmap(toCoreContext(context), data));
 
-/** Renombra un roadmap del usuario. El nombre vacío se rechaza. */
+/** Renombra un roadmap del usuario. */
 export const renameRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string; name: string }) => d)
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const name = (data.name ?? "").trim();
-    if (!name) throw new Error("Name required");
-    const { error } = await supabase
-      .from("roadmaps").update({ name }).eq("id", data.roadmapId).eq("user_id", userId);
-    if (error) throw new Error(error.message);
-    return { ok: true as const };
-  });
+  .handler(async ({ data, context }) => core.renameRoadmap(toCoreContext(context), data));
 
-/** Borra un roadmap del usuario; items y capacidad caen por ON DELETE CASCADE. */
+/** Borra un roadmap del usuario (items y capacidad caen en cascada). */
 export const deleteRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string }) => d)
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("roadmaps").delete().eq("id", data.roadmapId).eq("user_id", userId);
-    if (error) throw new Error(error.message);
-    return { ok: true as const };
-  });
+  .handler(async ({ data, context }) => core.deleteRoadmap(toCoreContext(context), data));
 
-/**
- * Carga completa de un roadmap: items, capacidad y cabecera en paralelo.
- * Si el roadmap todavía no tiene fila de capacidad se devuelve `defaultCapacity`
- * para que la UI pueda trabajar sin necesidad de un guardado previo.
- */
+/** Carga completa de un roadmap: cabecera + items + capacidad. */
 export const fetchRoadmap = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string }) => d)
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    await assertRoadmapOwned(supabase as never, data.roadmapId, userId);
-    const [itemsRes, capRes, rmRes] = await Promise.all([
-      supabase.from("roadmap_items").select("*").eq("roadmap_id", data.roadmapId),
-      supabase.from("roadmap_capacity").select("*").eq("roadmap_id", data.roadmapId).maybeSingle(),
-      supabase.from("roadmaps").select("id, name").eq("id", data.roadmapId).single(),
-    ]);
-    if (itemsRes.error) throw new Error(itemsRes.error.message);
-    if (capRes.error) throw new Error(capRes.error.message);
-    if (rmRes.error) throw new Error(rmRes.error.message);
-    const items = ((itemsRes.data ?? []) as unknown as ItemRow[]).map(rowToItem);
-    const capRow = capRes.data as unknown as {
-      developers: number; dedication_pct: number | string; days_per_sprint: number;
-      hours_per_day: number | string; sprints_per_quarter: number;
-      sprints_by_quarter: Record<string, number> | null;
-      hours_by_quarter: Record<string, number> | null;
-    } | null;
-    const capacity: CapacityConfig = capRow
-      ? {
-          developers: capRow.developers,
-          dedicationPct: Number(capRow.dedication_pct),
-          daysPerSprint: capRow.days_per_sprint,
-          hoursPerDay: Number(capRow.hours_per_day),
-          sprintsPerQuarter: capRow.sprints_per_quarter,
-          sprintsByQuarter: (capRow.sprints_by_quarter ?? {}) as CapacityConfig["sprintsByQuarter"],
-          hoursByQuarter: (capRow.hours_by_quarter ?? {}) as CapacityConfig["hoursByQuarter"],
-        }
-      : defaultCapacity;
-    const rm = rmRes.data as { id: string; name: string };
-    return { items, capacity, roadmap: { id: rm.id, name: rm.name } };
-  });
+  .handler(async ({ data, context }) => core.getRoadmap(toCoreContext(context), data));
 
-/**
- * Persiste el conjunto completo de items del roadmap (estrategia
- * "replace-all": borra los existentes e inserta el snapshot recibido).
- *
- * Se eligió replace-all en lugar de diff incremental porque el cliente ya
- * mantiene el estado completo y lo envía con debounce (~350 ms) desde
- * `useRoadmapBoard`; así se evita reconciliar altas/bajas/reparentados.
- * IMPORTANTE: el cliente debe enviar SIEMPRE la lista normalizada
- * (`normalizeItems`) para que se guarden los invariantes de esfuerzo y quarter.
- */
+/** Persiste el snapshot completo de work items (estrategia replace-all). */
 export const persistItems = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string; items: RoadmapItem[] }) => d)
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    await assertRoadmapOwned(supabase as never, data.roadmapId, userId);
-    const { error: delErr } = await supabase
-      .from("roadmap_items")
-      .delete()
-      .eq("roadmap_id", data.roadmapId);
-    if (delErr) throw new Error(delErr.message);
-    if (data.items.length) {
-      const rows = data.items.map((it) => itemToRow(it, userId, data.roadmapId));
-      const { error } = await supabase.from("roadmap_items").insert(rows);
-      if (error) throw new Error(error.message);
-    }
-    return { ok: true as const };
-  });
+  .handler(async ({ data, context }) => core.replaceItems(toCoreContext(context), data));
 
-/**
- * Devuelve la capacidad actual del roadmap como pares campo→valor "planos",
- * para poder comparar el estado anterior y el nuevo en el audit trail.
- */
-function flattenCapacity(c: CapacityConfig): Record<string, string> {
-  const flat: Record<string, string> = {
-    developers: String(c.developers ?? 0),
-    dedicationPct: String(c.dedicationPct ?? 0),
-    daysPerSprint: String(c.daysPerSprint ?? 0),
-    hoursPerDay: String(c.hoursPerDay ?? 0),
-    sprintsPerQuarter: String(c.sprintsPerQuarter ?? 0),
-  };
-  const byQ = (c.sprintsByQuarter ?? {}) as Record<string, number>;
-  Object.keys(byQ).forEach((q) => {
-    flat[`sprintsByQuarter.${q}`] = String(byQ[q] ?? "");
-  });
-  const hByQ = (c.hoursByQuarter ?? {}) as Record<string, number>;
-  Object.keys(hByQ).forEach((q) => {
-    flat[`hoursByQuarter.${q}`] = String(hByQ[q] ?? "");
-  });
-  return flat;
-}
-
-/**
- * Guarda la configuración de capacidad del roadmap (delete + insert: solo hay
- * una fila por roadmap, así que reemplazarla evita conflictos de upsert).
- * Antes de sobrescribir se registra en `roadmap_capacity_history` un apunte por
- * cada campo modificado (quién, cuándo, valor anterior → valor nuevo).
- */
+/** Guarda la capacidad del roadmap y registra el audit trail de los cambios. */
 export const persistCapacity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string; capacity: CapacityConfig }) => d)
-  .handler(async ({ data, context }) => {
-    const { supabase, userId, claims } = context;
-    await assertRoadmapOwned(supabase as never, data.roadmapId, userId);
-    const { data: prevRow } = await supabase
-      .from("roadmap_capacity").select("*").eq("roadmap_id", data.roadmapId).maybeSingle();
-    const prev = prevRow as unknown as {
-      developers: number; dedication_pct: number | string; days_per_sprint: number;
-      hours_per_day: number | string; sprints_per_quarter: number;
-      sprints_by_quarter: Record<string, number> | null;
-      hours_by_quarter: Record<string, number> | null;
-    } | null;
-    const before = prev
-      ? flattenCapacity({
-          developers: prev.developers,
-          dedicationPct: Number(prev.dedication_pct),
-          daysPerSprint: prev.days_per_sprint,
-          hoursPerDay: Number(prev.hours_per_day),
-          sprintsPerQuarter: prev.sprints_per_quarter,
-          sprintsByQuarter: (prev.sprints_by_quarter ?? {}) as CapacityConfig["sprintsByQuarter"],
-          hoursByQuarter: (prev.hours_by_quarter ?? {}) as CapacityConfig["hoursByQuarter"],
-        })
-      : null;
-    const after = flattenCapacity(data.capacity);
+  .handler(async ({ data, context }) => core.saveCapacity(toCoreContext(context), data));
 
-    const { error: delErr } = await supabase
-      .from("roadmap_capacity")
-      .delete()
-      .eq("roadmap_id", data.roadmapId);
-    if (delErr) throw new Error(delErr.message);
-    const { error } = await supabase.from("roadmap_capacity").insert({
-      user_id: userId,
-      roadmap_id: data.roadmapId,
-      developers: data.capacity.developers,
-      dedication_pct: data.capacity.dedicationPct,
-      days_per_sprint: data.capacity.daysPerSprint,
-      hours_per_day: data.capacity.hoursPerDay,
-      sprints_per_quarter: data.capacity.sprintsPerQuarter,
-      sprints_by_quarter: data.capacity.sprintsByQuarter ?? {},
-      hours_by_quarter: data.capacity.hoursByQuarter ?? {},
-    });
-    if (error) throw new Error(error.message);
-
-    // Audit trail: solo los campos cuyo valor ha cambiado realmente.
-    const email = (claims as { email?: string }).email ?? null;
-    const fields = new Set([...Object.keys(after), ...Object.keys(before ?? {})]);
-    const entries = [...fields]
-      .filter((f) => (before?.[f] ?? null) !== (after[f] ?? null))
-      .map((f) => ({
-        roadmap_id: data.roadmapId,
-        user_id: userId,
-        changed_by_email: email,
-        field: f,
-        old_value: before ? (before[f] ?? null) : null,
-        new_value: after[f] ?? null,
-      }));
-    if (entries.length) {
-      const { error: hErr } = await supabase.from("roadmap_capacity_history").insert(entries);
-      if (hErr) console.error("capacity history:", hErr.message);
-    }
-    return { ok: true as const, logged: entries.length };
-  });
-
-/**
- * Historial de cambios de capacidad del roadmap (más recientes primero).
- * Se limita a 200 apuntes para no crecer sin control en la UI.
- */
+/** Histórico de cambios de capacidad del roadmap (200 apuntes más recientes). */
 export const fetchCapacityHistory = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string }) => d)
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    await assertRoadmapOwned(supabase as never, data.roadmapId, userId);
-    const { data: rows, error } = await supabase
-      .from("roadmap_capacity_history")
-      .select("id, field, old_value, new_value, changed_by_email, created_at")
-      .eq("roadmap_id", data.roadmapId)
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (error) throw new Error(error.message);
-    return (rows ?? []).map((r) => ({
-      id: r.id as string,
-      field: r.field as string,
-      oldValue: (r.old_value ?? null) as string | null,
-      newValue: (r.new_value ?? null) as string | null,
-      by: (r.changed_by_email ?? "") as string,
-      at: r.created_at as string,
-    }));
-  });
+  .handler(async ({ data, context }) => core.listCapacityHistory(toCoreContext(context), data));
 
-
-/**
- * Vacía por completo un roadmap (items + capacidad) sin borrar la cabecera.
- * Es la operación que respalda el botón "Reset demo data" del Backlog.
- */
+/** Vacía un roadmap (items + capacidad) conservando la cabecera. */
 export const resetRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { roadmapId: string }) => d)
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    await assertRoadmapOwned(supabase as never, data.roadmapId, userId);
-    const { error: e1 } = await supabase.from("roadmap_items").delete().eq("roadmap_id", data.roadmapId);
-    if (e1) throw new Error(e1.message);
-    const { error: e2 } = await supabase.from("roadmap_capacity").delete().eq("roadmap_id", data.roadmapId);
-    if (e2) throw new Error(e2.message);
-    return { ok: true as const };
-  });
+  .handler(async ({ data, context }) => core.resetRoadmap(toCoreContext(context), data));
