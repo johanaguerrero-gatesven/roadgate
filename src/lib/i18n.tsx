@@ -69,6 +69,7 @@ const dict = {
 
     "footer.tagline": "Roadmap de producto que respeta la capacidad real de tu equipo. Una iniciativa de",
     "footer.rights": "Todos los derechos reservados.",
+    "footer.apidocs": "Documentación de la API",
 
     "auth.shell.tagline": "Tu puerta al roadmap realista.",
     "auth.shell.h2": "Planifica con visión. Entrega con la capacidad real de tu equipo.",
@@ -431,6 +432,7 @@ const dict = {
 
     "footer.tagline": "A product roadmap that respects your team's real capacity. An initiative by",
     "footer.rights": "All rights reserved.",
+    "footer.apidocs": "API documentation",
 
     "auth.shell.tagline": "Your gateway to a realistic roadmap.",
     "auth.shell.h2": "Plan with vision. Deliver with your team's real capacity.",
