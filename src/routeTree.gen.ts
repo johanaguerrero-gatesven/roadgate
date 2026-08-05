@@ -23,6 +23,7 @@ import { Route as SettingsIntegrationsRouteImport } from './routes/settings.inte
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsUsersRouteImport } from './routes/settings.users'
 import { Route as ApiPublicV1RoadmapsIndexRouteImport } from './routes/api/public/v1/roadmaps/index'
+import { Route as ApiPublicV1RoadmapsRoadmapIdIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -95,6 +96,12 @@ const ApiPublicV1RoadmapsIndexRoute =
     path: '/api/public/v1/roadmaps/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1RoadmapsRoadmapIdIndexRoute =
+  ApiPublicV1RoadmapsRoadmapIdIndexRouteImport.update({
+    id: '/api/public/v1/roadmaps/$roadmapId/',
+    path: '/api/public/v1/roadmaps/$roadmapId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps/': typeof RoadmapsIndexRoute
   '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -127,6 +135,7 @@ export interface FileRoutesByTo {
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps': typeof RoadmapsIndexRoute
   '/api/public/v1/roadmaps': typeof ApiPublicV1RoadmapsIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -144,6 +153,7 @@ export interface FileRoutesById {
   '/settings/users': typeof SettingsUsersRoute
   '/roadmaps/': typeof RoadmapsIndexRoute
   '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/settings/users'
     | '/roadmaps/'
     | '/api/public/v1/roadmaps/'
+    | '/api/public/v1/roadmaps/$roadmapId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/settings/users'
     | '/roadmaps'
     | '/api/public/v1/roadmaps'
+    | '/api/public/v1/roadmaps/$roadmapId'
   id:
     | '__root__'
     | '/'
@@ -194,6 +206,7 @@ export interface FileRouteTypes {
     | '/settings/users'
     | '/roadmaps/'
     | '/api/public/v1/roadmaps/'
+    | '/api/public/v1/roadmaps/$roadmapId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -206,6 +219,7 @@ export interface RootRouteChildren {
   RoadmapsNewRoute: typeof RoadmapsNewRoute
   RoadmapsIndexRoute: typeof RoadmapsIndexRoute
   ApiPublicV1RoadmapsIndexRoute: typeof ApiPublicV1RoadmapsIndexRoute
+  ApiPublicV1RoadmapsRoadmapIdIndexRoute: typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -308,6 +322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1RoadmapsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/roadmaps/$roadmapId/': {
+      id: '/api/public/v1/roadmaps/$roadmapId/'
+      path: '/api/public/v1/roadmaps/$roadmapId'
+      fullPath: '/api/public/v1/roadmaps/$roadmapId/'
+      preLoaderRoute: typeof ApiPublicV1RoadmapsRoadmapIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -341,6 +362,8 @@ const rootRouteChildren: RootRouteChildren = {
   RoadmapsNewRoute: RoadmapsNewRoute,
   RoadmapsIndexRoute: RoadmapsIndexRoute,
   ApiPublicV1RoadmapsIndexRoute: ApiPublicV1RoadmapsIndexRoute,
+  ApiPublicV1RoadmapsRoadmapIdIndexRoute:
+    ApiPublicV1RoadmapsRoadmapIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
