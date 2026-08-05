@@ -19,7 +19,15 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { UnauthorizedError, type RoadGateContext } from "@/core";
+import {
+  UnauthorizedError,
+  ForbiddenError,
+  API_KEY_PREFIX,
+  API_SCOPES,
+  resolveApiKey,
+  type ApiScope,
+  type RoadGateContext,
+} from "@/core";
 
 /** ¿Es una API key opaca del formato nuevo (no un JWT)? */
 function isOpaqueApiKey(value: string): boolean {
