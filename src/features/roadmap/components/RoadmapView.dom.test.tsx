@@ -15,7 +15,9 @@ import { RoadmapView } from "./RoadmapView";
 
 /** Datos mínimos para simular un drag & drop nativo entre dos nodos. */
 function dragAndDrop(source: Element, target: Element) {
-  fireEvent.dragStart(source);
+  // jsdom no implementa DataTransfer; el componente sólo escribe `effectAllowed`.
+  const dataTransfer = { effectAllowed: "", setData: () => {}, getData: () => "" };
+  fireEvent.dragStart(source, { dataTransfer });
   fireEvent.dragOver(target);
   fireEvent.drop(target);
   fireEvent.dragEnd(source);
