@@ -200,9 +200,10 @@ roadgate/
 - **Validación de entrada al roadmap**: al soltar un item sin prioridad o sin esfuerzo se abre un diálogo para completarlo, y un aviso lista los Epics sin quarter.
 
 ### Dashboard
-- Barras de utilización anual y por quarter.
-- Distribución de prioridades y conteos por tipo.
-- KPIs de workspace: número de roadmaps, equipos activos y capacidad disponible.
+- Métricas desglosadas por roadmap con selector de filtro ("Ver métricas de:").
+- Separación clara entre **Roadmap** (items asignados a quarters) y **Backlog** (items sin quarter).
+- Barras de utilización anual y por quarter, con capacidad ajustable manualmente.
+- Distribución de prioridades y conteos por tipo con tooltips explicativos.
 
 ### Multi-roadmap
 - Listado con **abrir, renombrar y eliminar**.
@@ -210,10 +211,16 @@ roadgate/
 - Dashboard con los roadmaps recientes o estado vacío con CTA de creación.
 
 ### Autenticación y seguridad
-- Registro y login por email/contraseña sobre Supabase Auth.
+- Registro y login por email/contraseña sobre Lovable Cloud Auth.
 - **Google OAuth**.
 - **Captcha** textual en el registro y **2FA** (SMS / app autenticadora) opcional.
 - **RLS** en todas las tablas: aislamiento estricto de datos por usuario.
+
+### API e integraciones
+- **REST API v1** pública en `/api/public/v1/*`: roadmaps, work items, capacity, stats y API keys.
+- **OpenAPI 3.1** navegable en `/docs/api` y descargable en `/api/public/v1/openapi.json`.
+- **API keys** con hash SHA-256, scopes (`roadmaps:read`, `roadmaps:write`) y revocación.
+- El frontend consume la misma API que un integrador externo vía `src/lib/api/roadgate.ts`.
 
 ### Otros
 - **i18n ES / EN** en toda la aplicación.
