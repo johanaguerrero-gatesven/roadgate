@@ -15,6 +15,7 @@ Ideas clave:
 - **Motor de capacidad**: cada quarter compara esfuerzo asignado vs. capacidad (FTEs) y muestra el nivel de utilización con semáforo.
 - **Multi-roadmap**: cada usuario puede tener varios roadmaps aislados en su cuenta.
 - **Multi-idioma** (ES / EN) y exportación a Excel.
+- **Arquitectura API-first**: el núcleo de negocio se expone como REST API pública (`/api/public/v1/*`) documentada con OpenAPI; el frontend de RoadGate es el primer consumidor de esa API.
 
 ### Estados visuales de utilización
 
@@ -41,7 +42,8 @@ Ideas clave:
 | Gráficos | **Recharts** |
 | Validación | **Zod** + React Hook Form |
 | Notificaciones | **Sonner** |
-| Backend / BaaS | **Supabase** (PostgreSQL + Auth + RLS) gestionado por RoadGate |
+| Backend / BaaS | **Lovable Cloud** (PostgreSQL + Auth + RLS) |
+| API pública | REST v1 (`/api/public/v1/*`) + **OpenAPI 3.1** |
 | Exportación | **SheetJS (`xlsx`)** |
 | Deploy | Cloudflare Workers (`wrangler.jsonc`) |
 
@@ -112,19 +114,34 @@ Todas las tablas tienen **Row Level Security** activo con políticas `auth.uid()
 
 ## 4. Estructura del proyecto
 
+La aplicación sigue una arquitectura **Hexagonal / Ports & Adapters**: el dominio y la lógica de negocio viven en `src/core/` sin dependencias de framework, mientras que TanStack Start, Lovable Cloud y la UI actúan como adaptadores alrededor de ese núcleo.
+
 ```text
 roadgate/
 ├─ src/
+│  ├─ core/                       # Dominio y casos de uso (framework-agnostic)
+│  │  ├─ services/                # Roadmaps, items, capacity, stats, API keys
+│  │  ├─ context.ts               # Contrato del contexto de ejecución
+│  │  ├─ errors.ts                # Errores de dominio tipados
+│  │  ├─ mappers.ts               # Mapeo entre DB y entidades de dominio
+│  │  ├─ schemas.ts               # Validación con Zod
+│  │  └─ index.ts                 # Fachada pública del core
+│  │
 │  ├─ routes/                     # Rutas (file-based routing)
 │  │  ├─ __root.tsx               # Layout raíz, providers e i18n
 │  │  ├─ index.tsx                # Landing pública
 │  │  ├─ login.tsx                # Login + registro + captcha + 2FA
-│  │  ├─ register.tsx             # Alta de usuario
 │  │  ├─ app.tsx                  # Dashboard del workspace (KPIs + recientes)
 │  │  ├─ roadmaps.index.tsx       # Listado de roadmaps
 │  │  ├─ roadmaps.new.tsx         # Creación de roadmap
 │  │  ├─ roadmaps.$roadmapId.tsx  # Workspace: Backlog / Roadmap / Dashboard
-│  │  └─ settings.*.tsx           # Perfil, empresa, usuarios, billing, integraciones
+│  │  ├─ settings.*.tsx           # Perfil, empresa, usuarios, billing, API keys
+│  │  └─ api/public/v1/...        # Endpoints REST públicos (API-first)
+│  │
+│  ├─ features/roadmap/           # Módulo de roadmap (hooks + componentes)
+│  │  ├─ components/               # BacklogPanel, RoadmapView, DashboardPanel, ...
+│  │  ├─ hooks/                    # use-roadmap-board y lógica de UI
+│  │  └─ constants.ts              # Constantes del dominio de roadmap
 │  │
 │  ├─ components/
 │  │  ├─ ui/                      # shadcn/ui (button, dialog, table, ...)
@@ -135,9 +152,16 @@ roadgate/
 │  │  └─ Logo.tsx
 │  │
 │  ├─ lib/
+│  │  ├─ api/                     # SDK del frontend para la API pública
+│  │  │  ├─ http.ts                # Cliente HTTP autenticado
+│  │  │  └─ roadgate.ts            # Funciones del SDK (roadmaps, items, ...)
+│  │  ├─ rest/                    # Utilidades de los endpoints REST
+│  │  │  ├─ context.ts             # Contexto de petición y autenticación
+│  │  │  ├─ respond.ts             # Helpers de respuesta HTTP
+│  │  │  └─ openapi.ts             # Especificación OpenAPI 3.1
 │  │  ├─ roadmap.ts               # Modelo de dominio: roll-up, quarters, vista roadmap
-│  │  ├─ roadmap.functions.ts     # Server functions (CRUD + stats) contra Supabase
-│  │  ├─ work-item-icons.tsx      # WORK_ITEM_ICONS: icono/color por tipo
+│  │  ├─ roadmap.functions.ts     # Server functions legacy (CRUD + stats)
+│  │  ├─ work-item-icons.tsx      # Iconos y colores por tipo de work item
 │  │  ├─ export-xlsx.ts           # Exportación multi-hoja a Excel
 │  │  ├─ i18n.tsx                 # Proveedor y diccionarios ES / EN
 │  │  ├─ auth.ts / twofa.ts       # Sesión y segundo factor
@@ -176,9 +200,10 @@ roadgate/
 - **Validación de entrada al roadmap**: al soltar un item sin prioridad o sin esfuerzo se abre un diálogo para completarlo, y un aviso lista los Epics sin quarter.
 
 ### Dashboard
-- Barras de utilización anual y por quarter.
-- Distribución de prioridades y conteos por tipo.
-- KPIs de workspace: número de roadmaps, equipos activos y capacidad disponible.
+- Métricas desglosadas por roadmap con selector de filtro ("Ver métricas de:").
+- Separación clara entre **Roadmap** (items asignados a quarters) y **Backlog** (items sin quarter).
+- Barras de utilización anual y por quarter, con capacidad ajustable manualmente.
+- Distribución de prioridades y conteos por tipo con tooltips explicativos.
 
 ### Multi-roadmap
 - Listado con **abrir, renombrar y eliminar**.
@@ -186,10 +211,16 @@ roadgate/
 - Dashboard con los roadmaps recientes o estado vacío con CTA de creación.
 
 ### Autenticación y seguridad
-- Registro y login por email/contraseña sobre Supabase Auth.
+- Registro y login por email/contraseña sobre Lovable Cloud Auth.
 - **Google OAuth**.
 - **Captcha** textual en el registro y **2FA** (SMS / app autenticadora) opcional.
 - **RLS** en todas las tablas: aislamiento estricto de datos por usuario.
+
+### API e integraciones
+- **REST API v1** pública en `/api/public/v1/*`: roadmaps, work items, capacity, stats y API keys.
+- **OpenAPI 3.1** navegable en `/docs/api` y descargable en `/api/public/v1/openapi.json`.
+- **API keys** con hash SHA-256, scopes (`roadmaps:read`, `roadmaps:write`) y revocación.
+- El frontend consume la misma API que un integrador externo vía `src/lib/api/roadgate.ts`.
 
 ### Otros
 - **i18n ES / EN** en toda la aplicación.
@@ -207,7 +238,7 @@ Password: demo1234
 ```
 
 Notas:
-- La cuenta se auto-aprovisiona la primera vez que se usa contra el proyecto de Supabase configurado.
+- La cuenta se auto-aprovisiona la primera vez que se usa contra el proyecto de Lovable Cloud configurado.
 - Los datos de la demo son compartidos por cualquiera que use esa cuenta: **no introduzcas información real o sensible**.
 - Para trabajo real, crea una cuenta propia desde la pestaña **Crear cuenta**.
 
