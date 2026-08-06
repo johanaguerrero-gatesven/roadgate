@@ -114,7 +114,7 @@ Todas las tablas tienen **Row Level Security** activo con políticas `auth.uid()
 
 ## 4. Estructura del proyecto
 
-La aplicación sigue una arquitectura **Hexagonal / Ports & Adapters**: el dominio y la lógica de negocio viven en `src/core/` sin dependencias de framework, mientras que TanStack Start, Supabase y la UI actúan como adaptadores alrededor de ese núcleo.
+La aplicación sigue una arquitectura **Hexagonal / Ports & Adapters**: el dominio y la lógica de negocio viven en `src/core/` sin dependencias de framework, mientras que TanStack Start, Lovable Cloud y la UI actúan como adaptadores alrededor de ese núcleo.
 
 ```text
 roadgate/
@@ -238,7 +238,7 @@ Password: demo1234
 ```
 
 Notas:
-- La cuenta se auto-aprovisiona la primera vez que se usa contra el proyecto de Supabase configurado.
+- La cuenta se auto-aprovisiona la primera vez que se usa contra el proyecto de Lovable Cloud configurado.
 - Los datos de la demo son compartidos por cualquiera que use esa cuenta: **no introduzcas información real o sensible**.
 - Para trabajo real, crea una cuenta propia desde la pestaña **Crear cuenta**.
 
