@@ -245,6 +245,17 @@ roadgate/
 - **Exportación a Excel** multi-hoja (Epics, Features, User Stories).
 - Diseño responsive con tokens semánticos y soporte de tema.
 
+### Testing y calidad
+
+El proyecto sigue un enfoque de **TDD progresivo** con tres niveles de tests:
+
+1. **Tests unitarios de dominio** (`src/core/*.test.ts`, `src/lib/roadmap.test.ts`): validan la lógica pura de negocio (jerarquía, roll-up de esfuerzo, reglas de prioridad, validación de schemas Zod) usando dobles en memoria.
+2. **Tests de integración REST** (`src/test/rest-routes.test.ts`): verifican los handlers de `/api/public/v1/*`, CORS, scopes de API key y errores de dominio.
+3. **Tests de UI / DOM** (`src/features/roadmap/*.dom.test.tsx`): prueban componentes clave como `RoadmapView`, `DashboardPanel` y `PriorityPicker` con React Testing Library + jsdom.
+4. **Tests E2E** (`e2e/`): Playwright cubre el flujo crítico de autenticación, creación de roadmap y planificación de items, además de smoke tests de rutas públicas.
+
+> Ver los scripts `test`, `test:coverage`, `test:e2e` y `test:e2e:ui` en la tabla de scripts disponibles.
+
 ---
 ## 6. Usuario y contraseña de prueba
 
