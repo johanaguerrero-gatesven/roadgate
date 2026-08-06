@@ -72,7 +72,7 @@ describe("RoadmapView", () => {
   it("al arrastrar una tarjeta a un Quarter llama a onMove y ofrece deshacer", () => {
     const { onMove, onRestore } = setup();
 
-    const card = screen.getByText("Historia sin planificar").closest("[draggable]")!;
+    const card = screen.getByText(/US-2 · Historia sin planificar/).closest("[draggable]")!;
     const q2 = screen.getByRole("heading", { name: "Q2" }).closest("div.rounded-xl")!;
     dragAndDrop(card, q2);
 
@@ -90,7 +90,7 @@ describe("RoadmapView", () => {
     const section = document.getElementById("unassigned-section")!;
     const epicsColumn = within(section).getByText("Epics").closest("div.rounded-xl")!;
 
-    const story = screen.getByText("Historia sin planificar").closest("[draggable]")!;
+    const story = screen.getByText(/US-2 · Historia sin planificar/).closest("[draggable]")!;
     dragAndDrop(story, epicsColumn);
 
     expect(onMove).not.toHaveBeenCalled();
