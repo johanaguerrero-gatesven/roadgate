@@ -101,6 +101,11 @@ SUPABASE_PROJECT_ID="<tu-project-id>"
 | `npm run preview` | Sirve el build de producción localmente |
 | `npm run lint` | ESLint sobre todo el proyecto |
 | `npm run format` | Formatea con Prettier |
+| `npm run test` | Ejecuta la suite de tests unitarios e integración con Vitest |
+| `npm run test:watch` | Ejecuta Vitest en modo observador |
+| `npm run test:coverage` | Ejecuta Vitest con reporte de cobertura |
+| `npm run test:e2e` | Ejecuta los tests E2E con Playwright |
+| `npm run test:e2e:ui` | Ejecuta Playwright en modo UI |
 
 ### Base de datos
 
