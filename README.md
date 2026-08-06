@@ -247,7 +247,7 @@ roadgate/
 
 ### Testing y calidad
 
-El proyecto sigue un enfoque de **TDD progresivo** con tres niveles de tests:
+El proyecto sigue un enfoque de **TDD progresivo** con cuatro niveles de tests:
 
 1. **Tests unitarios de dominio** (`src/core/*.test.ts`, `src/lib/roadmap.test.ts`): validan la lógica pura de negocio (jerarquía, roll-up de esfuerzo, reglas de prioridad, validación de schemas Zod) usando dobles en memoria.
 2. **Tests de integración REST** (`src/test/rest-routes.test.ts`): verifican los handlers de `/api/public/v1/*`, CORS, scopes de API key y errores de dominio.
