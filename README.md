@@ -15,6 +15,7 @@ Ideas clave:
 - **Motor de capacidad**: cada quarter compara esfuerzo asignado vs. capacidad (FTEs) y muestra el nivel de utilización con semáforo.
 - **Multi-roadmap**: cada usuario puede tener varios roadmaps aislados en su cuenta.
 - **Multi-idioma** (ES / EN) y exportación a Excel.
+- **Arquitectura API-first**: el núcleo de negocio se expone como REST API pública (`/api/public/v1/*`) documentada con OpenAPI; el frontend de RoadGate es el primer consumidor de esa API.
 
 ### Estados visuales de utilización
 
@@ -41,7 +42,8 @@ Ideas clave:
 | Gráficos | **Recharts** |
 | Validación | **Zod** + React Hook Form |
 | Notificaciones | **Sonner** |
-| Backend / BaaS | **Supabase** (PostgreSQL + Auth + RLS) gestionado por RoadGate |
+| Backend / BaaS | **Lovable Cloud** (PostgreSQL + Auth + RLS) |
+| API pública | REST v1 (`/api/public/v1/*`) + **OpenAPI 3.1** |
 | Exportación | **SheetJS (`xlsx`)** |
 | Deploy | Cloudflare Workers (`wrangler.jsonc`) |
 
