@@ -45,6 +45,8 @@ Ideas clave:
 | Backend / BaaS | **Lovable Cloud** (PostgreSQL + Auth + RLS) |
 | API pública | REST v1 (`/api/public/v1/*`) + **OpenAPI 3.1** |
 | Exportación | **SheetJS (`xlsx`)** |
+| Testing unit / integration | **Vitest** + **@testing-library/react** + **jsdom** |
+| Testing E2E | **Playwright** |
 | Deploy | Cloudflare Workers (`wrangler.jsonc`) |
 
 ---
