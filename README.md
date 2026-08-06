@@ -114,19 +114,34 @@ Todas las tablas tienen **Row Level Security** activo con políticas `auth.uid()
 
 ## 4. Estructura del proyecto
 
+La aplicación sigue una arquitectura **Hexagonal / Ports & Adapters**: el dominio y la lógica de negocio viven en `src/core/` sin dependencias de framework, mientras que TanStack Start, Supabase y la UI actúan como adaptadores alrededor de ese núcleo.
+
 ```text
 roadgate/
 ├─ src/
+│  ├─ core/                       # Dominio y casos de uso (framework-agnostic)
+│  │  ├─ services/                # Roadmaps, items, capacity, stats, API keys
+│  │  ├─ context.ts               # Contrato del contexto de ejecución
+│  │  ├─ errors.ts                # Errores de dominio tipados
+│  │  ├─ mappers.ts               # Mapeo entre DB y entidades de dominio
+│  │  ├─ schemas.ts               # Validación con Zod
+│  │  └─ index.ts                 # Fachada pública del core
+│  │
 │  ├─ routes/                     # Rutas (file-based routing)
 │  │  ├─ __root.tsx               # Layout raíz, providers e i18n
 │  │  ├─ index.tsx                # Landing pública
 │  │  ├─ login.tsx                # Login + registro + captcha + 2FA
-│  │  ├─ register.tsx             # Alta de usuario
 │  │  ├─ app.tsx                  # Dashboard del workspace (KPIs + recientes)
 │  │  ├─ roadmaps.index.tsx       # Listado de roadmaps
 │  │  ├─ roadmaps.new.tsx         # Creación de roadmap
 │  │  ├─ roadmaps.$roadmapId.tsx  # Workspace: Backlog / Roadmap / Dashboard
-│  │  └─ settings.*.tsx           # Perfil, empresa, usuarios, billing, integraciones
+│  │  ├─ settings.*.tsx           # Perfil, empresa, usuarios, billing, API keys
+│  │  └─ api/public/v1/...        # Endpoints REST públicos (API-first)
+│  │
+│  ├─ features/roadmap/           # Módulo de roadmap (hooks + componentes)
+│  │  ├─ components/               # BacklogPanel, RoadmapView, DashboardPanel, ...
+│  │  ├─ hooks/                    # use-roadmap-board y lógica de UI
+│  │  └─ constants.ts              # Constantes del dominio de roadmap
 │  │
 │  ├─ components/
 │  │  ├─ ui/                      # shadcn/ui (button, dialog, table, ...)
@@ -137,9 +152,16 @@ roadgate/
 │  │  └─ Logo.tsx
 │  │
 │  ├─ lib/
+│  │  ├─ api/                     # SDK del frontend para la API pública
+│  │  │  ├─ http.ts                # Cliente HTTP autenticado
+│  │  │  └─ roadgate.ts            # Funciones del SDK (roadmaps, items, ...)
+│  │  ├─ rest/                    # Utilidades de los endpoints REST
+│  │  │  ├─ context.ts             # Contexto de petición y autenticación
+│  │  │  ├─ respond.ts             # Helpers de respuesta HTTP
+│  │  │  └─ openapi.ts             # Especificación OpenAPI 3.1
 │  │  ├─ roadmap.ts               # Modelo de dominio: roll-up, quarters, vista roadmap
-│  │  ├─ roadmap.functions.ts     # Server functions (CRUD + stats) contra Supabase
-│  │  ├─ work-item-icons.tsx      # WORK_ITEM_ICONS: icono/color por tipo
+│  │  ├─ roadmap.functions.ts     # Server functions legacy (CRUD + stats)
+│  │  ├─ work-item-icons.tsx      # Iconos y colores por tipo de work item
 │  │  ├─ export-xlsx.ts           # Exportación multi-hoja a Excel
 │  │  ├─ i18n.tsx                 # Proveedor y diccionarios ES / EN
 │  │  ├─ auth.ts / twofa.ts       # Sesión y segundo factor
