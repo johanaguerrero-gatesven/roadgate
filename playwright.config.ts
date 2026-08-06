@@ -24,7 +24,18 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    {
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        // Escape hatch para contenedores que ya traen su propio Chromium.
+        ...(process.env["E2E_CHROMIUM_PATH"]
+          ? { launchOptions: { executablePath: process.env["E2E_CHROMIUM_PATH"] } }
+          : {}),
+      },
+    },
+  ],
   webServer: {
     command: "npm run dev",
     url: process.env["E2E_BASE_URL"] ?? "http://localhost:8080",
