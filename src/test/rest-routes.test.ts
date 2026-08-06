@@ -242,14 +242,14 @@ describe("/api/public/v1/roadmaps/:id/capacity", () => {
       params: { roadmapId: RID },
     });
     expect(got.res.status).toBe(200);
-    expect(got.body.fte).toBeGreaterThan(0);
+    expect(got.body.developers).toBeGreaterThan(0);
 
     const saved = await call(CapacityRoute, "PUT", `/api/public/v1/roadmaps/${RID}/capacity`, {
       params: { roadmapId: RID },
-      body: { capacity: { ...got.body, fte: 9 } },
+      body: { capacity: { ...got.body, developers: 9 } },
     });
     expect(saved.res.status).toBe(200);
-    expect(tables.roadmap_capacity[0]).toMatchObject({ fte: 9 });
+    expect(tables.roadmap_capacity[0]).toMatchObject({ developers: 9 });
   });
 });
 
@@ -257,7 +257,8 @@ describe("/api/public/v1/stats", () => {
   it("agrega las métricas del workspace", async () => {
     const { res, body } = await call(StatsRoute, "GET", "/api/public/v1/stats");
     expect(res.status).toBe(200);
-    expect(body).toMatchObject({ roadmaps: 1, items: 1 });
+    expect(body).toMatchObject({ roadmapsCount: 1, totalItems: 1 });
+    expect(body.byType).toEqual({ epic: 1, feature: 0, story: 0 });
   });
 
   it("acepta el filtro ?roadmapId", async () => {
@@ -267,7 +268,7 @@ describe("/api/public/v1/stats", () => {
       `/api/public/v1/stats?roadmapId=${RID}`,
     );
     expect(res.status).toBe(200);
-    expect(body.items).toBe(1);
+    expect(body.totalItems).toBe(1);
   });
 });
 
