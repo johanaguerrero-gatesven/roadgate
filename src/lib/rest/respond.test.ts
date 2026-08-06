@@ -38,7 +38,7 @@ describe("respond", () => {
     expect(notFound.status).toBe(404);
     expect((await notFound.json()).error).toMatchObject({
       code: "not_found",
-      message: "Roadmap no encontrado",
+      message: "Roadmap no encontrado not found",
     });
 
     const invalid = toErrorResponse(new ValidationError("Datos inválidos", { field: "name" }));
