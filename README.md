@@ -174,13 +174,24 @@ roadgate/
 │  │  ├─ auth.ts / twofa.ts       # Sesión y segundo factor
 │  │  └─ utils.ts
 │  │
+│  ├─ test/                       # Tests unitarios e integración
+│  │  ├─ fake-db.ts                # Dobles en memoria para persistencia
+│  │  ├─ render.tsx                # Utilidad de renderizado para DOM tests
+│  │  ├─ setup-dom.ts              # Configuración global de jsdom
+│  │  └─ rest-routes.test.ts       # Tests de endpoints REST
+│  │
 │  ├─ hooks/                      # use-auth, use-mobile
 │  ├─ integrations/supabase/      # Clientes generados (no editar a mano)
 │  ├─ styles.css                  # Tokens de diseño Tailwind v4
 │  ├─ router.tsx / start.ts       # Bootstrap de TanStack Start
 │  └─ server.ts                   # Entry SSR
 │
+├─ e2e/                           # Tests end-to-end con Playwright
+│  ├─ public.spec.ts               # Smoke test de rutas públicas y API docs
+│  └─ critical-flow.spec.ts        # Flujo crítico: login → roadmap → item
+│
 ├─ supabase/                      # Configuración y migraciones
+├─ playwright.config.ts             # Configuración de Playwright
 ├─ vite.config.ts
 ├─ wrangler.jsonc                 # Configuración de despliegue
 └─ package.json
