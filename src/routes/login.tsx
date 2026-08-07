@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AuthProviders } from "@/components/AuthProviders";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { login, register, getSession, clearSession } from "@/lib/auth";
+import { register, getSession } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 const DEMO_EMAIL = "demo@roadgate.app";
