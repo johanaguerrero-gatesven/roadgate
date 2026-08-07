@@ -46,12 +46,15 @@ export function preflight(): Response {
  */
 export function toErrorResponse(error: unknown): Response {
   if (error instanceof DomainError) {
+    // Los fallos de almacenamiento nunca exponen detalles internos al cliente.
+    const isStorage = error.code === "storage_error";
+    if (isStorage) console.error("[api/v1] storage error:", error);
     return json(
       {
         error: {
           code: error.code,
-          message: error.message,
-          ...(error.details ? { details: error.details } : {}),
+          message: isStorage ? "Internal server error" : error.message,
+          ...(!isStorage && error.details ? { details: error.details } : {}),
         },
       },
       error.status,
