@@ -53,6 +53,36 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_credentials: {
+        Row: {
+          created_at: string
+          id: string
+          provider: string
+          token_ciphertext: string
+          token_hint: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider: string
+          token_ciphertext: string
+          token_hint: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider?: string
+          token_ciphertext?: string
+          token_hint?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       roadmap_capacity: {
         Row: {
           created_at: string
