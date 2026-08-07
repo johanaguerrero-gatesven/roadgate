@@ -22,9 +22,9 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-function fromBase64(value: string): Uint8Array {
+function fromBase64(value: string): Uint8Array<ArrayBuffer> {
   const binary = atob(value);
-  const bytes = new Uint8Array(binary.length);
+  const bytes = new Uint8Array(new ArrayBuffer(binary.length));
   for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
   return bytes;
 }
@@ -44,8 +44,8 @@ export async function encryptSecret(plaintext: string): Promise<string> {
 export async function decryptSecret(stored: string): Promise<string> {
   const key = await masterKey();
   const bytes = fromBase64(stored);
-  const iv = bytes.subarray(0, 12);
-  const ct = bytes.subarray(12);
+  const iv = bytes.slice(0, 12);
+  const ct = bytes.slice(12);
   const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
   return new TextDecoder().decode(plain);
 }
