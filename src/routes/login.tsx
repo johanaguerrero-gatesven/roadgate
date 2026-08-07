@@ -36,16 +36,9 @@ async function ensureDemoUser() {
   });
   if (retryError) throw retryError;
 }
-import {
-  getTwoFA,
-  generateCode,
-  setPendingLogin,
-  getPendingLogin,
-  clearPendingLogin,
-} from "@/lib/twofa";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
-import { Smartphone, KeyRound, RefreshCw, Lock, ShieldCheck } from "lucide-react";
+import { RefreshCw, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -57,24 +50,16 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-type Step = "auth" | "challenge";
-
 function LoginPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>("auth");
 
   useEffect(() => {
     if (getSession()) navigate({ to: "/app" });
-    if (getPendingLogin()) setStep("challenge");
   }, [navigate]);
 
   return (
     <AuthShell>
-      {step === "auth" ? (
-        <AuthTabs onChallenge={() => setStep("challenge")} />
-      ) : (
-        <ChallengeView onBack={() => { clearPendingLogin(); setStep("auth"); }} />
-      )}
+      <AuthTabs />
     </AuthShell>
   );
 }
