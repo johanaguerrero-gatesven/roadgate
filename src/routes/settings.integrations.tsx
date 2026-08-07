@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n";
 import { HarvestrRoadmapForm } from "@/components/HarvestrRoadmapForm";
+import { HarvestrTokenForm } from "@/components/HarvestrTokenForm";
 import { getIntegrations, saveIntegrations, type Integration } from "@/lib/profile";
 import { Plus, Check, Plug } from "lucide-react";
 import { toast } from "sonner";
@@ -115,6 +116,8 @@ function IntegrationsPage() {
           <Plus className="h-4 w-4" /> {t("integrations.add")}
         </button>
       </div>
+
+      <HarvestrTokenForm />
 
       <HarvestrRoadmapForm />
 
