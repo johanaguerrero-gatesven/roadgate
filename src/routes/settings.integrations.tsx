@@ -121,6 +121,9 @@ function IntegrationsPage() {
 
       <HarvestrRoadmapForm />
 
+      <IntegrationHelp />
+
+
       <Dialog open={open !== null} onOpenChange={(o) => !o && setOpen(null)}>
         <DialogContent>
           <DialogHeader>
