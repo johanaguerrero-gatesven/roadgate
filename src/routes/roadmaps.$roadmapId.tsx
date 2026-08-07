@@ -143,8 +143,10 @@ function RoadmapPage() {
           </TabsContent>
 
           <TabsContent value="roadmap" className="mt-6">
+            <PublishRoadmapToHarvestr items={items} roadmapName={roadmapName} />
             <RoadmapView items={items} cfg={cfg} onMove={moveQuarter} onRestore={update} onUpdate={updateOne} />
           </TabsContent>
+
 
           <TabsContent value="capacity" className="mt-6">
             <CapacityPanel cfg={cfg} roadmapId={roadmapId} onChange={updateCapacity} />
