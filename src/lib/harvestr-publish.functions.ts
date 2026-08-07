@@ -20,6 +20,8 @@ const itemSchema = z.object({
 
 const publishSchema = z.object({
   roadmapName: z.string().trim().min(1).max(200),
+  /** Nombre del roadmap/grupo destino en Harvestr; se usa como prefijo del título. */
+  targetGroup: z.string().trim().max(80).optional(),
   year: z.number().int().min(2000).max(2100),
   quarters: z
     .array(
