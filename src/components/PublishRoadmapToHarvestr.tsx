@@ -68,12 +68,21 @@ export function PublishRoadmapToHarvestr({
           {total === 0 ? t("harvestr.publish.none") : `${t("harvestr.publish.lead")} · ${total} items`}
         </p>
       </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          value={targetGroup}
+          onChange={(e) => setTargetGroup(e.target.value)}
+          placeholder={t("harvestr.publish.group.ph")}
+          className="h-9 w-56"
+          aria-label={t("harvestr.publish.group.ph")}
+        />
       <Button
         size="sm"
         disabled={publish.isPending || total === 0}
         onClick={() =>
           publish.mutate({
             roadmapName: roadmapName || "Roadmap",
+            targetGroup: targetGroup.trim() || undefined,
             year: new Date().getFullYear(),
             quarters,
           })
