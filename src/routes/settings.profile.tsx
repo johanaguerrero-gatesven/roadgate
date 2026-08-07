@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,16 +9,7 @@ import { useI18n } from "@/lib/i18n";
 import { getProfile, saveProfile, type Profile } from "@/lib/profile";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import {
-  getTwoFA,
-  saveTwoFA,
-  disableTwoFA,
-  generateCode,
-  generateSecret,
-  otpAuthUri,
-  type TwoFAMethod,
-} from "@/lib/twofa";
-import { Smartphone, KeyRound, ShieldCheck, ShieldOff, QrCode } from "lucide-react";
+import { ShieldOff } from "lucide-react";
 
 export const Route = createFileRoute("/settings/profile")({
   component: ProfilePage,
