@@ -9,8 +9,10 @@ import {
   deleteHarvestrToken,
   getHarvestrTokenStatus,
   saveHarvestrToken,
+  testHarvestrToken,
+  type TestConnectionResult,
 } from "@/lib/integrations.functions";
-import { KeyRound, Loader2, ShieldCheck, Trash2 } from "lucide-react";
+import { CircleAlert, CircleCheck, KeyRound, Loader2, PlugZap, ShieldCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 /**
@@ -26,6 +28,7 @@ export function HarvestrTokenForm() {
   const fetchStatus = useServerFn(getHarvestrTokenStatus);
   const saveToken = useServerFn(saveHarvestrToken);
   const removeToken = useServerFn(deleteHarvestrToken);
+  const testToken = useServerFn(testHarvestrToken);
 
   const status = useQuery({
     queryKey: ["harvestr-token-status"],
@@ -36,6 +39,7 @@ export function HarvestrTokenForm() {
     mutationFn: (value: string) => saveToken({ data: { token: value } }),
     onSuccess: () => {
       setToken("");
+      test.reset();
       toast.success(t("harvestr.token.saved"));
       void queryClient.invalidateQueries({ queryKey: ["harvestr-token-status"] });
     },
@@ -45,11 +49,25 @@ export function HarvestrTokenForm() {
   const remove = useMutation({
     mutationFn: () => removeToken({}),
     onSuccess: () => {
+      test.reset();
       toast.success(t("harvestr.token.deleted"));
       void queryClient.invalidateQueries({ queryKey: ["harvestr-token-status"] });
     },
     onError: (error: Error) => toast.error(`${t("harvestr.token.error")} ${error.message}`),
   });
+
+  const test = useMutation<TestConnectionResult>({
+    mutationFn: () => testToken({}),
+    onSuccess: (result) => {
+      if (result.ok) toast.success(t("harvestr.token.testOk"));
+      else if (result.reason === "missing") toast.error(t("harvestr.token.testMissing"));
+      else if (result.reason === "unauthorized") toast.error(t("harvestr.token.testUnauthorized"));
+      else toast.error(t("harvestr.token.testError"));
+    },
+    onError: (error: Error) => toast.error(`${t("harvestr.token.error")} ${error.message}`),
+  });
+
+  const testResult = test.data ?? null;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +80,7 @@ export function HarvestrTokenForm() {
   };
 
   const configured = status.data?.configured ?? false;
-  const busy = save.isPending || remove.isPending;
+  const busy = save.isPending || remove.isPending || test.isPending;
 
   return (
     <form
@@ -112,14 +130,51 @@ export function HarvestrTokenForm() {
         <p className="text-xs text-muted-foreground">{t("harvestr.token.help")}</p>
       </div>
 
-      <Button type="submit" disabled={busy}>
-        {save.isPending ? (
-          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-        ) : (
-          <KeyRound className="h-4 w-4 mr-2" />
-        )}
-        {configured ? t("harvestr.token.update") : t("harvestr.token.submit")}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={busy}>
+          {save.isPending ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <KeyRound className="h-4 w-4 mr-2" />
+          )}
+          {configured ? t("harvestr.token.update") : t("harvestr.token.submit")}
+        </Button>
+
+        <Button type="button" variant="outline" disabled={busy} onClick={() => test.mutate()}>
+          {test.isPending ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <PlugZap className="h-4 w-4 mr-2" />
+          )}
+          {test.isPending ? t("harvestr.token.testing") : t("harvestr.token.test")}
+        </Button>
+
+        <span
+          className={`inline-flex items-center gap-1.5 text-sm ${
+            testResult ? (testResult.ok ? "text-primary" : "text-destructive") : "text-muted-foreground"
+          }`}
+          aria-live="polite"
+        >
+          {testResult ? (
+            <>
+              {testResult.ok ? (
+                <CircleCheck className="h-4 w-4" />
+              ) : (
+                <CircleAlert className="h-4 w-4" />
+              )}
+              {testResult.ok
+                ? t("harvestr.token.testOk")
+                : testResult.reason === "missing"
+                  ? t("harvestr.token.testMissing")
+                  : testResult.reason === "unauthorized"
+                    ? t("harvestr.token.testUnauthorized")
+                    : t("harvestr.token.testError")}
+            </>
+          ) : (
+            t("harvestr.token.statusUnknown")
+          )}
+        </span>
+      </div>
     </form>
   );
 }

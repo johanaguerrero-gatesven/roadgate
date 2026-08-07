@@ -98,3 +98,39 @@ export const deleteHarvestrToken = createServerFn({ method: "POST" })
       envFallback: Boolean(process.env["HARVESTR_TOKEN"]),
     };
   });
+
+export type TestConnectionResult = {
+  ok: boolean;
+  /** Código HTTP devuelto por el proveedor (0 si la petición ni siquiera salió). */
+  status: number;
+  /** Motivo legible, sin datos del proveedor ni del secreto. */
+  reason: "ok" | "missing" | "unauthorized" | "error";
+};
+
+/**
+ * Comprueba el token contra la API de Harvestr con una lectura inocua.
+ * Nunca devuelve el secreto ni el cuerpo crudo del proveedor.
+ */
+export const testHarvestrToken = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<TestConnectionResult> => {
+    const { resolveHarvestrToken } = await import("@/lib/harvestr-token.server");
+    const token = await resolveHarvestrToken(context.userId);
+    if (!token) return { ok: false, status: 0, reason: "missing" };
+
+    try {
+      const response = await fetch("https://rest.harvestr.io/v1/roadmap-projects?limit=1", {
+        method: "GET",
+        headers: { "X-Harvestr-Private-App-Token": token },
+      });
+
+      if (response.ok) return { ok: true, status: response.status, reason: "ok" };
+      if (response.status === 401 || response.status === 403) {
+        return { ok: false, status: response.status, reason: "unauthorized" };
+      }
+      return { ok: false, status: response.status, reason: "error" };
+    } catch (error) {
+      console.error("[Harvestr] connection test failed", error);
+      return { ok: false, status: 0, reason: "error" };
+    }
+  });
