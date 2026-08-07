@@ -87,9 +87,16 @@ export class ConflictError extends DomainError {
  * capa REST puede decidir NO serializar en producción).
  */
 export class StorageError extends DomainError {
-  constructor(message: string, details?: unknown) {
-    super("storage_error", message, 500, details);
+  /** Detalle interno del driver: SOLO para logs de servidor, nunca se serializa. */
+  readonly internalDetails?: unknown;
+
+  constructor(message: string, internalDetails?: unknown) {
+    // `details` queda deliberadamente vacío: la capa REST serializa `details`,
+    // y el error crudo de Postgres/PostgREST filtraría tablas, columnas y
+    // restricciones internas al cliente.
+    super("storage_error", message, 500);
     this.name = "StorageError";
+    this.internalDetails = internalDetails;
   }
 }
 
@@ -103,6 +110,10 @@ export function unwrap<T>(
   result: { data: T; error: { message: string } | null },
   context: string,
 ): T {
-  if (result.error) throw new StorageError(`${context}: ${result.error.message}`, result.error);
+  if (result.error) {
+    // El mensaje del driver se registra en servidor pero no viaja al cliente.
+    console.error(`[storage] ${context}:`, result.error);
+    throw new StorageError("A storage operation failed", result.error);
+  }
   return result.data;
 }
