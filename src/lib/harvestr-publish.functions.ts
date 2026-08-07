@@ -96,12 +96,12 @@ export const publishRoadmapToHarvestr = createServerFn({ method: "POST" })
       let id: string | null = null;
       try {
         const body = (await response.json()) as Record<string, unknown>;
-        const nested = (body["data"] ?? {}) as Record<string, unknown>;
+        const nested = (body["roadmapProject"] ?? body["data"] ?? {}) as Record<string, unknown>;
         id =
-          typeof body["id"] === "string"
-            ? (body["id"] as string)
-            : typeof nested["id"] === "string"
-              ? (nested["id"] as string)
+          typeof nested["id"] === "string"
+            ? (nested["id"] as string)
+            : typeof body["id"] === "string"
+              ? (body["id"] as string)
               : null;
       } catch {
         id = null;

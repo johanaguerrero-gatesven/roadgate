@@ -62,7 +62,7 @@ export function PublishRoadmapToHarvestr({
       <div className="min-w-0">
         <h3 className="font-semibold text-sm">{t("harvestr.publish.h1")}</h3>
         <p className="text-sm text-muted-foreground">
-          {t("harvestr.publish.lead")} · {total} items
+          {total === 0 ? t("harvestr.publish.none") : `${t("harvestr.publish.lead")} · ${total} items`}
         </p>
       </div>
       <Button
