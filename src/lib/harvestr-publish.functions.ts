@@ -63,7 +63,8 @@ export const publishRoadmapToHarvestr = createServerFn({ method: "POST" })
     for (const group of data.quarters) {
       if (group.items.length === 0) continue;
       const { start, end } = quarterRange(data.year, group.quarter);
-      const title = `${data.roadmapName} — ${group.quarter} ${data.year}`;
+      const prefix = data.targetGroup ? `[${data.targetGroup}] ` : "";
+      const title = `${prefix}${data.roadmapName} — ${group.quarter} ${data.year}`;
       const lines = group.items.map((i) => {
         const bits = [i.code, i.title].filter(Boolean).join(" · ");
         const meta = [i.type, i.priority, i.effort != null ? `${i.effort}h` : null]
