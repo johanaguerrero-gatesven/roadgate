@@ -26,6 +26,7 @@ export function PublishRoadmapToHarvestr({
 }) {
   const { t } = useI18n();
   const call = useServerFn(publishRoadmapToHarvestr);
+  const [targetGroup, setTargetGroup] = useState("");
 
   const publish = useMutation<PublishRoadmapResult, Error, PublishRoadmapInput>({
     mutationFn: (input) => call({ data: input }),
