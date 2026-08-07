@@ -95,6 +95,9 @@ export function PublishRoadmapToHarvestr({
         )}
         {t("harvestr.publish.cta")}
       </Button>
+      </div>
     </div>
+  );
+}
   );
 }
