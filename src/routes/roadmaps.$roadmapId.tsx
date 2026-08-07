@@ -19,6 +19,8 @@ import { BacklogSettingsBar } from "@/features/roadmap/components/BacklogSetting
 import { BacklogPanel } from "@/features/roadmap/components/BacklogPanel";
 import { RoadmapView } from "@/features/roadmap/components/RoadmapView";
 import { CapacityPanel } from "@/features/roadmap/components/CapacityPanel";
+import { PublishRoadmapToHarvestr } from "@/components/PublishRoadmapToHarvestr";
+
 
 export const Route = createFileRoute("/roadmaps/$roadmapId")({
   head: () => ({ meta: [{ title: "Roadmap — RoadGate" }] }),
