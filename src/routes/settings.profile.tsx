@@ -140,7 +140,7 @@ function ProfilePage() {
           <p className="text-sm text-muted-foreground">{t("integrations.soon")}</p>
         </TabsContent>
         <TabsContent value="security" className="py-6">
-          <TwoFASection email={data.email || session?.email || ""} defaultPhone={data.phone} />
+          <SecuritySection />
         </TabsContent>
 
         <TabsContent value="notifications" className="py-6">
