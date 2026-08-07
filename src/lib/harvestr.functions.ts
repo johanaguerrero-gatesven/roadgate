@@ -29,7 +29,7 @@ export type CreateHarvestrRoadmapInput = z.infer<typeof createHarvestrRoadmapSch
 
 export type CreateHarvestrRoadmapResult = {
   id: string | null;
-  raw: unknown;
+  title: string;
 };
 
 export const createHarvestrRoadmap = createServerFn({ method: "POST" })
@@ -79,5 +79,5 @@ export const createHarvestrRoadmap = createServerFn({ method: "POST" })
           ? (nested["id"] as string)
           : null;
 
-    return { id, raw: body };
+    return { id, title: data.title };
   });
