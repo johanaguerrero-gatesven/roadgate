@@ -66,7 +66,7 @@ function LoginPage() {
 
 /* ----------------------------- Auth (login + register) ----------------------------- */
 
-function AuthTabs({ onChallenge }: { onChallenge: () => void }) {
+function AuthTabs() {
   const { t } = useI18n();
   return (
     <Tabs defaultValue="signin" className="w-full space-y-6">
@@ -83,7 +83,7 @@ function AuthTabs({ onChallenge }: { onChallenge: () => void }) {
       <TabsContent value="signin" className="space-y-6 mt-0">
         <AuthProviders />
         <Divider>{t("login.divider")}</Divider>
-        <SignInForm onChallenge={onChallenge} />
+        <SignInForm />
       </TabsContent>
 
       <TabsContent value="signup" className="space-y-6 mt-0">
@@ -108,7 +108,7 @@ function Divider({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SignInForm({ onChallenge }: { onChallenge: () => void }) {
+function SignInForm() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
