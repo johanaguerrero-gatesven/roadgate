@@ -14,6 +14,8 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { HarvestrRoadmapForm } from "@/components/HarvestrRoadmapForm";
 import { HarvestrTokenForm } from "@/components/HarvestrTokenForm";
+import { IntegrationHelp } from "@/components/IntegrationHelp";
+
 import { getIntegrations, saveIntegrations, type Integration } from "@/lib/profile";
 import { Plus, Check, Plug } from "lucide-react";
 import { toast } from "sonner";
@@ -120,6 +122,9 @@ function IntegrationsPage() {
       <HarvestrTokenForm />
 
       <HarvestrRoadmapForm />
+
+      <IntegrationHelp />
+
 
       <Dialog open={open !== null} onOpenChange={(o) => !o && setOpen(null)}>
         <DialogContent>
