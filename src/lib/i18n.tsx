@@ -695,6 +695,7 @@ const dict = {
     "harvestr.publish.h1": "Publish to Harvestr",
     "harvestr.publish.lead": "Send this roadmap to Harvestr: one roadmap project per Quarter with content.",
     "harvestr.publish.cta": "Publish to Harvestr",
+    "harvestr.publish.group.ph": "Target Harvestr roadmap (optional)",
     "harvestr.publish.ok": "Roadmap published to Harvestr",
     "harvestr.publish.none": "No items are planned in any Quarter.",
     "harvestr.publish.partial": "Some Quarters could not be published.",
