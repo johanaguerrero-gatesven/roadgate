@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Loader2, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import { buildRoadmapView, type RoadmapItem, type Quarter } from "@/lib/roadmap";
 import {
@@ -26,6 +28,7 @@ export function PublishRoadmapToHarvestr({
 }) {
   const { t } = useI18n();
   const call = useServerFn(publishRoadmapToHarvestr);
+  const [targetGroup, setTargetGroup] = useState("");
 
   const publish = useMutation<PublishRoadmapResult, Error, PublishRoadmapInput>({
     mutationFn: (input) => call({ data: input }),
@@ -65,12 +68,21 @@ export function PublishRoadmapToHarvestr({
           {total === 0 ? t("harvestr.publish.none") : `${t("harvestr.publish.lead")} · ${total} items`}
         </p>
       </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          value={targetGroup}
+          onChange={(e) => setTargetGroup(e.target.value)}
+          placeholder={t("harvestr.publish.group.ph")}
+          className="h-9 w-56"
+          aria-label={t("harvestr.publish.group.ph")}
+        />
       <Button
         size="sm"
         disabled={publish.isPending || total === 0}
         onClick={() =>
           publish.mutate({
             roadmapName: roadmapName || "Roadmap",
+            targetGroup: targetGroup.trim() || undefined,
             year: new Date().getFullYear(),
             quarters,
           })
@@ -83,6 +95,7 @@ export function PublishRoadmapToHarvestr({
         )}
         {t("harvestr.publish.cta")}
       </Button>
+      </div>
     </div>
   );
 }
