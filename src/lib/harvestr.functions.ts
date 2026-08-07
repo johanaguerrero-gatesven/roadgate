@@ -35,8 +35,10 @@ export type CreateHarvestrRoadmapResult = {
 export const createHarvestrRoadmap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => createHarvestrRoadmapSchema.parse(data))
-  .handler(async ({ data }): Promise<CreateHarvestrRoadmapResult> => {
-    const token = process.env["HARVESTR_TOKEN"];
+  .handler(async ({ data, context }): Promise<CreateHarvestrRoadmapResult> => {
+    // Prioridad: token cifrado del usuario; si no existe, el token global del backend.
+    const { resolveHarvestrToken } = await import("@/lib/harvestr-token.server");
+    const token = await resolveHarvestrToken(context.userId);
     if (!token) {
       throw new Error("HARVESTR_TOKEN is not configured");
     }
