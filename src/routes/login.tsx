@@ -139,23 +139,8 @@ function SignInForm({ onChallenge }: { onChallenge: () => void }) {
         if (error) throw new Error(error.message);
       }
 
-      // Check 2FA
-      const twofa = getTwoFA(parsed.data.email);
-      if (twofa.method !== "off") {
-        // Drop the session until the second factor is verified.
-        clearSession();
-        const code = generateCode();
-        setPendingLogin({ email: parsed.data.email, method: twofa.method, code });
-        toast.info(
-          twofa.method === "sms"
-            ? `SMS code sent to ${twofa.phone ?? "your phone"} (demo: ${code})`
-            : `Open your authenticator app (demo code: ${code})`,
-        );
-        onChallenge();
-      } else {
-        toast.success("Welcome back 👋");
-        navigate({ to: "/app" });
-      }
+      toast.success("Welcome back 👋");
+      navigate({ to: "/app" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign-in error");
     } finally {
