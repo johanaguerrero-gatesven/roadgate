@@ -37,6 +37,9 @@
   --color-ring-offset-background: var(--background);
   --color-brand-ink: var(--brand-ink);
   --color-brand-cream: var(--brand-cream);
+  --color-epic: var(--epic);
+  --color-feature: var(--feature);
+  --color-story: var(--story);
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-script: 'Caveat', cursive;
 }
