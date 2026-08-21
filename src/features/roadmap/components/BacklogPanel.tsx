@@ -185,7 +185,7 @@ export function BacklogPanel({
                       key={it.uid}
                       className={`group transition-colors [&>td]:px-2 [&>td]:py-1 [&>td]:align-top [&>td]:border-b [&>td]:border-border/70 hover:[&>td]:bg-muted/40 ${hidden ? "opacity-60" : ""}`}
                     >
-                      <td className="sticky left-0 z-10 bg-card border-r border-border group-hover:bg-muted/40">
+                      <td className={`sticky left-0 z-10 bg-card border-r border-border group-hover:bg-muted/40 border-l-2 ${type === "epic" ? "border-l-epic" : type === "feature" ? "border-l-feature" : "border-l-story"}`}>
                         <IdInput value={it.id} onCommit={(v) => onUpdate(it.uid, { id: v })} />
                       </td>
 

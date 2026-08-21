@@ -11,24 +11,21 @@ export type WorkItemIconMeta = {
 export const WORK_ITEM_ICONS: Record<ItemType, WorkItemIconMeta> = {
   epic: {
     icon: Hexagon,
-    colorClass: "text-orange-500",
+    colorClass: "text-epic",
     label: "Epic",
-    badgeClass:
-      "bg-primary/15 text-primary border-primary/30",
+    badgeClass: "bg-epic/15 text-epic border-epic/30",
   },
   feature: {
     icon: Bookmark,
-    colorClass: "text-purple-500",
+    colorClass: "text-feature",
     label: "Feature",
-    badgeClass:
-      "bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30",
+    badgeClass: "bg-feature/15 text-feature border-feature/30",
   },
   story: {
     icon: FileText,
-    colorClass: "text-blue-500",
+    colorClass: "text-story",
     label: "User Story",
-    badgeClass:
-      "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+    badgeClass: "bg-story/15 text-story border-story/30",
   },
 };
 
