@@ -15,12 +15,25 @@ import { supabase } from "@/integrations/supabase/client";
 const DEMO_EMAIL = "demo@roadgate.app";
 const DEMO_PASSWORD = "demo1234";
 
+async function waitForSession(timeoutMs = 4000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.user) return data.session;
+    await new Promise((r) => setTimeout(r, 150));
+  }
+  return null;
+}
+
 async function ensureDemoUser() {
   const { error } = await supabase.auth.signInWithPassword({
     email: DEMO_EMAIL,
     password: DEMO_PASSWORD,
   });
-  if (!error) return;
+  if (!error) {
+    if (!(await waitForSession())) throw new Error("Demo session could not be established");
+    return;
+  }
   // First time: create the shared demo account, then sign in.
   const { error: signUpError } = await supabase.auth.signUp({
     email: DEMO_EMAIL,
