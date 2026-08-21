@@ -174,48 +174,48 @@ function SignInForm() {
         <Input id="si-pwd" type="password" autoComplete="current-password" value={password}
           onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
       </div>
-      <Button type="submit" className="w-full h-11" disabled={loading}>
-        {loading ? "Signing in…" : "Sign in"}
+      <Button type="submit" className="w-full h-11" disabled={loading || demoLoading}>
+        {loading ? t("login.submitting") : t("login.submit")}
       </Button>
       <div className="relative py-1">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-dashed border-border" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-background px-2 text-[10px] uppercase tracking-wider text-muted-foreground">o</span>
+          <span className="bg-background px-2 text-[10px] uppercase tracking-wider text-muted-foreground">{t("login.demo.or")}</span>
         </div>
       </div>
       <Button
         type="button"
         variant="outline"
         className="w-full h-11 border-dashed"
-        disabled={loading}
+        disabled={loading || demoLoading}
         onClick={async () => {
-          setLoading(true);
+          setDemoLoading(true);
           try {
             await ensureDemoUser();
-            toast.success("Sesión demo iniciada 🚀");
-            navigate({ to: "/app" });
+            toast.success(t("login.demo.success"));
+            await navigate({ to: "/app", replace: true });
           } catch (err) {
-            toast.error(err instanceof Error ? err.message : "No se pudo iniciar la demo");
+            toast.error(err instanceof Error ? err.message : t("login.demo.error"));
           } finally {
-            setLoading(false);
+            setDemoLoading(false);
           }
         }}
       >
-        🚀 Probar Demo (sin cuenta)
+        {demoLoading ? t("login.demo.loading") : t("login.demo.cta")}
       </Button>
       <div className="rounded-md border border-dashed border-border bg-muted/40 p-3 text-xs space-y-1.5">
-        <p className="font-medium text-foreground">Credenciales demo</p>
+        <p className="font-medium text-foreground">{t("login.demo.credentials")}</p>
         <div className="flex items-center justify-between gap-2">
           <span className="text-muted-foreground">Email</span>
           <code className="font-mono text-foreground">demo@roadgate.app</code>
           <button
             type="button"
             className="text-primary hover:underline"
-            onClick={() => { setEmail("demo@roadgate.app"); setPassword("demo1234"); toast.success("Credenciales rellenadas"); }}
+            onClick={() => { setEmail(DEMO_EMAIL); setPassword(DEMO_PASSWORD); toast.success(t("login.demo.filled")); }}
           >
-            usar
+            {t("login.demo.use")}
           </button>
         </div>
         <div className="flex items-center justify-between gap-2">
