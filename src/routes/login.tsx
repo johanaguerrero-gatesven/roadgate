@@ -124,9 +124,11 @@ function Divider({ children }: { children: React.ReactNode }) {
 
 function SignInForm() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   const schema = z.object({
     email: z.string().trim().email("Invalid email").max(255),
