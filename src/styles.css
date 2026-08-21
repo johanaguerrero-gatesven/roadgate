@@ -51,6 +51,11 @@
   --brand-ink: oklch(0.32 0.04 195);          /* deep teal-ink #1F3D3D-ish */
   --brand-cream: oklch(0.97 0.012 90);        /* soft cream */
 
+  /* Work item type accents */
+  --epic: oklch(0.68 0.15 55);                /* soft orange */
+  --feature: oklch(0.60 0.18 300);            /* purple */
+  --story: oklch(0.60 0.14 240);              /* blue */
+
   --background: oklch(0.98 0.008 90);         /* cream */
   --foreground: oklch(0.28 0.04 195);         /* deep ink */
 
