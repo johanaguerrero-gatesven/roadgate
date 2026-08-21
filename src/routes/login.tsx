@@ -48,6 +48,7 @@ async function ensureDemoUser() {
     password: DEMO_PASSWORD,
   });
   if (retryError) throw retryError;
+  if (!(await waitForSession())) throw new Error("Demo session could not be established");
 }
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
