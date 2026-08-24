@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthProviders } from "@/components/AuthProviders";
-import { register, getSession } from "@/lib/auth";
+import { signUpWithEmail } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+
 import { toast } from "sonner";
 import { AuthShell } from "./login";
 import { useI18n } from "@/lib/i18n";
@@ -35,7 +37,11 @@ function RegisterPage() {
   });
 
   useEffect(() => {
-    if (getSession()) navigate({ to: "/app" });
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session) navigate({ to: "/app", replace: true });
+    });
+    return () => { active = false; };
   }, [navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -47,9 +53,14 @@ function RegisterPage() {
     }
     setLoading(true);
     try {
-      await register(parsed.data.name, parsed.data.email, parsed.data.password);
+      const { needsConfirmation } = await signUpWithEmail(parsed.data.name, parsed.data.email, parsed.data.password);
+      if (needsConfirmation) {
+        toast.success(t("register.confirmEmail"));
+        return;
+      }
       toast.success(t("register.success"));
-      navigate({ to: "/app" });
+      navigate({ to: "/app", replace: true });
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("register.errorGeneric"));
     } finally {

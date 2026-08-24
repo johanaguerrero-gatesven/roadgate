@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AuthProviders } from "@/components/AuthProviders";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { register, getSession } from "@/lib/auth";
+import { signUpWithEmail } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 const DEMO_EMAIL = "demo@roadgate.app";
@@ -68,8 +68,13 @@ function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (getSession()) navigate({ to: "/app" });
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session) navigate({ to: "/app", replace: true });
+    });
+    return () => { active = false; };
   }, [navigate]);
+
 
   return (
     <AuthShell>
@@ -285,9 +290,14 @@ function SignUpForm() {
     }
     setLoading(true);
     try {
-      await register(parsed.data.name, parsed.data.email, parsed.data.password);
+      const { needsConfirmation } = await signUpWithEmail(parsed.data.name, parsed.data.email, parsed.data.password);
+      if (needsConfirmation) {
+        toast.success("Account created — check your email to confirm it before signing in.");
+        return;
+      }
       toast.success("Account created 🚀");
-      navigate({ to: "/app" });
+      navigate({ to: "/app", replace: true });
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign-up error");
     } finally {
