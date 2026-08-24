@@ -63,6 +63,25 @@ function setSession(s: Session) {
   window.dispatchEvent(new Event("roadgate:auth"));
 }
 
+export async function signUpWithEmail(
+  name: string,
+  email: string,
+  password: string,
+): Promise<{ needsConfirmation: boolean }> {
+  const { supabase } = await import("@/integrations/supabase/client");
+  const normalized = email.trim().toLowerCase();
+  const { data, error } = await supabase.auth.signUp({
+    email: normalized,
+    password,
+    options: {
+      emailRedirectTo: window.location.origin,
+      data: { full_name: name.trim(), name: name.trim() },
+    },
+  });
+  if (error) throw new Error(error.message);
+  return { needsConfirmation: !data.session };
+}
+
 export async function register(name: string, email: string, password: string) {
   const users = readUsers();
   const normalized = email.trim().toLowerCase();
@@ -80,6 +99,7 @@ export async function register(name: string, email: string, password: string) {
   writeUsers(users);
   setSession({ userId: user.id, email: user.email, name: user.name });
 }
+
 
 export async function login(email: string, password: string) {
   const users = readUsers();
