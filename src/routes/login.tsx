@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AuthProviders } from "@/components/AuthProviders";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { register, getSession } from "@/lib/auth";
+import { signUpWithEmail } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 const DEMO_EMAIL = "demo@roadgate.app";
