@@ -290,9 +290,14 @@ function SignUpForm() {
     }
     setLoading(true);
     try {
-      await register(parsed.data.name, parsed.data.email, parsed.data.password);
+      const { needsConfirmation } = await signUpWithEmail(parsed.data.name, parsed.data.email, parsed.data.password);
+      if (needsConfirmation) {
+        toast.success("Account created — check your email to confirm it before signing in.");
+        return;
+      }
       toast.success("Account created 🚀");
-      navigate({ to: "/app" });
+      navigate({ to: "/app", replace: true });
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign-up error");
     } finally {
