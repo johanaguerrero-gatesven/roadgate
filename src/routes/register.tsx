@@ -37,8 +37,14 @@ function RegisterPage() {
   });
 
   useEffect(() => {
-    if (getSession()) navigate({ to: "/app" });
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session) navigate({ to: "/app", replace: true });
+    });
+    return () => { active = false; };
   }, [navigate]);
+
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
