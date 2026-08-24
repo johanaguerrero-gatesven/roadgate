@@ -68,8 +68,13 @@ function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (getSession()) navigate({ to: "/app" });
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session) navigate({ to: "/app", replace: true });
+    });
+    return () => { active = false; };
   }, [navigate]);
+
 
   return (
     <AuthShell>
