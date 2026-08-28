@@ -15,12 +15,16 @@ import type { RoadGateContext, RoadGateDb } from "@/core/context";
 
 export type Tables = Record<string, Record<string, unknown>[]>;
 
-type Filter = { op: "eq" | "in"; col: string; value: unknown };
+type Filter = { op: "eq" | "in" | "is"; col: string; value: unknown };
 
 function applyFilters(rows: Record<string, unknown>[], filters: Filter[]) {
   return rows.filter((r) =>
     filters.every((f) =>
-      f.op === "eq" ? r[f.col] === f.value : (f.value as unknown[]).includes(r[f.col]),
+      f.op === "eq"
+        ? r[f.col] === f.value
+        : f.op === "is"
+          ? (r[f.col] ?? null) === (f.value ?? null)
+          : (f.value as unknown[]).includes(r[f.col]),
     ),
   );
 }
@@ -30,7 +34,11 @@ function applyFilters(rows: Record<string, unknown>[], filters: Filter[]) {
  * @param tables estado inicial (se muta, para poder afirmar sobre escrituras).
  * @returns el cliente falso y utilidades de inspección.
  */
-export function createFakeDb(tables: Tables, currentUserId = "user-1") {
+export function createFakeDb(
+  tables: Tables,
+  currentUserId = "user-1",
+  currentEmail = "demo@roadgate.test",
+) {
   const calls: { table: string; action: string }[] = [];
 
   function builder(table: string) {
@@ -64,7 +72,7 @@ export function createFakeDb(tables: Tables, currentUserId = "user-1") {
       }
       if (action === "insert") {
         const inserted = payload.map((r, i) => ({
-          id: (r.id as string) ?? `${table}-${rowsOf().length + i + 1}`,
+          id: (r.id as string) ?? crypto.randomUUID(),
           created_at: new Date(2026, 0, 1).toISOString(),
           ...r,
         }));
@@ -121,6 +129,10 @@ export function createFakeDb(tables: Tables, currentUserId = "user-1") {
         filters.push({ op: "eq", col, value });
         return api;
       },
+      is(col: string, value: unknown) {
+        filters.push({ op: "is", col, value });
+        return api;
+      },
       in(col: string, value: unknown[]) {
         filters.push({ op: "in", col, value });
         return api;
@@ -153,7 +165,38 @@ export function createFakeDb(tables: Tables, currentUserId = "user-1") {
   }
 
   /** Doble de las funciones RPC de Postgres usadas por el core. */
-  function rpc(name: string) {
+  function rpc(name: string, args?: Record<string, unknown>) {
+    if (name === "accept_team_invitation") {
+      // Réplica de la función SQL: valida y da de alta como 'member'.
+      const invitations = (tables["team_invitations"] ??= []);
+      const members = (tables["team_members"] ??= []);
+      const inv = invitations.find((i) => i.token_hash === args?.["_token_hash"]);
+      const fail = (message: string) => Promise.resolve({ data: null, error: { message } });
+      if (!inv) return fail("invitation_not_found");
+      if (inv.revoked_at) return fail("invitation_revoked");
+      if (new Date(inv.expires_at as string).getTime() < Date.now()) return fail("invitation_expired");
+      if (inv.email !== currentEmail.toLowerCase()) return fail("invitation_email_mismatch");
+      const already = members.find((m) => m.team_id === inv.team_id && m.user_id === currentUserId);
+      if (inv.accepted_at) {
+        if (already) return Promise.resolve({ data: inv.team_id, error: null });
+        return fail("invitation_already_used");
+      }
+      if (already) {
+        already.status = "active";
+      } else {
+        members.push({
+          id: crypto.randomUUID(),
+          team_id: inv.team_id,
+          user_id: currentUserId,
+          email: currentEmail.toLowerCase(),
+          role: "member",
+          status: "active",
+          created_at: new Date(2026, 0, 2).toISOString(),
+        });
+      }
+      inv.accepted_at = new Date().toISOString();
+      return Promise.resolve({ data: inv.team_id, error: null });
+    }
     if (name !== "ensure_personal_team") {
       return Promise.resolve({ data: null, error: { message: `unknown rpc ${name}` } });
     }
@@ -161,7 +204,7 @@ export function createFakeDb(tables: Tables, currentUserId = "user-1") {
     const teams = (tables["teams"] ??= []);
     const existing = members.find((m) => m.user_id === currentUserId && m.status === "active");
     if (existing) return Promise.resolve({ data: existing.team_id, error: null });
-    const teamId = `team-${teams.length + 1}`;
+    const teamId = crypto.randomUUID();
     teams.push({
       id: teamId,
       name: `${currentUserId} team`,
@@ -171,9 +214,10 @@ export function createFakeDb(tables: Tables, currentUserId = "user-1") {
       seat_limit: 5,
     });
     members.push({
-      id: `member-${members.length + 1}`,
+      id: crypto.randomUUID(),
       team_id: teamId,
       user_id: currentUserId,
+      email: currentEmail.toLowerCase(),
       role: "admin",
       status: "active",
       created_at: new Date(2026, 0, 1).toISOString(),
@@ -186,10 +230,12 @@ export function createFakeDb(tables: Tables, currentUserId = "user-1") {
 }
 
 /** Contexto de test con un usuario fijo y la BD falsa inyectada. */
-export function createTestCtx(tables: Tables, userId = "user-1"): RoadGateContext & {
-  tables: Tables;
-} {
-  const { db } = createFakeDb(tables, userId);
-  return { db, userId, email: "demo@roadgate.test", authMethod: "session", tables };
+export function createTestCtx(
+  tables: Tables,
+  userId = "user-1",
+  email = "demo@roadgate.test",
+): RoadGateContext & { tables: Tables } {
+  const { db } = createFakeDb(tables, userId, email);
+  return { db, userId, email, authMethod: "session", tables };
 }
 

@@ -303,7 +303,91 @@ export const openApiDocument = {
         },
       },
     },
+    "/teams/members": {
+      get: {
+        tags: ["Teams"],
+        summary: "Miembros del equipo",
+        description: "Lista los miembros del equipo activo (activos e inactivos).",
+        operationId: "listTeamMembers",
+        security: [{ bearerAuth: [] }],
+        responses: { "200": { description: "Miembros del equipo." } },
+      },
+    },
+    "/teams/members/{memberId}": {
+      patch: {
+        tags: ["Teams"],
+        summary: "Activar o desactivar un miembro",
+        description:
+          "Sólo Team Admin. Desactivar retira el acceso de inmediato, sin borrar datos.",
+        operationId: "setTeamMemberStatus",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "memberId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+        ],
+        responses: { "200": { description: "Estado actualizado." }, "403": { description: "No es admin." } },
+      },
+    },
+    "/teams/invitations": {
+      get: {
+        tags: ["Teams"],
+        summary: "Invitaciones del equipo",
+        description: "Sólo Team Admin.",
+        operationId: "listTeamInvitations",
+        security: [{ bearerAuth: [] }],
+        responses: { "200": { description: "Invitaciones." } },
+      },
+      post: {
+        tags: ["Teams"],
+        summary: "Invitar por email",
+        description:
+          "Sólo Team Admin. El invitado entra como Team Member. La invitación caduca en 7 días.",
+        operationId: "inviteTeamMember",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "201": { description: "Invitación creada." },
+          "409": { description: "Email ya invitado o ya miembro." },
+        },
+      },
+    },
+    "/teams/invitations/{invitationId}": {
+      post: {
+        tags: ["Teams"],
+        summary: "Reenviar invitación",
+        description: "Sólo Team Admin. Rota el token y renueva la caducidad.",
+        operationId: "resendTeamInvitation",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "invitationId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+        ],
+        responses: { "200": { description: "Invitación reenviada." } },
+      },
+      delete: {
+        tags: ["Teams"],
+        summary: "Revocar invitación",
+        operationId: "revokeTeamInvitation",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "invitationId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+        ],
+        responses: { "200": { description: "Invitación revocada." } },
+      },
+    },
+    "/teams/invitations/accept": {
+      post: {
+        tags: ["Teams"],
+        summary: "Aceptar invitación",
+        description:
+          "Requiere sesión. Valida token, caducidad, revocación y email. Es idempotente.",
+        operationId: "acceptTeamInvitation",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "Invitación aceptada." },
+          "403": { description: "Token caducado, revocado o de otro email." },
+        },
+      },
+    },
     "/stats": {
+
 
       get: {
         tags: ["Stats"],
