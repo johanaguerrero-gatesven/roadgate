@@ -272,7 +272,39 @@ export const openApiDocument = {
       },
     },
 
+    "/teams/me": {
+      get: {
+        tags: ["Teams"],
+        summary: "Equipo activo del usuario",
+        description:
+          "Devuelve la cuenta de equipo del actor; se provisiona automáticamente la primera vez.",
+        operationId: "getActiveTeam",
+        security: [{ bearerAuth: ["roadmaps:read"] }],
+        responses: {
+          "200": {
+            description: "Equipo activo.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string", format: "uuid" },
+                    name: { type: "string" },
+                    status: { type: "string" },
+                    plan: { type: "string" },
+                    seatLimit: { type: "integer" },
+                    role: { type: "string", enum: ["admin", "member"] },
+                    memberId: { type: "string", format: "uuid" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     "/stats": {
+
       get: {
         tags: ["Stats"],
         summary: "Métricas del workspace",
