@@ -15,18 +15,43 @@ import type { CapacityConfig, RoadmapItem } from "@/lib/roadmap";
 
 // --- Tipos del contrato público ---------------------------------------------
 
+export type RoadmapRole = "admin" | "editor" | "viewer";
+
 export type RoadmapSummary = {
   id: string;
   name: string;
   createdAt: string;
   updatedAt: string;
   itemCount: number;
+  /** Permiso del usuario sobre el roadmap. */
+  role: RoadmapRole;
+  /** `true` si llega por colaboración (sección "Compartidos conmigo"). */
+  shared: boolean;
 };
 
 export type RoadmapDetail = {
   roadmap: { id: string; name: string };
   items: RoadmapItem[];
   capacity: CapacityConfig;
+  role: RoadmapRole;
+};
+
+/** Persona con acceso a un roadmap (incluye al Admin). */
+export type RoadmapMemberView = {
+  /** Id de la fila de acceso; `null` para el Admin (no vive en la tabla). */
+  id: string | null;
+  teamMemberId: string;
+  userId: string;
+  email: string | null;
+  role: RoadmapRole;
+  createdAt: string | null;
+};
+
+/** Miembro activo del equipo con quien todavía se puede compartir. */
+export type ShareCandidate = {
+  teamMemberId: string;
+  userId: string;
+  email: string | null;
 };
 
 export type WorkspaceStats = {
@@ -256,5 +281,62 @@ export function acceptTeamInvitation(input: { token: string }): Promise<{ teamId
   return apiFetch<{ teamId: string }>("/teams/invitations/accept", {
     method: "POST",
     body: input,
+  });
+}
+
+// --- Compartir roadmaps (Fase III) -------------------------------------------
+
+/** GET /roadmaps/:id/members — quién tiene acceso al roadmap. */
+export function listRoadmapMembers(input: { roadmapId: string }): Promise<RoadmapMemberView[]> {
+  return apiFetch<RoadmapMemberView[]>(`/roadmaps/${input.roadmapId}/members`);
+}
+
+/** GET /roadmaps/:id/members?candidates=1 — con quién se puede compartir. */
+export function listShareCandidates(input: { roadmapId: string }): Promise<ShareCandidate[]> {
+  return apiFetch<ShareCandidate[]>(`/roadmaps/${input.roadmapId}/members?candidates=1`);
+}
+
+/** POST /roadmaps/:id/members — comparte con un miembro como Editor o Viewer. */
+export function shareRoadmap(input: {
+  roadmapId: string;
+  teamMemberId: string;
+  role: "editor" | "viewer";
+}): Promise<{ id: string }> {
+  return apiFetch<{ id: string }>(`/roadmaps/${input.roadmapId}/members`, {
+    method: "POST",
+    body: { teamMemberId: input.teamMemberId, role: input.role },
+  });
+}
+
+/** PATCH /roadmaps/:id/members/:memberId — cambia Editor ↔ Viewer. */
+export function updateRoadmapMemberRole(input: {
+  roadmapId: string;
+  memberId: string;
+  role: "editor" | "viewer";
+}): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/roadmaps/${input.roadmapId}/members/${input.memberId}`, {
+    method: "PATCH",
+    body: { role: input.role },
+  });
+}
+
+/** DELETE /roadmaps/:id/members/:memberId — retira el acceso al instante. */
+export function revokeRoadmapMember(input: {
+  roadmapId: string;
+  memberId: string;
+}): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/roadmaps/${input.roadmapId}/members/${input.memberId}`, {
+    method: "DELETE",
+  });
+}
+
+/** POST /roadmaps/:id/transfer — transfiere la administración del roadmap. */
+export function transferRoadmapAdmin(input: {
+  roadmapId: string;
+  teamMemberId: string;
+}): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/roadmaps/${input.roadmapId}/transfer`, {
+    method: "POST",
+    body: { teamMemberId: input.teamMemberId },
   });
 }
