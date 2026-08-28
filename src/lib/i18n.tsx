@@ -130,6 +130,7 @@ const dict = {
 
     "app.stats.roadmaps": "Roadmaps",
     "app.stats.roadmaps.hint": "Crea tu primer roadmap",
+    "team.active": "Equipo",
     "app.stats.teams": "Equipos",
     "app.stats.teams.hint": "Define quiénes ejecutan",
     "app.stats.scope": "Ver métricas de:",
@@ -584,6 +585,7 @@ const dict = {
 
     "app.stats.roadmaps": "Roadmaps",
     "app.stats.roadmaps.hint": "Create your first roadmap",
+    "team.active": "Team",
     "app.stats.teams": "Teams",
     "app.stats.teams.hint": "Define who executes",
     "app.stats.scope": "Show metrics for:",

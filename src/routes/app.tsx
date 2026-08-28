@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
+import { useActiveTeam } from "@/hooks/use-active-team";
 import { clearSession } from "@/lib/auth";
 import { Map, Users, ListChecks, Plus, User, Settings, LogOut, CalendarDays, ChevronRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -43,6 +44,7 @@ function AppHome() {
   const { session, ready } = useAuth();
   const navigate = useNavigate();
   const { t, locale } = useI18n();
+  const { team } = useActiveTeam();
   const [stats, setStats] = useState<Stats | null>(null);
   const [roadmaps, setRoadmaps] = useState<RoadmapSummary[] | null>(null);
   const [scope, setScope] = useState<string>("all");
