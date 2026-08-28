@@ -134,3 +134,32 @@ export function parseInput<S extends z.ZodTypeAny>(schema: S, input: unknown): z
   }
   return result.data;
 }
+
+// --- Fase III · Colaboración por roadmap -------------------------------------
+
+/** Roles compartibles de un roadmap (el `admin` no se asigna, se transfiere). */
+export const roadmapShareRoleSchema = z.enum(["editor", "viewer"]);
+
+/** `shareRoadmap`: conceder acceso a un miembro activo del equipo. */
+export const shareRoadmapInput = z.object({
+  roadmapId: uuidSchema,
+  teamMemberId: uuidSchema,
+  role: roadmapShareRoleSchema,
+});
+
+/** Referencia a una fila de `roadmap_members`. */
+export const roadmapMemberRefInput = z.object({
+  roadmapId: uuidSchema,
+  memberId: uuidSchema,
+});
+
+/** `updateRoadmapMemberRole`. */
+export const updateRoadmapMemberInput = roadmapMemberRefInput.extend({
+  role: roadmapShareRoleSchema,
+});
+
+/** `transferRoadmapAdmin`. */
+export const transferRoadmapAdminInput = z.object({
+  roadmapId: uuidSchema,
+  teamMemberId: uuidSchema,
+});
