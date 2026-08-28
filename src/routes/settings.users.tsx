@@ -219,7 +219,7 @@ function UsersPage() {
               <MemberList
                 members={active}
                 empty={t("users.empty")}
-                render={(m) =>
+                renderActions={(m) =>
                   isTeamAdmin && m.role !== "admin" ? (
                     <Button
                       size="sm"
@@ -236,7 +236,6 @@ function UsersPage() {
                     </Button>
                   ) : null
                 }
-                t={t}
               />
             </TabsContent>
 
@@ -244,7 +243,7 @@ function UsersPage() {
               <MemberList
                 members={inactive}
                 empty={t("users.empty")}
-                render={(m) =>
+                renderActions={(m) =>
                   isTeamAdmin ? (
                     <Button
                       size="sm"
@@ -261,7 +260,6 @@ function UsersPage() {
                     </Button>
                   ) : null
                 }
-                t={t}
               />
             </TabsContent>
           </Tabs>
@@ -278,14 +276,13 @@ function Empty({ label }: { label: string }) {
 function MemberList({
   members,
   empty,
-  render,
-  t,
+  renderActions,
 }: {
   members: TeamMemberView[];
   empty: string;
-  render: (m: TeamMemberView) => React.ReactNode;
-  t: (key: string) => string;
+  renderActions: (m: TeamMemberView) => React.ReactNode;
 }) {
+  const { t } = useI18n();
   if (members.length === 0) return <Empty label={empty} />;
   return (
     <ul className="divide-y divide-border">
@@ -301,7 +298,7 @@ function MemberList({
             <Badge variant={m.role === "admin" ? "default" : "secondary"}>
               {m.role === "admin" ? t("users.role.admin") : t("users.role.member")}
             </Badge>
-            {render(m)}
+            {renderActions(m)}
           </div>
         </li>
       ))}
