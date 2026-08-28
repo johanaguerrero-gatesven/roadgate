@@ -101,7 +101,13 @@ function AppHome() {
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:block">
               {t("app.greeting")} <span className="text-foreground font-medium">{session.name}</span>
+              {team ? (
+                <span className="ml-2 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                  {t("team.active")}: <span className="text-foreground">{team.name}</span>
+                </span>
+              ) : null}
             </span>
+
             <LanguageSwitcher />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
