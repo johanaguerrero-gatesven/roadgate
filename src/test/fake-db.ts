@@ -30,7 +30,7 @@ function applyFilters(rows: Record<string, unknown>[], filters: Filter[]) {
  * @param tables estado inicial (se muta, para poder afirmar sobre escrituras).
  * @returns el cliente falso y utilidades de inspección.
  */
-export function createFakeDb(tables: Tables) {
+export function createFakeDb(tables: Tables, currentUserId = "user-1") {
   const calls: { table: string; action: string }[] = [];
 
   function builder(table: string) {
@@ -40,8 +40,20 @@ export function createFakeDb(tables: Tables) {
     let limit: number | null = null;
     let order: { col: string; asc: boolean } | null = null;
     let single: "one" | "maybe" | null = null;
+    let embeds: string[] = [];
 
     const rowsOf = () => (tables[table] ??= []);
+
+    /** Resuelve relaciones embebidas del estilo `teams(id, name)`. */
+    const withEmbeds = (rows: Record<string, unknown>[]) =>
+      rows.map((r) => {
+        const out = { ...r };
+        for (const rel of embeds) {
+          const fk = `${rel.replace(/s$/, "")}_id`;
+          out[rel] = (tables[rel] ?? []).find((x) => x.id === r[fk]) ?? null;
+        }
+        return out;
+      });
 
     const run = (): { data: unknown; error: { message: string } | null } => {
       calls.push({ table, action });
@@ -73,7 +85,7 @@ export function createFakeDb(tables: Tables) {
         });
       }
       if (limit != null) data = data.slice(0, limit);
-      return finalize(data);
+      return finalize(embeds.length ? withEmbeds(data) : data);
     };
 
     const finalize = (data: Record<string, unknown>[]) => {
@@ -86,8 +98,9 @@ export function createFakeDb(tables: Tables) {
     };
 
     const api = {
-      select() {
+      select(cols?: string) {
         if (action === "select") action = "select";
+        embeds = [...(cols ?? "").matchAll(/(\w+)\s*\(/g)].map((m) => m[1] as string);
         return api;
       },
       insert(rows: Record<string, unknown> | Record<string, unknown>[]) {
@@ -139,7 +152,36 @@ export function createFakeDb(tables: Tables) {
     return api;
   }
 
-  const db = { from: (table: string) => builder(table) } as unknown as RoadGateDb;
+  /** Doble de las funciones RPC de Postgres usadas por el core. */
+  function rpc(name: string) {
+    if (name !== "ensure_personal_team") {
+      return Promise.resolve({ data: null, error: { message: `unknown rpc ${name}` } });
+    }
+    const members = (tables["team_members"] ??= []);
+    const teams = (tables["teams"] ??= []);
+    const existing = members.find((m) => m.user_id === currentUserId && m.status === "active");
+    if (existing) return Promise.resolve({ data: existing.team_id, error: null });
+    const teamId = `team-${teams.length + 1}`;
+    teams.push({
+      id: teamId,
+      name: `${currentUserId} team`,
+      created_by: currentUserId,
+      status: "active",
+      plan: "free",
+      seat_limit: 5,
+    });
+    members.push({
+      id: `member-${members.length + 1}`,
+      team_id: teamId,
+      user_id: currentUserId,
+      role: "admin",
+      status: "active",
+      created_at: new Date(2026, 0, 1).toISOString(),
+    });
+    return Promise.resolve({ data: teamId, error: null });
+  }
+
+  const db = { from: (table: string) => builder(table), rpc } as unknown as RoadGateDb;
   return { db, tables, calls };
 }
 
@@ -147,6 +189,7 @@ export function createFakeDb(tables: Tables) {
 export function createTestCtx(tables: Tables, userId = "user-1"): RoadGateContext & {
   tables: Tables;
 } {
-  const { db } = createFakeDb(tables);
+  const { db } = createFakeDb(tables, userId);
   return { db, userId, email: "demo@roadgate.test", authMethod: "session", tables };
 }
+
