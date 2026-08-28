@@ -151,34 +151,30 @@ export async function createRoadmap(
 }
 
 
-/** Renombra un roadmap del actor. El nombre vacío se rechaza en el esquema. */
+/** Renombra un roadmap. Requiere permiso de escritura (Admin o Editor). */
 export async function renameRoadmap(
   ctx: RoadGateContext,
   input: unknown,
 ): Promise<{ ok: true }> {
   const { roadmapId, name } = parseInput(renameRoadmapInput, input);
-  await assertRoadmapOwned(ctx, roadmapId);
+  await requireRoadmapAccess(ctx, roadmapId, "write");
   unwrap(
-    await ctx.db
-      .from("roadmaps")
-      .update({ name })
-      .eq("id", roadmapId)
-      .eq("user_id", ctx.userId),
+    await ctx.db.from("roadmaps").update({ name }).eq("id", roadmapId),
     "renameRoadmap",
   );
   return { ok: true };
 }
 
 /**
- * Borra un roadmap del actor. Los items, la capacidad y el histórico se
- * eliminan por `ON DELETE CASCADE` en el esquema.
+ * Borra un roadmap. SOLO el Roadmap Admin. Los items, la capacidad y el
+ * histórico se eliminan por `ON DELETE CASCADE` en el esquema.
  */
 export async function deleteRoadmap(
   ctx: RoadGateContext,
   input: unknown,
 ): Promise<{ ok: true }> {
   const { roadmapId } = parseInput(roadmapRefInput, input);
-  await assertRoadmapOwned(ctx, roadmapId);
+  await requireRoadmapAccess(ctx, roadmapId, "admin");
   unwrap(
     await ctx.db.from("roadmaps").delete().eq("id", roadmapId).eq("user_id", ctx.userId),
     "deleteRoadmap",
@@ -190,13 +186,14 @@ export async function deleteRoadmap(
  * Carga completa de un roadmap (cabecera + items + capacidad) en paralelo.
  * Es la operación que alimenta toda la pantalla de trabajo, por eso devuelve
  * todo de una vez en lugar de obligar al cliente a encadenar tres llamadas.
+ * Accesible para Admin, Editor y Viewer; el rol viaja en la respuesta.
  */
 export async function getRoadmap(
   ctx: RoadGateContext,
   input: unknown,
 ): Promise<RoadmapDetail> {
   const { roadmapId } = parseInput(roadmapRefInput, input);
-  await assertRoadmapOwned(ctx, roadmapId);
+  const role = await requireRoadmapAccess(ctx, roadmapId, "read");
 
   const [itemsRes, capRes, rmRes] = await Promise.all([
     ctx.db.from("roadmap_items").select("*").eq("roadmap_id", roadmapId),
@@ -212,6 +209,7 @@ export async function getRoadmap(
     roadmap: { id: rm.id, name: rm.name },
     items: (itemRows ?? []).map(rowToItem),
     capacity: rowToCapacity(capRow),
+    role,
   };
 }
 
