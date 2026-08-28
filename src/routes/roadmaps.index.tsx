@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/use-auth";
+import { useI18n } from "@/lib/i18n";
 import {
-  listRoadmaps, deleteRoadmap, renameRoadmap,
+  listRoadmaps, deleteRoadmap, renameRoadmap, type RoadmapRole,
 } from "@/lib/api/roadgate";
 
 export const Route = createFileRoute("/roadmaps/")({
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/roadmaps/")({
 
 type Row = {
   id: string; name: string; createdAt: string; updatedAt: string; itemCount: number;
+  role: RoadmapRole; shared: boolean;
 };
 
 function formatDate(iso: string) {
@@ -29,6 +31,7 @@ function formatDate(iso: string) {
 
 function RoadmapsListPage() {
   const { session, ready } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
@@ -72,47 +75,7 @@ function RoadmapsListPage() {
     } catch (e) { console.error(e); toast.error("Error al eliminar"); }
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
-          <Logo />
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/app"><ArrowLeft className="h-4 w-4" /> Dashboard</Link>
-            </Button>
-            <LanguageSwitcher />
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-6xl px-6 py-10">
-        <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Mis roadmaps</h1>
-            <p className="text-muted-foreground mt-1">Todos los roadmaps de tu cuenta.</p>
-          </div>
-          <Button size="lg" asChild>
-            <Link to="/roadmaps/new"><Plus className="h-4 w-4" /> Nuevo roadmap</Link>
-          </Button>
-        </div>
-
-        {rows === null && (
-          <div className="text-muted-foreground text-sm">Cargando…</div>
-        )}
-        {rows && rows.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border bg-card/60 p-12 text-center">
-            <Map className="h-10 w-10 mx-auto text-primary" />
-            <h2 className="mt-4 text-xl font-semibold text-foreground">Aún no tienes roadmaps</h2>
-            <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-              Crea tu primer roadmap para empezar a planificar.
-            </p>
-            <Button className="mt-6" asChild>
-              <Link to="/roadmaps/new"><Plus className="h-4 w-4" /> Crear roadmap</Link>
-            </Button>
-          </div>
-        )}
-        {rows && rows.length > 0 && (
+  const renderGrid = (list: Row[]) => (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {rows.map((r) => (
               <div key={r.id} className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] flex flex-col">
@@ -165,6 +128,61 @@ function RoadmapsListPage() {
                 </div>
               </div>
             ))}
+          </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
+          <Logo />
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/app"><ArrowLeft className="h-4 w-4" /> Dashboard</Link>
+            </Button>
+            <LanguageSwitcher />
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Mis roadmaps</h1>
+            <p className="text-muted-foreground mt-1">Todos los roadmaps de tu cuenta.</p>
+          </div>
+          <Button size="lg" asChild>
+            <Link to="/roadmaps/new"><Plus className="h-4 w-4" /> Nuevo roadmap</Link>
+          </Button>
+        </div>
+
+        {rows === null && (
+          <div className="text-muted-foreground text-sm">Cargando…</div>
+        )}
+        {rows && rows.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-border bg-card/60 p-12 text-center">
+            <Map className="h-10 w-10 mx-auto text-primary" />
+            <h2 className="mt-4 text-xl font-semibold text-foreground">Aún no tienes roadmaps</h2>
+            <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+              Crea tu primer roadmap para empezar a planificar.
+            </p>
+            <Button className="mt-6" asChild>
+              <Link to="/roadmaps/new"><Plus className="h-4 w-4" /> Crear roadmap</Link>
+            </Button>
+          </div>
+        )}
+        {rows && rows.length > 0 && (
+          <div className="space-y-10">
+            <section>
+              <h2 className="text-lg font-semibold text-foreground mb-3">{t("roadmaps.mine")}</h2>
+              {renderGrid(rows.filter((r) => !r.shared))}
+            </section>
+            {rows.some((r) => r.shared) && (
+              <section>
+                <h2 className="text-lg font-semibold text-foreground mb-3">{t("roadmaps.sharedWithMe")}</h2>
+                {renderGrid(rows.filter((r) => r.shared))}
+              </section>
+            )}
           </div>
         )}
       </main>
