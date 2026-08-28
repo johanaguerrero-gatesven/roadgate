@@ -8,7 +8,7 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, Minus,
+  Upload, Download, Plus, Trash2, FileSpreadsheet, Eye, EyeOff, Minus, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,15 +22,18 @@ import { PriorityIcon } from "./PriorityIcon";
 import { ParentPicker } from "./ParentPicker";
 import { IdInput } from "./IdInput";
 import { ImportReportDialog } from "./ImportReportDialog";
+import { NewItemDialog, type NewItemDraft } from "./NewItemDialog";
+import { isPendingId } from "../pending-id";
 
 /** Tabla estilo Excel con todos los work items de un tipo. */
 export function BacklogPanel({
-  type, items, wrapText, onAdd, onUpdate, onMoveQuarter, onRemove, onImport, onExportXlsx, onResetType,
+  type, items, wrapText, onAdd, onCreate, onUpdate, onMoveQuarter, onRemove, onImport, onExportXlsx, onResetType,
 }: {
   type: ItemType;
   items: RoadmapItem[];
   wrapText: boolean;
   onAdd: () => void;
+  onCreate: (draft: NewItemDraft) => void;
   onUpdate: (uid: string, patch: Partial<RoadmapItem>) => void;
   onMoveQuarter: (uid: string, quarter: Quarter) => void;
   onRemove: (uid: string) => void;
@@ -41,6 +44,7 @@ export function BacklogPanel({
   const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<{ csv: string; name: string; report: ImportReport } | null>(null);
+  const [creating, setCreating] = useState(false);
   const rowsFor = (v: string, cpl: number) =>
     wrapText
       ? Math.max(1, v.split("\n").reduce((s, l) => s + Math.ceil((l.length || 1) / cpl), 0))
@@ -98,7 +102,7 @@ export function BacklogPanel({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2 items-center">
-        <Button onClick={onAdd}><Plus className="h-4 w-4" /> {t("roadmap.add")}</Button>
+        <Button onClick={() => setCreating(true)}><Plus className="h-4 w-4" /> {t("roadmap.add")}</Button>
         <Button variant="outline" onClick={() => fileRef.current?.click()}>
           <Upload className="h-4 w-4" /> {t("roadmap.import")}
         </Button>
@@ -120,6 +124,14 @@ export function BacklogPanel({
           {list.length} {type === "story" ? "user stories" : `${type}s`}
         </span>
       </div>
+
+      <NewItemDialog
+        open={creating}
+        type={type}
+        parents={parents}
+        onClose={() => setCreating(false)}
+        onCreate={onCreate}
+      />
 
       <ImportReportDialog
         report={pending?.report ?? null}
@@ -186,7 +198,20 @@ export function BacklogPanel({
                       className={`group transition-colors [&>td]:px-2 [&>td]:py-1 [&>td]:align-top [&>td]:border-b [&>td]:border-border/70 hover:[&>td]:bg-muted/40 ${hidden ? "opacity-60" : ""}`}
                     >
                       <td className={`sticky left-0 z-10 bg-card border-r border-border group-hover:bg-muted/40 border-l-2 ${type === "epic" ? "border-l-epic" : type === "feature" ? "border-l-feature" : "border-l-story"}`}>
-                        <IdInput value={it.id} onCommit={(v) => onUpdate(it.uid, { id: v })} />
+                        <div className="flex items-center gap-1">
+                          {isPendingId(it.id) && (
+                            <AlertTriangle
+                              className="h-4 w-4 shrink-0 text-amber-600"
+                              aria-label={t("roadmap.pendingId")}
+                            />
+                          )}
+                          <IdInput value={it.id} onCommit={(v) => onUpdate(it.uid, { id: v })} />
+                        </div>
+                        {isPendingId(it.id) && (
+                          <div className="text-[10px] font-medium text-amber-600 mt-0.5 leading-tight">
+                            {t("roadmap.pendingId")}
+                          </div>
+                        )}
                       </td>
 
                       <td className="min-w-[140px] max-w-[220px]">
