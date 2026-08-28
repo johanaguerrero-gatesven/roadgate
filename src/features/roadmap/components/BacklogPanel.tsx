@@ -289,12 +289,12 @@ export function BacklogPanel({
                         )}
                       </td>
 
-                      <td>
+                      <td className="min-w-[90px] w-[90px]">
                         <Select
                           value={it.priority || "__none"}
                           onValueChange={(v) => onUpdate(it.uid, { priority: (v === "__none" ? "" : v) as Priority })}
                         >
-                          <SelectTrigger className="h-8 text-xs gap-1 [&>span]:flex [&>span]:items-center [&>span]:gap-1.5">
+                          <SelectTrigger className="h-8 w-full text-xs gap-1 [&>span]:flex [&>span]:items-center [&>span]:gap-1.5">
                             <SelectValue>
                               {it.priority ? (
                                 <span className="flex items-center gap-1.5">
