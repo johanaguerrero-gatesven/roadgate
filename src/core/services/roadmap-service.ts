@@ -15,6 +15,12 @@ import { NotFoundError, unwrap } from "../errors";
 import { parseInput, createRoadmapInput, renameRoadmapInput, roadmapRefInput } from "../schemas";
 import { rowToCapacity, rowToItem, type CapacityRow, type ItemRow } from "../mappers";
 import { ensureActiveTeam } from "./team-service";
+import {
+  getRoadmapRole,
+  listAccessibleRoadmapIds,
+  requireRoadmapAccess,
+  type RoadmapRole,
+} from "./sharing-service";
 import type { CapacityConfig, RoadmapItem } from "@/lib/roadmap";
 
 /** Resumen de un roadmap para la pantalla de listado. */
@@ -25,6 +31,10 @@ export type RoadmapSummary = {
   updatedAt: string;
   /** Número de work items que contiene (Epics + Features + User Stories). */
   itemCount: number;
+  /** Permiso del actor sobre este roadmap. */
+  role: RoadmapRole;
+  /** `true` cuando llega por colaboración y no por propiedad. */
+  shared: boolean;
 };
 
 /** Contenido completo de un roadmap: cabecera + items + capacidad. */
@@ -32,42 +42,47 @@ export type RoadmapDetail = {
   roadmap: { id: string; name: string };
   items: RoadmapItem[];
   capacity: CapacityConfig;
+  /** Permiso del actor: el frontend lo usa para pintar en modo solo lectura. */
+  role: RoadmapRole;
 };
 
 /**
- * Comprueba que el roadmap existe y pertenece al actor.
- * Se exporta porque el resto de servicios (items, capacidad) la reutilizan
- * como guarda previa a cualquier lectura o escritura anidada.
- * @throws NotFoundError si no existe o es de otra cuenta (no se distingue
- *         entre ambos casos a propósito: evita enumerar IDs ajenos).
+ * Guarda de acceso reutilizada por los servicios hijos (items, capacidad).
+ * Desde la Fase III el criterio ya no es "ser el dueño" sino tener permiso de
+ * ESCRITURA (Admin o Editor) sobre el roadmap.
+ * @throws NotFoundError si el actor no puede ni leerlo (evita enumerar ids).
+ * @throws ForbiddenError si es Viewer.
  */
 export async function assertRoadmapOwned(
   ctx: RoadGateContext,
   roadmapId: string,
 ): Promise<void> {
-  const data = unwrap(
-    await ctx.db
-      .from("roadmaps")
-      .select("id")
-      .eq("id", roadmapId)
-      .eq("user_id", ctx.userId)
-      .maybeSingle(),
-    "assertRoadmapOwned",
-  );
-  if (!data) throw new NotFoundError("Roadmap");
+  await requireRoadmapAccess(ctx, roadmapId, "write");
+}
+
+/** Guarda de solo lectura (Admin, Editor o Viewer). */
+export async function assertRoadmapReadable(
+  ctx: RoadGateContext,
+  roadmapId: string,
+): Promise<RoadmapRole> {
+  return requireRoadmapAccess(ctx, roadmapId, "read");
 }
 
 /**
- * Lista los roadmaps del actor (más recientes primero) con el número de work
- * items de cada uno. El conteo se resuelve con UNA consulta adicional agregada
- * en memoria para evitar el problema N+1.
+ * Lista los roadmaps accesibles por el actor (propios + compartidos con él),
+ * más recientes primero, con el número de work items de cada uno. El conteo se
+ * resuelve con UNA consulta adicional agregada en memoria (evita el N+1).
  */
 export async function listRoadmaps(ctx: RoadGateContext): Promise<RoadmapSummary[]> {
+  const { owned, shared } = await listAccessibleRoadmapIds(ctx);
+  const all = [...owned, ...shared];
+  if (!all.length) return [];
+
   const rows = unwrap(
     await ctx.db
       .from("roadmaps")
       .select("id, name, created_at, updated_at")
-      .eq("user_id", ctx.userId)
+      .in("id", all)
       .order("created_at", { ascending: false }),
     "listRoadmaps",
   );
@@ -86,13 +101,23 @@ export async function listRoadmaps(ctx: RoadGateContext): Promise<RoadmapSummary
     }, {});
   }
 
-  return (rows ?? []).map((r) => ({
-    id: r.id as string,
-    name: r.name as string,
-    createdAt: r.created_at as string,
-    updatedAt: r.updated_at as string,
-    itemCount: countsByRoadmap[r.id as string] ?? 0,
-  }));
+  const summaries = await Promise.all(
+    (rows ?? []).map(async (r) => {
+      const id = r.id as string;
+      const isShared = !owned.includes(id);
+      const role = isShared ? ((await getRoadmapRole(ctx, id)) ?? "viewer") : "admin";
+      return {
+        id,
+        name: r.name as string,
+        createdAt: r.created_at as string,
+        updatedAt: r.updated_at as string,
+        itemCount: countsByRoadmap[id] ?? 0,
+        role: role as RoadmapRole,
+        shared: isShared,
+      };
+    }),
+  );
+  return summaries;
 }
 
 /**
