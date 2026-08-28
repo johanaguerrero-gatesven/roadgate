@@ -105,16 +105,25 @@ export async function createRoadmap(
 ): Promise<{ id: string }> {
   const { name } = parseInput(createRoadmapInput, input);
   const finalName = (name ?? "").trim() || "Hoja de ruta sin título";
+  // Fase I: todo roadmap nace dentro de la cuenta de equipo del actor, que se
+  // provisiona de forma idempotente si aún no existía.
+  const team = await ensureActiveTeam(ctx);
   const row = unwrap(
     await ctx.db
       .from("roadmaps")
-      .insert({ user_id: ctx.userId, name: finalName })
+      .insert({
+        user_id: ctx.userId,
+        name: finalName,
+        team_id: team.id,
+        admin_member_id: team.memberId,
+      })
       .select("id")
       .single(),
     "createRoadmap",
   );
   return { id: (row as { id: string }).id };
 }
+
 
 /** Renombra un roadmap del actor. El nombre vacío se rechaza en el esquema. */
 export async function renameRoadmap(

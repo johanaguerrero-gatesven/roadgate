@@ -29,6 +29,7 @@ import { Route as ApiPublicV1StatsRouteImport } from './routes/api/public/v1/sta
 import { Route as ApiPublicV1ApiKeysIndexRouteImport } from './routes/api/public/v1/api-keys/index'
 import { Route as ApiPublicV1ApiKeysKeyIdRouteImport } from './routes/api/public/v1/api-keys/$keyId'
 import { Route as ApiPublicV1RoadmapsIndexRouteImport } from './routes/api/public/v1/roadmaps/index'
+import { Route as ApiPublicV1TeamsMeRouteImport } from './routes/api/public/v1/teams/me'
 import { Route as ApiPublicV1RoadmapsRoadmapIdIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/index'
 import { Route as ApiPublicV1RoadmapsRoadmapIdItemsRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/items'
 import { Route as ApiPublicV1RoadmapsRoadmapIdCapacityIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/capacity/index'
@@ -136,6 +137,11 @@ const ApiPublicV1RoadmapsIndexRoute =
     path: '/api/public/v1/roadmaps/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1TeamsMeRoute = ApiPublicV1TeamsMeRouteImport.update({
+  id: '/api/public/v1/teams/me',
+  path: '/api/public/v1/teams/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicV1RoadmapsRoadmapIdIndexRoute =
   ApiPublicV1RoadmapsRoadmapIdIndexRouteImport.update({
     id: '/api/public/v1/roadmaps/$roadmapId/',
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/openapi.json': typeof ApiPublicV1OpenapiDotjsonRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
   '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/teams/me': typeof ApiPublicV1TeamsMeRoute
   '/api/public/v1/api-keys/': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/api/public/v1/openapi.json': typeof ApiPublicV1OpenapiDotjsonRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
   '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/teams/me': typeof ApiPublicV1TeamsMeRoute
   '/api/public/v1/api-keys': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps': typeof ApiPublicV1RoadmapsIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
@@ -233,6 +241,7 @@ export interface FileRoutesById {
   '/api/public/v1/openapi.json': typeof ApiPublicV1OpenapiDotjsonRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
   '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/teams/me': typeof ApiPublicV1TeamsMeRoute
   '/api/public/v1/api-keys/': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/openapi.json'
     | '/api/public/v1/stats'
     | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/teams/me'
     | '/api/public/v1/api-keys/'
     | '/api/public/v1/roadmaps/'
     | '/api/public/v1/roadmaps/$roadmapId/items'
@@ -287,6 +297,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/openapi.json'
     | '/api/public/v1/stats'
     | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/teams/me'
     | '/api/public/v1/api-keys'
     | '/api/public/v1/roadmaps'
     | '/api/public/v1/roadmaps/$roadmapId/items'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/openapi.json'
     | '/api/public/v1/stats'
     | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/teams/me'
     | '/api/public/v1/api-keys/'
     | '/api/public/v1/roadmaps/'
     | '/api/public/v1/roadmaps/$roadmapId/items'
@@ -334,6 +346,7 @@ export interface RootRouteChildren {
   ApiPublicV1OpenapiDotjsonRoute: typeof ApiPublicV1OpenapiDotjsonRoute
   ApiPublicV1StatsRoute: typeof ApiPublicV1StatsRoute
   ApiPublicV1ApiKeysKeyIdRoute: typeof ApiPublicV1ApiKeysKeyIdRoute
+  ApiPublicV1TeamsMeRoute: typeof ApiPublicV1TeamsMeRoute
   ApiPublicV1ApiKeysIndexRoute: typeof ApiPublicV1ApiKeysIndexRoute
   ApiPublicV1RoadmapsIndexRoute: typeof ApiPublicV1RoadmapsIndexRoute
   ApiPublicV1RoadmapsRoadmapIdItemsRoute: typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
@@ -484,6 +497,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1RoadmapsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/teams/me': {
+      id: '/api/public/v1/teams/me'
+      path: '/api/public/v1/teams/me'
+      fullPath: '/api/public/v1/teams/me'
+      preLoaderRoute: typeof ApiPublicV1TeamsMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/roadmaps/$roadmapId/': {
       id: '/api/public/v1/roadmaps/$roadmapId/'
       path: '/api/public/v1/roadmaps/$roadmapId'
@@ -550,6 +570,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicV1OpenapiDotjsonRoute: ApiPublicV1OpenapiDotjsonRoute,
   ApiPublicV1StatsRoute: ApiPublicV1StatsRoute,
   ApiPublicV1ApiKeysKeyIdRoute: ApiPublicV1ApiKeysKeyIdRoute,
+  ApiPublicV1TeamsMeRoute: ApiPublicV1TeamsMeRoute,
   ApiPublicV1ApiKeysIndexRoute: ApiPublicV1ApiKeysIndexRoute,
   ApiPublicV1RoadmapsIndexRoute: ApiPublicV1RoadmapsIndexRoute,
   ApiPublicV1RoadmapsRoadmapIdItemsRoute:
