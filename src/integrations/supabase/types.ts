@@ -251,6 +251,54 @@ export type Database = {
           },
         ]
       }
+      roadmap_members: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          roadmap_id: string
+          role: string
+          team_member_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          roadmap_id: string
+          role: string
+          team_member_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          roadmap_id?: string
+          role?: string
+          team_member_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_members_roadmap_id_fkey"
+            columns: ["roadmap_id"]
+            isOneToOne: false
+            referencedRelation: "roadmaps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roadmap_members_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roadmaps: {
         Row: {
           admin_member_id: string | null
@@ -423,7 +471,19 @@ export type Database = {
     }
     Functions: {
       accept_team_invitation: { Args: { _token_hash: string }; Returns: string }
+      can_read_roadmap: {
+        Args: { _roadmap_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_write_roadmap: {
+        Args: { _roadmap_id: string; _user_id: string }
+        Returns: boolean
+      }
       ensure_personal_team: { Args: never; Returns: string }
+      is_roadmap_admin: {
+        Args: { _roadmap_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_team_admin: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
@@ -435,6 +495,14 @@ export type Database = {
       owns_roadmap: {
         Args: { _roadmap_id: string; _user_id: string }
         Returns: boolean
+      }
+      roadmap_role: {
+        Args: { _roadmap_id: string; _user_id: string }
+        Returns: string
+      }
+      transfer_roadmap_admin: {
+        Args: { _roadmap_id: string; _team_member_id: string }
+        Returns: string
       }
     }
     Enums: {
