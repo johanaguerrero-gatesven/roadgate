@@ -14,6 +14,7 @@ import type { RoadGateContext } from "../context";
 import { NotFoundError, unwrap } from "../errors";
 import { parseInput, createRoadmapInput, renameRoadmapInput, roadmapRefInput } from "../schemas";
 import { rowToCapacity, rowToItem, type CapacityRow, type ItemRow } from "../mappers";
+import { ensureActiveTeam } from "./team-service";
 import type { CapacityConfig, RoadmapItem } from "@/lib/roadmap";
 
 /** Resumen de un roadmap para la pantalla de listado. */
