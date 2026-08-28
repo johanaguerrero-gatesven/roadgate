@@ -20,6 +20,7 @@ import { BacklogPanel } from "@/features/roadmap/components/BacklogPanel";
 import { RoadmapView } from "@/features/roadmap/components/RoadmapView";
 import { CapacityPanel } from "@/features/roadmap/components/CapacityPanel";
 import { PublishRoadmapToHarvestr } from "@/components/PublishRoadmapToHarvestr";
+import { ShareRoadmapDialog } from "@/features/roadmap/components/ShareRoadmapDialog";
 
 
 export const Route = createFileRoute("/roadmaps/$roadmapId")({
@@ -34,7 +35,7 @@ function RoadmapPage() {
   const { roadmapId } = Route.useParams();
 
   const {
-    items, cfg, roadmapName,
+    items, cfg, roadmapName, canEdit, isAdmin,
     update, updateOne, updateCapacity, moveQuarter, remove, add, addDetailed, removeAllOfType,
   } = useRoadmapBoard(roadmapId, session?.userId);
 
@@ -78,7 +79,13 @@ function RoadmapPage() {
             <div className="text-xs uppercase tracking-wide text-muted-foreground">{t("roadmap.title")}</div>
             <h1 className="text-3xl font-bold text-foreground">{roadmapName || "…"}</h1>
             <p className="text-muted-foreground mt-1">{t("roadmap.lead")}</p>
+            {!canEdit && (
+              <p className="mt-2 inline-block rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
+                {t("share.readOnly")}
+              </p>
+            )}
           </div>
+          {isAdmin && <ShareRoadmapDialog roadmapId={roadmapId} />}
         </div>
 
         <Tabs defaultValue="dashboard">
