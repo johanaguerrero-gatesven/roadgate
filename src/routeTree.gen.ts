@@ -40,6 +40,7 @@ import { Route as ApiPublicV1TeamsMembersIndexRouteImport } from './routes/api/p
 import { Route as ApiPublicV1TeamsMembersMemberIdRouteImport } from './routes/api/public/v1/teams/members/$memberId'
 import { Route as ApiPublicV1RoadmapsRoadmapIdCapacityIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/capacity/index'
 import { Route as ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/capacity/history'
+import { Route as ApiPublicV1RoadmapsRoadmapIdMembersIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/members/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -207,6 +208,12 @@ const ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute =
     path: '/api/public/v1/roadmaps/$roadmapId/capacity/history',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1RoadmapsRoadmapIdMembersIndexRoute =
+  ApiPublicV1RoadmapsRoadmapIdMembersIndexRouteImport.update({
+    id: '/api/public/v1/roadmaps/$roadmapId/members/',
+    path: '/api/public/v1/roadmaps/$roadmapId/members/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/teams/members/': typeof ApiPublicV1TeamsMembersIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity/history': typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity/': typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/members/': typeof ApiPublicV1RoadmapsRoadmapIdMembersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -273,6 +281,7 @@ export interface FileRoutesByTo {
   '/api/public/v1/teams/members': typeof ApiPublicV1TeamsMembersIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity/history': typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity': typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/members': typeof ApiPublicV1RoadmapsRoadmapIdMembersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -307,6 +316,7 @@ export interface FileRoutesById {
   '/api/public/v1/teams/members/': typeof ApiPublicV1TeamsMembersIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity/history': typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity/': typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
+  '/api/public/v1/roadmaps/$roadmapId/members/': typeof ApiPublicV1RoadmapsRoadmapIdMembersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -342,6 +352,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/teams/members/'
     | '/api/public/v1/roadmaps/$roadmapId/capacity/history'
     | '/api/public/v1/roadmaps/$roadmapId/capacity/'
+    | '/api/public/v1/roadmaps/$roadmapId/members/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/teams/members'
     | '/api/public/v1/roadmaps/$roadmapId/capacity/history'
     | '/api/public/v1/roadmaps/$roadmapId/capacity'
+    | '/api/public/v1/roadmaps/$roadmapId/members'
   id:
     | '__root__'
     | '/'
@@ -408,6 +420,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/teams/members/'
     | '/api/public/v1/roadmaps/$roadmapId/capacity/history'
     | '/api/public/v1/roadmaps/$roadmapId/capacity/'
+    | '/api/public/v1/roadmaps/$roadmapId/members/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -436,6 +449,7 @@ export interface RootRouteChildren {
   ApiPublicV1TeamsMembersIndexRoute: typeof ApiPublicV1TeamsMembersIndexRoute
   ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute: typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
   ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute: typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
+  ApiPublicV1RoadmapsRoadmapIdMembersIndexRoute: typeof ApiPublicV1RoadmapsRoadmapIdMembersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -657,6 +671,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/roadmaps/$roadmapId/members/': {
+      id: '/api/public/v1/roadmaps/$roadmapId/members/'
+      path: '/api/public/v1/roadmaps/$roadmapId/members'
+      fullPath: '/api/public/v1/roadmaps/$roadmapId/members/'
+      preLoaderRoute: typeof ApiPublicV1RoadmapsRoadmapIdMembersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -714,6 +735,8 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute,
   ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute:
     ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute,
+  ApiPublicV1RoadmapsRoadmapIdMembersIndexRoute:
+    ApiPublicV1RoadmapsRoadmapIdMembersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
