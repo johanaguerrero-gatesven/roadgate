@@ -263,6 +263,30 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     }]);
   };
 
+  /**
+   * Alta manual detallada (pop-up "+" del Backlog).
+   * El ID definitivo lo asigna la herramienta de iteraciones, así que el item
+   * nace con un ID temporal `TBD-xx` marcado como pendiente de actualizar.
+   * Si se planifica en un Quarter se aplica la Regla 3 (Alta, o Media si ya lo era).
+   */
+  const addDetailed = (type: ItemType, draft: Omit<RoadmapItem, "uid" | "id" | "type">) => {
+    const planning = !!draft.quarter && draft.quarter !== "MULTI";
+    const priority: Priority = planning
+      ? (draft.priority === "2-Medium" ? "2-Medium" : HIGH)
+      : ((draft.priority || DEFAULT_PRIORITY) as Priority);
+    const newItem: RoadmapItem = {
+      ...draft,
+      uid: uid(),
+      id: nextPendingId(items.map((i) => i.id)),
+      type,
+      title: draft.title || `${t("roadmap.new")} ${type}`,
+      priority,
+      state: draft.state ?? "Backlog",
+    };
+    update([...items, newItem]);
+    toast.success(t("roadmap.newItem.created"), { description: newItem.id });
+  };
+
   /** Borra todos los items de un tipo y desvincula a sus huérfanos. */
   const removeAllOfType = (type: ItemType) => {
     const removedIds = new Set(items.filter((i) => i.type === type).map((i) => i.id));
