@@ -58,6 +58,13 @@ export {
 export { getWorkspaceStats, type WorkspaceStats } from "./services/stats-service";
 
 export {
+  ensureActiveTeam,
+  getActiveTeam,
+  type ActiveTeam,
+} from "./services/team-service";
+
+
+export {
   API_SCOPES,
   API_KEY_PREFIX,
   listApiKeys,

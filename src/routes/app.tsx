@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
+import { useActiveTeam } from "@/hooks/use-active-team";
 import { clearSession } from "@/lib/auth";
 import { Map, Users, ListChecks, Plus, User, Settings, LogOut, CalendarDays, ChevronRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -43,6 +44,7 @@ function AppHome() {
   const { session, ready } = useAuth();
   const navigate = useNavigate();
   const { t, locale } = useI18n();
+  const { team } = useActiveTeam();
   const [stats, setStats] = useState<Stats | null>(null);
   const [roadmaps, setRoadmaps] = useState<RoadmapSummary[] | null>(null);
   const [scope, setScope] = useState<string>("all");
@@ -101,7 +103,13 @@ function AppHome() {
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:block">
               {t("app.greeting")} <span className="text-foreground font-medium">{session.name}</span>
+              {team ? (
+                <span className="ml-2 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                  {t("team.active")}: <span className="text-foreground">{team.name}</span>
+                </span>
+              ) : null}
             </span>
+
             <LanguageSwitcher />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

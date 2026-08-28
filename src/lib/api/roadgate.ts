@@ -49,7 +49,25 @@ export type CapacityHistoryEntry = {
   at: string;
 };
 
+// --- Equipo ------------------------------------------------------------------
+
+export type ActiveTeam = {
+  id: string;
+  name: string;
+  status: string;
+  plan: string;
+  seatLimit: number;
+  role: "admin" | "member";
+  memberId: string;
+};
+
+/** GET /teams/me — equipo activo del usuario (se crea la primera vez). */
+export function fetchActiveTeam(): Promise<ActiveTeam> {
+  return apiFetch<ActiveTeam>("/teams/me");
+}
+
 // --- Roadmaps ----------------------------------------------------------------
+
 
 /** GET /roadmaps — roadmaps del usuario con su número de items. */
 export function listRoadmaps(): Promise<RoadmapSummary[]> {
