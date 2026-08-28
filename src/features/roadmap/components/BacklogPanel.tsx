@@ -223,11 +223,11 @@ export function BacklogPanel({
                         </TooltipProvider>
                       </td>
 
-                      <td className="min-w-[140px] max-w-[220px]">
+                      <td className="min-w-[240px] max-w-[360px]">
                         <Textarea
                           value={it.title}
                           onChange={(e) => onUpdate(it.uid, { title: e.target.value })}
-                          rows={rowsFor(it.title || "", 36)}
+                          rows={rowsFor(it.title || "", 48)}
                           className={`min-h-[30px] rounded-md text-sm leading-snug py-1 px-1.5 font-medium ${wrapText ? "resize-none overflow-hidden break-words" : "resize-y"}`}
                           placeholder={t("roadmap.col.title")}
                         />
