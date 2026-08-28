@@ -72,7 +72,7 @@ export function createFakeDb(
       }
       if (action === "insert") {
         const inserted = payload.map((r, i) => ({
-          id: (r.id as string) ?? `${table}-${rowsOf().length + i + 1}`,
+          id: (r.id as string) ?? crypto.randomUUID(),
           created_at: new Date(2026, 0, 1).toISOString(),
           ...r,
         }));
@@ -185,7 +185,7 @@ export function createFakeDb(
         already.status = "active";
       } else {
         members.push({
-          id: `member-${members.length + 1}`,
+          id: crypto.randomUUID(),
           team_id: inv.team_id,
           user_id: currentUserId,
           email: currentEmail.toLowerCase(),
@@ -204,7 +204,7 @@ export function createFakeDb(
     const teams = (tables["teams"] ??= []);
     const existing = members.find((m) => m.user_id === currentUserId && m.status === "active");
     if (existing) return Promise.resolve({ data: existing.team_id, error: null });
-    const teamId = `team-${teams.length + 1}`;
+    const teamId = crypto.randomUUID();
     teams.push({
       id: teamId,
       name: `${currentUserId} team`,
@@ -214,7 +214,7 @@ export function createFakeDb(
       seat_limit: 5,
     });
     members.push({
-      id: `member-${members.length + 1}`,
+      id: crypto.randomUUID(),
       team_id: teamId,
       user_id: currentUserId,
       email: currentEmail.toLowerCase(),
