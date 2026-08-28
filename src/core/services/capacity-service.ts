@@ -17,7 +17,7 @@ import type { RoadGateContext } from "../context";
 import { unwrap } from "../errors";
 import { parseInput, roadmapRefInput, saveCapacityInput } from "../schemas";
 import { capacityToRow, rowToCapacity, type CapacityRow } from "../mappers";
-import { assertRoadmapOwned } from "./roadmap-service";
+import { assertRoadmapOwned, assertRoadmapReadable } from "./roadmap-service";
 import type { CapacityConfig } from "@/lib/roadmap";
 
 /** Un apunte del histórico de capacidad, ya adaptado a la vista. */
@@ -67,7 +67,7 @@ export async function getCapacity(
   input: unknown,
 ): Promise<CapacityConfig> {
   const { roadmapId } = parseInput(roadmapRefInput, input);
-  await assertRoadmapOwned(ctx, roadmapId);
+  await assertRoadmapReadable(ctx, roadmapId);
   const row = unwrap(
     await ctx.db.from("roadmap_capacity").select("*").eq("roadmap_id", roadmapId).maybeSingle(),
     "getCapacity",
@@ -140,7 +140,7 @@ export async function listCapacityHistory(
   input: unknown,
 ): Promise<CapacityHistoryEntry[]> {
   const { roadmapId } = parseInput(roadmapRefInput, input);
-  await assertRoadmapOwned(ctx, roadmapId);
+  await assertRoadmapReadable(ctx, roadmapId);
   const rows = unwrap(
     await ctx.db
       .from("roadmap_capacity_history")

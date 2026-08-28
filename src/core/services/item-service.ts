@@ -18,7 +18,7 @@ import type { RoadGateContext } from "../context";
 import { unwrap } from "../errors";
 import { parseInput, replaceItemsInput, roadmapRefInput } from "../schemas";
 import { itemToRow, rowToItem, type ItemRow } from "../mappers";
-import { assertRoadmapOwned } from "./roadmap-service";
+import { assertRoadmapOwned, assertRoadmapReadable } from "./roadmap-service";
 import type { RoadmapItem } from "@/lib/roadmap";
 
 /** Devuelve todos los work items de un roadmap del actor. */
@@ -27,7 +27,7 @@ export async function listItems(
   input: unknown,
 ): Promise<RoadmapItem[]> {
   const { roadmapId } = parseInput(roadmapRefInput, input);
-  await assertRoadmapOwned(ctx, roadmapId);
+  await assertRoadmapReadable(ctx, roadmapId);
   const rows = unwrap(
     await ctx.db.from("roadmap_items").select("*").eq("roadmap_id", roadmapId),
     "listItems",
