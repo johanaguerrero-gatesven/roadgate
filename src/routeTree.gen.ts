@@ -32,6 +32,11 @@ import { Route as ApiPublicV1RoadmapsIndexRouteImport } from './routes/api/publi
 import { Route as ApiPublicV1TeamsMeRouteImport } from './routes/api/public/v1/teams/me'
 import { Route as ApiPublicV1RoadmapsRoadmapIdIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/index'
 import { Route as ApiPublicV1RoadmapsRoadmapIdItemsRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/items'
+import { Route as ApiPublicV1TeamsInvitationsIndexRouteImport } from './routes/api/public/v1/teams/invitations/index'
+import { Route as ApiPublicV1TeamsInvitationsInvitationIdRouteImport } from './routes/api/public/v1/teams/invitations/$invitationId'
+import { Route as ApiPublicV1TeamsInvitationsAcceptRouteImport } from './routes/api/public/v1/teams/invitations/accept'
+import { Route as ApiPublicV1TeamsMembersIndexRouteImport } from './routes/api/public/v1/teams/members/index'
+import { Route as ApiPublicV1TeamsMembersMemberIdRouteImport } from './routes/api/public/v1/teams/members/$memberId'
 import { Route as ApiPublicV1RoadmapsRoadmapIdCapacityIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/capacity/index'
 import { Route as ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/capacity/history'
 
@@ -154,6 +159,36 @@ const ApiPublicV1RoadmapsRoadmapIdItemsRoute =
     path: '/api/public/v1/roadmaps/$roadmapId/items',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1TeamsInvitationsIndexRoute =
+  ApiPublicV1TeamsInvitationsIndexRouteImport.update({
+    id: '/api/public/v1/teams/invitations/',
+    path: '/api/public/v1/teams/invitations/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1TeamsInvitationsInvitationIdRoute =
+  ApiPublicV1TeamsInvitationsInvitationIdRouteImport.update({
+    id: '/api/public/v1/teams/invitations/$invitationId',
+    path: '/api/public/v1/teams/invitations/$invitationId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1TeamsInvitationsAcceptRoute =
+  ApiPublicV1TeamsInvitationsAcceptRouteImport.update({
+    id: '/api/public/v1/teams/invitations/accept',
+    path: '/api/public/v1/teams/invitations/accept',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1TeamsMembersIndexRoute =
+  ApiPublicV1TeamsMembersIndexRouteImport.update({
+    id: '/api/public/v1/teams/members/',
+    path: '/api/public/v1/teams/members/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1TeamsMembersMemberIdRoute =
+  ApiPublicV1TeamsMembersMemberIdRouteImport.update({
+    id: '/api/public/v1/teams/members/$memberId',
+    path: '/api/public/v1/teams/members/$memberId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute =
   ApiPublicV1RoadmapsRoadmapIdCapacityIndexRouteImport.update({
     id: '/api/public/v1/roadmaps/$roadmapId/capacity/',
@@ -190,7 +225,12 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/api-keys/': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
+  '/api/public/v1/teams/invitations/$invitationId': typeof ApiPublicV1TeamsInvitationsInvitationIdRoute
+  '/api/public/v1/teams/invitations/accept': typeof ApiPublicV1TeamsInvitationsAcceptRoute
+  '/api/public/v1/teams/members/$memberId': typeof ApiPublicV1TeamsMembersMemberIdRoute
   '/api/public/v1/roadmaps/$roadmapId/': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
+  '/api/public/v1/teams/invitations/': typeof ApiPublicV1TeamsInvitationsIndexRoute
+  '/api/public/v1/teams/members/': typeof ApiPublicV1TeamsMembersIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity/history': typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity/': typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
 }
@@ -217,7 +257,12 @@ export interface FileRoutesByTo {
   '/api/public/v1/api-keys': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps': typeof ApiPublicV1RoadmapsIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
+  '/api/public/v1/teams/invitations/$invitationId': typeof ApiPublicV1TeamsInvitationsInvitationIdRoute
+  '/api/public/v1/teams/invitations/accept': typeof ApiPublicV1TeamsInvitationsAcceptRoute
+  '/api/public/v1/teams/members/$memberId': typeof ApiPublicV1TeamsMembersMemberIdRoute
   '/api/public/v1/roadmaps/$roadmapId': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
+  '/api/public/v1/teams/invitations': typeof ApiPublicV1TeamsInvitationsIndexRoute
+  '/api/public/v1/teams/members': typeof ApiPublicV1TeamsMembersIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity/history': typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity': typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
 }
@@ -245,7 +290,12 @@ export interface FileRoutesById {
   '/api/public/v1/api-keys/': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/items': typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
+  '/api/public/v1/teams/invitations/$invitationId': typeof ApiPublicV1TeamsInvitationsInvitationIdRoute
+  '/api/public/v1/teams/invitations/accept': typeof ApiPublicV1TeamsInvitationsAcceptRoute
+  '/api/public/v1/teams/members/$memberId': typeof ApiPublicV1TeamsMembersMemberIdRoute
   '/api/public/v1/roadmaps/$roadmapId/': typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
+  '/api/public/v1/teams/invitations/': typeof ApiPublicV1TeamsInvitationsIndexRoute
+  '/api/public/v1/teams/members/': typeof ApiPublicV1TeamsMembersIndexRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity/history': typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
   '/api/public/v1/roadmaps/$roadmapId/capacity/': typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
 }
@@ -274,7 +324,12 @@ export interface FileRouteTypes {
     | '/api/public/v1/api-keys/'
     | '/api/public/v1/roadmaps/'
     | '/api/public/v1/roadmaps/$roadmapId/items'
+    | '/api/public/v1/teams/invitations/$invitationId'
+    | '/api/public/v1/teams/invitations/accept'
+    | '/api/public/v1/teams/members/$memberId'
     | '/api/public/v1/roadmaps/$roadmapId/'
+    | '/api/public/v1/teams/invitations/'
+    | '/api/public/v1/teams/members/'
     | '/api/public/v1/roadmaps/$roadmapId/capacity/history'
     | '/api/public/v1/roadmaps/$roadmapId/capacity/'
   fileRoutesByTo: FileRoutesByTo
@@ -301,7 +356,12 @@ export interface FileRouteTypes {
     | '/api/public/v1/api-keys'
     | '/api/public/v1/roadmaps'
     | '/api/public/v1/roadmaps/$roadmapId/items'
+    | '/api/public/v1/teams/invitations/$invitationId'
+    | '/api/public/v1/teams/invitations/accept'
+    | '/api/public/v1/teams/members/$memberId'
     | '/api/public/v1/roadmaps/$roadmapId'
+    | '/api/public/v1/teams/invitations'
+    | '/api/public/v1/teams/members'
     | '/api/public/v1/roadmaps/$roadmapId/capacity/history'
     | '/api/public/v1/roadmaps/$roadmapId/capacity'
   id:
@@ -328,7 +388,12 @@ export interface FileRouteTypes {
     | '/api/public/v1/api-keys/'
     | '/api/public/v1/roadmaps/'
     | '/api/public/v1/roadmaps/$roadmapId/items'
+    | '/api/public/v1/teams/invitations/$invitationId'
+    | '/api/public/v1/teams/invitations/accept'
+    | '/api/public/v1/teams/members/$memberId'
     | '/api/public/v1/roadmaps/$roadmapId/'
+    | '/api/public/v1/teams/invitations/'
+    | '/api/public/v1/teams/members/'
     | '/api/public/v1/roadmaps/$roadmapId/capacity/history'
     | '/api/public/v1/roadmaps/$roadmapId/capacity/'
   fileRoutesById: FileRoutesById
@@ -350,7 +415,12 @@ export interface RootRouteChildren {
   ApiPublicV1ApiKeysIndexRoute: typeof ApiPublicV1ApiKeysIndexRoute
   ApiPublicV1RoadmapsIndexRoute: typeof ApiPublicV1RoadmapsIndexRoute
   ApiPublicV1RoadmapsRoadmapIdItemsRoute: typeof ApiPublicV1RoadmapsRoadmapIdItemsRoute
+  ApiPublicV1TeamsInvitationsInvitationIdRoute: typeof ApiPublicV1TeamsInvitationsInvitationIdRoute
+  ApiPublicV1TeamsInvitationsAcceptRoute: typeof ApiPublicV1TeamsInvitationsAcceptRoute
+  ApiPublicV1TeamsMembersMemberIdRoute: typeof ApiPublicV1TeamsMembersMemberIdRoute
   ApiPublicV1RoadmapsRoadmapIdIndexRoute: typeof ApiPublicV1RoadmapsRoadmapIdIndexRoute
+  ApiPublicV1TeamsInvitationsIndexRoute: typeof ApiPublicV1TeamsInvitationsIndexRoute
+  ApiPublicV1TeamsMembersIndexRoute: typeof ApiPublicV1TeamsMembersIndexRoute
   ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute: typeof ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute
   ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute: typeof ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute
 }
@@ -518,6 +588,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1RoadmapsRoadmapIdItemsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/teams/invitations/': {
+      id: '/api/public/v1/teams/invitations/'
+      path: '/api/public/v1/teams/invitations'
+      fullPath: '/api/public/v1/teams/invitations/'
+      preLoaderRoute: typeof ApiPublicV1TeamsInvitationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/teams/invitations/$invitationId': {
+      id: '/api/public/v1/teams/invitations/$invitationId'
+      path: '/api/public/v1/teams/invitations/$invitationId'
+      fullPath: '/api/public/v1/teams/invitations/$invitationId'
+      preLoaderRoute: typeof ApiPublicV1TeamsInvitationsInvitationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/teams/invitations/accept': {
+      id: '/api/public/v1/teams/invitations/accept'
+      path: '/api/public/v1/teams/invitations/accept'
+      fullPath: '/api/public/v1/teams/invitations/accept'
+      preLoaderRoute: typeof ApiPublicV1TeamsInvitationsAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/teams/members/': {
+      id: '/api/public/v1/teams/members/'
+      path: '/api/public/v1/teams/members'
+      fullPath: '/api/public/v1/teams/members/'
+      preLoaderRoute: typeof ApiPublicV1TeamsMembersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/teams/members/$memberId': {
+      id: '/api/public/v1/teams/members/$memberId'
+      path: '/api/public/v1/teams/members/$memberId'
+      fullPath: '/api/public/v1/teams/members/$memberId'
+      preLoaderRoute: typeof ApiPublicV1TeamsMembersMemberIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/roadmaps/$roadmapId/capacity/': {
       id: '/api/public/v1/roadmaps/$roadmapId/capacity/'
       path: '/api/public/v1/roadmaps/$roadmapId/capacity'
@@ -575,8 +680,15 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicV1RoadmapsIndexRoute: ApiPublicV1RoadmapsIndexRoute,
   ApiPublicV1RoadmapsRoadmapIdItemsRoute:
     ApiPublicV1RoadmapsRoadmapIdItemsRoute,
+  ApiPublicV1TeamsInvitationsInvitationIdRoute:
+    ApiPublicV1TeamsInvitationsInvitationIdRoute,
+  ApiPublicV1TeamsInvitationsAcceptRoute:
+    ApiPublicV1TeamsInvitationsAcceptRoute,
+  ApiPublicV1TeamsMembersMemberIdRoute: ApiPublicV1TeamsMembersMemberIdRoute,
   ApiPublicV1RoadmapsRoadmapIdIndexRoute:
     ApiPublicV1RoadmapsRoadmapIdIndexRoute,
+  ApiPublicV1TeamsInvitationsIndexRoute: ApiPublicV1TeamsInvitationsIndexRoute,
+  ApiPublicV1TeamsMembersIndexRoute: ApiPublicV1TeamsMembersIndexRoute,
   ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute:
     ApiPublicV1RoadmapsRoadmapIdCapacityHistoryRoute,
   ApiPublicV1RoadmapsRoadmapIdCapacityIndexRoute:

@@ -58,6 +58,20 @@ export {
 export { getWorkspaceStats, type WorkspaceStats } from "./services/stats-service";
 
 export {
+  listTeamMembers,
+  listTeamInvitations,
+  inviteMember,
+  resendInvitation,
+  revokeInvitation,
+  setMemberStatus,
+  acceptInvitation,
+  INVITATION_TTL_DAYS,
+  type TeamMemberView,
+  type TeamInvitationView,
+  type IssuedInvitation,
+} from "./services/membership-service";
+
+export {
   ensureActiveTeam,
   getActiveTeam,
   type ActiveTeam,
