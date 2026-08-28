@@ -33,6 +33,7 @@ import {
   CapacityConfig, defaultCapacity, uid, normalizeItems, descendantsOf, rolledUpEffort,
 } from "@/lib/roadmap";
 import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/api/roadgate";
+import { nextPendingId } from "../pending-id";
 
 /** Regla 1: prioridad por defecto de cualquier item nuevo o devuelto al Backlog. */
 const DEFAULT_PRIORITY: Priority = "3-Low";
@@ -299,6 +300,6 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
 
   return {
     items, cfg, roadmapName,
-    update, updateOne, updateCapacity, moveQuarter, remove, add, removeAllOfType,
+    update, updateOne, updateCapacity, moveQuarter, remove, add, addDetailed, removeAllOfType,
   };
 }
