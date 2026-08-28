@@ -32,7 +32,7 @@ import {
   RoadmapItem, ItemType, Quarter, Priority,
   CapacityConfig, defaultCapacity, uid, normalizeItems, descendantsOf, rolledUpEffort,
 } from "@/lib/roadmap";
-import { fetchRoadmap, persistItems, persistCapacity } from "@/lib/api/roadgate";
+import { fetchRoadmap, persistItems, persistCapacity, type RoadmapRole } from "@/lib/api/roadgate";
 import { nextPendingId } from "../pending-id";
 
 /** Regla 1: prioridad por defecto de cualquier item nuevo o devuelto al Backlog. */
@@ -50,6 +50,8 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
   const [items, setItems] = useState<RoadmapItem[]>([]);
   const [cfg, setCfg] = useState<CapacityConfig>(defaultCapacity);
   const [roadmapName, setRoadmapName] = useState<string>("");
+  /** Permiso efectivo del usuario: la UI se pinta en solo lectura si es viewer. */
+  const [role, setRole] = useState<RoadmapRole>("viewer");
 
 
   // Hidratación desde el backend al cambiar la identidad o el roadmap.
@@ -62,6 +64,7 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
         setItems(r.items);
         setCfg(r.capacity);
         setRoadmapName(r.roadmap.name);
+        setRole(r.role);
       })
       .catch((e) => {
         console.error(e);
@@ -299,7 +302,7 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
   };
 
   return {
-    items, cfg, roadmapName,
+    items, cfg, roadmapName, role, canEdit: role !== "viewer", isAdmin: role === "admin",
     update, updateOne, updateCapacity, moveQuarter, remove, add, addDetailed, removeAllOfType,
   };
 }
