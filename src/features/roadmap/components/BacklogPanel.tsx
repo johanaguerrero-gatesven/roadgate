@@ -326,12 +326,12 @@ export function BacklogPanel({
                         </Select>
                       </td>
 
-                      <td>
+                      <td className="min-w-[80px] w-[80px]">
                         <Select
                           value={it.quarter || "__bl"}
                           onValueChange={(v) => onMoveQuarter(it.uid, (v === "__bl" ? "" : v) as Quarter)}
                         >
-                          <SelectTrigger className="h-8 text-xs">
+                          <SelectTrigger className="h-8 w-full text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
