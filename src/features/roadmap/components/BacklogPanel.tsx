@@ -162,20 +162,20 @@ export function BacklogPanel({
               <thead className="bg-muted/70 text-[11px] uppercase tracking-wide text-muted-foreground">
                 <tr className="[&>th]:px-2 [&>th]:py-1.5 [&>th]:text-left [&>th]:font-semibold [&>th]:whitespace-nowrap [&>th]:border-b [&>th]:border-border">
                   <th className="sticky left-0 z-20 bg-muted/95 backdrop-blur-sm border-r border-border w-[120px] min-w-[120px]">ID</th>
-                  <th className="min-w-[140px] max-w-[220px]">{t("roadmap.col.title")}</th>
+                  <th className="min-w-[240px] max-w-[360px]">{t("roadmap.col.title")}</th>
                   {!isFeature && !isStory && <th className="min-w-[180px]">Description</th>}
                   {isStory && <th className="min-w-[90px]">Parent Type</th>}
                   {type !== "epic" && <th className={isFeature || isStory ? "min-w-[80px]" : "min-w-[120px]"}>{isFeature ? "EPIC ID" : isStory ? "Parent ID" : t("roadmap.col.parent")}</th>}
                       {isFeature && <th className="min-w-[100px] max-w-[160px]">EPIC Title</th>}
                       {isStory && <th className="min-w-[100px] max-w-[160px]">Parent Title</th>}
                   <th className="min-w-[64px] w-[64px] text-right">{isFeature || isStory ? "Effort (h)" : "Effort"}</th>
-                  <th className="min-w-[120px]">Priority</th>
-                  <th className="min-w-[95px]">Quarter</th>
+                  <th className="min-w-[90px] w-[90px]">Priority</th>
+                  <th className="min-w-[80px] w-[80px]">Quarter</th>
                   {!isStory && <th className="min-w-[105px]">State</th>}
                   {isFeature ? <th className="min-w-[80px] w-[80px]">Owner</th> : !isStory && <th className="min-w-[80px] w-[80px]">Tags</th>}
                   {isFeature && <th className="min-w-[60px] w-[60px] text-right">PBIs #</th>}
                   <th className="min-w-[180px]">{isFeature || isStory ? "Comments" : "Notes"}</th>
-                  <th className="min-w-[70px] text-center">Show</th>
+                  <th className="min-w-[56px] w-[56px] text-center">Show</th>
                   <th className="min-w-[56px]"></th>
 
                 </tr>
