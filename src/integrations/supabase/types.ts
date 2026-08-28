@@ -253,25 +253,117 @@ export type Database = {
       }
       roadmaps: {
         Row: {
+          admin_member_id: string | null
           created_at: string
           id: string
           name: string
+          team_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_member_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          team_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_member_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          team_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmaps_admin_member_id_fkey"
+            columns: ["admin_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roadmaps_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          status: string
+          team_id: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
-          name?: string
+          role?: string
+          status?: string
+          team_id: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
-          name?: string
+          role?: string
+          status?: string
+          team_id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          plan: string
+          seat_limit: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name?: string
+          plan?: string
+          seat_limit?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          plan?: string
+          seat_limit?: number
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -280,7 +372,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      ensure_personal_team: { Args: never; Returns: string }
+      is_team_admin: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_team_member: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
