@@ -379,7 +379,7 @@ export function BacklogPanel({
                           placeholder="—"
                         />
                       </td>
-                      <td className="text-center">
+                      <td className="min-w-[56px] w-[56px] text-center">
                         <button
                           type="button"
                           title={hidden ? "Show in roadmap" : "Hide from roadmap"}
