@@ -17,7 +17,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { useI18n, type TranslationKey } from "@/lib/i18n";
+import { useI18n, type TKey } from "@/lib/i18n";
 import {
   listRoadmapMembers, listShareCandidates, shareRoadmap,
   updateRoadmapMemberRole, revokeRoadmapMember, transferRoadmapAdmin,
@@ -41,7 +41,7 @@ export function ShareRoadmapDialog({ roadmapId }: { roadmapId: string }) {
 
   useEffect(() => { if (open) reload(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [open, roadmapId]);
 
-  const run = async (fn: () => Promise<unknown>, okKey: TranslationKey) => {
+  const run = async (fn: () => Promise<unknown>, okKey: TKey) => {
     setBusy(true);
     try { await fn(); toast.success(t(okKey)); reload(); }
     catch (e) { console.error(e); toast.error(t("share.error")); }
