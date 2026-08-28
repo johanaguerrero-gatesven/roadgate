@@ -18,8 +18,6 @@ import {
 import { listRoadmaps } from "./roadmap-service";
 import type { RoadGateContext } from "../context";
 
-const RM = "11111111-1111-4111-8111-111111111111";
-
 /** Equipo A: admin (user-1), editor (user-2), viewer (user-3). Equipo B: user-9. */
 function seed() {
   return {
