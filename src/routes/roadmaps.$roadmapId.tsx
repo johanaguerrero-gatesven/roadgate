@@ -35,7 +35,7 @@ function RoadmapPage() {
 
   const {
     items, cfg, roadmapName,
-    update, updateOne, updateCapacity, moveQuarter, remove, add, removeAllOfType,
+    update, updateOne, updateCapacity, moveQuarter, remove, add, addDetailed, removeAllOfType,
   } = useRoadmapBoard(roadmapId, session?.userId);
 
   const [tab, setTab] = useState<ItemType>("epic");
@@ -118,6 +118,7 @@ function RoadmapPage() {
                     items={items}
                     wrapText={wrapText}
                     onAdd={() => add(ty)}
+                    onCreate={(draft) => addDetailed(ty, draft)}
                     onUpdate={updateOne}
                     onMoveQuarter={moveQuarter}
                     onRemove={remove}
