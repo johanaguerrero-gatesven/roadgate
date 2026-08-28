@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useI18n } from "@/lib/i18n";
 import { RoadmapItem, ItemType, Quarter, Priority, toCSV, rolledUpEffort } from "@/lib/roadmap";
 import { validateImportCSV, type ImportReport } from "@/lib/csv-validation";
@@ -198,20 +199,28 @@ export function BacklogPanel({
                       className={`group transition-colors [&>td]:px-2 [&>td]:py-1 [&>td]:align-top [&>td]:border-b [&>td]:border-border/70 hover:[&>td]:bg-muted/40 ${hidden ? "opacity-60" : ""}`}
                     >
                       <td className={`sticky left-0 z-10 bg-card border-r border-border group-hover:bg-muted/40 border-l-2 ${type === "epic" ? "border-l-epic" : type === "feature" ? "border-l-feature" : "border-l-story"}`}>
-                        <div className="flex items-center gap-1">
-                          {isPendingId(it.id) && (
-                            <AlertTriangle
-                              className="h-4 w-4 shrink-0 text-amber-600"
-                              aria-label={t("roadmap.pendingId")}
-                            />
-                          )}
-                          <IdInput value={it.id} onCommit={(v) => onUpdate(it.uid, { id: v })} />
-                        </div>
-                        {isPendingId(it.id) && (
-                          <div className="text-[10px] font-medium text-amber-600 mt-0.5 leading-tight">
-                            {t("roadmap.pendingId")}
-                          </div>
-                        )}
+                        <TooltipProvider delayDuration={100}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="relative">
+                                <IdInput value={it.id} onCommit={(v) => onUpdate(it.uid, { id: v })} />
+                                {isPendingId(it.id) && (
+                                  <div className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2">
+                                    <AlertTriangle
+                                      className="h-4 w-4 shrink-0 text-amber-600"
+                                      aria-label={t("roadmap.pendingId")}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipTrigger>
+                            {isPendingId(it.id) && (
+                              <TooltipContent side="top" sideOffset={6}>
+                                {t("roadmap.pendingId")}
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                        </TooltipProvider>
                       </td>
 
                       <td className="min-w-[140px] max-w-[220px]">
