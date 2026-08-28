@@ -76,8 +76,11 @@ function RoadmapsListPage() {
   };
 
   const renderGrid = (list: Row[]) => (
+    list.length === 0 ? (
+      <p className="text-sm text-muted-foreground">—</p>
+    ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {rows.map((r) => (
+            {list.map((r) => (
               <div key={r.id} className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] flex flex-col">
                 <div className="flex items-start justify-between gap-2">
                   {editing === r.id ? (
@@ -110,25 +113,29 @@ function RoadmapsListPage() {
                   )}
                   <Map className="h-5 w-5 text-primary shrink-0" />
                 </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  Creado el {formatDate(r.createdAt)} · {r.itemCount} ítems
+                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Creado el {formatDate(r.createdAt)} · {r.itemCount} ítems</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5">{t(`share.role.${r.role}`)}</span>
                 </div>
                 <div className="mt-4 flex items-center gap-2">
                   <Button size="sm" asChild className="flex-1">
                     <Link to="/roadmaps/$roadmapId" params={{ roadmapId: r.id }}>Abrir</Link>
                   </Button>
-                  {editing !== r.id && (
+                  {editing !== r.id && r.role !== "viewer" && (
                     <Button size="icon" variant="ghost" onClick={() => startEdit(r)} title="Renombrar">
                       <Pencil className="h-4 w-4" />
                     </Button>
                   )}
-                  <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => remove(r)} title="Eliminar">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {r.role === "admin" && (
+                    <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => remove(r)} title="Eliminar">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
+    )
   );
 
   return (
