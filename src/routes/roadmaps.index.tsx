@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/use-auth";
+import { useI18n } from "@/lib/i18n";
 import {
-  listRoadmaps, deleteRoadmap, renameRoadmap,
+  listRoadmaps, deleteRoadmap, renameRoadmap, type RoadmapRole,
 } from "@/lib/api/roadgate";
 
 export const Route = createFileRoute("/roadmaps/")({
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/roadmaps/")({
 
 type Row = {
   id: string; name: string; createdAt: string; updatedAt: string; itemCount: number;
+  role: RoadmapRole; shared: boolean;
 };
 
 function formatDate(iso: string) {
@@ -29,6 +31,7 @@ function formatDate(iso: string) {
 
 function RoadmapsListPage() {
   const { session, ready } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
@@ -72,6 +75,69 @@ function RoadmapsListPage() {
     } catch (e) { console.error(e); toast.error("Error al eliminar"); }
   };
 
+  const renderGrid = (list: Row[]) => (
+    list.length === 0 ? (
+      <p className="text-sm text-muted-foreground">—</p>
+    ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {list.map((r) => (
+              <div key={r.id} className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] flex flex-col">
+                <div className="flex items-start justify-between gap-2">
+                  {editing === r.id ? (
+                    <div className="flex items-center gap-1 flex-1">
+                      <Input
+                        autoFocus
+                        value={draftName}
+                        onChange={(e) => setDraftName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") commitEdit(r);
+                          if (e.key === "Escape") cancelEdit();
+                        }}
+                        className="h-8"
+                      />
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => commitEdit(r)}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={cancelEdit}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Link
+                      to="/roadmaps/$roadmapId"
+                      params={{ roadmapId: r.id }}
+                      className="text-lg font-semibold text-foreground hover:underline line-clamp-2"
+                    >
+                      {r.name}
+                    </Link>
+                  )}
+                  <Map className="h-5 w-5 text-primary shrink-0" />
+                </div>
+                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Creado el {formatDate(r.createdAt)} · {r.itemCount} ítems</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5">{t(`share.role.${r.role}`)}</span>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <Button size="sm" asChild className="flex-1">
+                    <Link to="/roadmaps/$roadmapId" params={{ roadmapId: r.id }}>Abrir</Link>
+                  </Button>
+                  {editing !== r.id && r.role !== "viewer" && (
+                    <Button size="icon" variant="ghost" onClick={() => startEdit(r)} title="Renombrar">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {r.role === "admin" && (
+                    <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => remove(r)} title="Eliminar">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+    )
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -113,58 +179,17 @@ function RoadmapsListPage() {
           </div>
         )}
         {rows && rows.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {rows.map((r) => (
-              <div key={r.id} className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] flex flex-col">
-                <div className="flex items-start justify-between gap-2">
-                  {editing === r.id ? (
-                    <div className="flex items-center gap-1 flex-1">
-                      <Input
-                        autoFocus
-                        value={draftName}
-                        onChange={(e) => setDraftName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") commitEdit(r);
-                          if (e.key === "Escape") cancelEdit();
-                        }}
-                        className="h-8"
-                      />
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => commitEdit(r)}>
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={cancelEdit}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <Link
-                      to="/roadmaps/$roadmapId"
-                      params={{ roadmapId: r.id }}
-                      className="text-lg font-semibold text-foreground hover:underline line-clamp-2"
-                    >
-                      {r.name}
-                    </Link>
-                  )}
-                  <Map className="h-5 w-5 text-primary shrink-0" />
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  Creado el {formatDate(r.createdAt)} · {r.itemCount} ítems
-                </div>
-                <div className="mt-4 flex items-center gap-2">
-                  <Button size="sm" asChild className="flex-1">
-                    <Link to="/roadmaps/$roadmapId" params={{ roadmapId: r.id }}>Abrir</Link>
-                  </Button>
-                  {editing !== r.id && (
-                    <Button size="icon" variant="ghost" onClick={() => startEdit(r)} title="Renombrar">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  )}
-                  <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => remove(r)} title="Eliminar">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+          <div className="space-y-10">
+            <section>
+              <h2 className="text-lg font-semibold text-foreground mb-3">{t("roadmaps.mine")}</h2>
+              {renderGrid(rows.filter((r) => !r.shared))}
+            </section>
+            {rows.some((r) => r.shared) && (
+              <section>
+                <h2 className="text-lg font-semibold text-foreground mb-3">{t("roadmaps.sharedWithMe")}</h2>
+                {renderGrid(rows.filter((r) => r.shared))}
+              </section>
+            )}
           </div>
         )}
       </main>

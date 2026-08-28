@@ -303,6 +303,94 @@ export const openApiDocument = {
         },
       },
     },
+    "/roadmaps/{roadmapId}/members": {
+      get: {
+        summary: "Quién tiene acceso al roadmap (o candidatos con ?candidates=1)",
+        tags: ["Sharing"],
+        parameters: [
+          { name: "roadmapId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          { name: "candidates", in: "query", required: false, schema: { type: "string", enum: ["1"] } },
+        ],
+        responses: { "200": { description: "Lista de accesos" }, "403": { description: "Sin permiso" } },
+      },
+      post: {
+        summary: "Compartir el roadmap con un miembro activo del equipo (sólo Admin)",
+        tags: ["Sharing"],
+        parameters: [
+          { name: "roadmapId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["teamMemberId", "role"],
+                properties: {
+                  teamMemberId: { type: "string", format: "uuid" },
+                  role: { type: "string", enum: ["editor", "viewer"] },
+                },
+              },
+            },
+          },
+        },
+        responses: { "200": { description: "Acceso concedido" }, "403": { description: "Sólo el Roadmap Admin" } },
+      },
+    },
+    "/roadmaps/{roadmapId}/members/{memberId}": {
+      patch: {
+        summary: "Cambiar el permiso (Editor ↔ Viewer). Sólo Admin",
+        tags: ["Sharing"],
+        parameters: [
+          { name: "roadmapId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          { name: "memberId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["role"],
+                properties: { role: { type: "string", enum: ["editor", "viewer"] } },
+              },
+            },
+          },
+        },
+        responses: { "200": { description: "Permiso actualizado" } },
+      },
+      delete: {
+        summary: "Retirar el acceso de inmediato. Sólo Admin",
+        tags: ["Sharing"],
+        parameters: [
+          { name: "roadmapId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          { name: "memberId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+        ],
+        responses: { "200": { description: "Acceso retirado" } },
+      },
+    },
+    "/roadmaps/{roadmapId}/transfer": {
+      post: {
+        summary: "Transferir la administración del roadmap (el anterior Admin pasa a Editor)",
+        tags: ["Sharing"],
+        parameters: [
+          { name: "roadmapId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["teamMemberId"],
+                properties: { teamMemberId: { type: "string", format: "uuid" } },
+              },
+            },
+          },
+        },
+        responses: { "200": { description: "Administración transferida" } },
+      },
+    },
     "/teams/members": {
       get: {
         tags: ["Teams"],

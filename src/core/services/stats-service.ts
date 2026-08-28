@@ -17,6 +17,7 @@
 import type { RoadGateContext } from "../context";
 import { unwrap } from "../errors";
 import { parseInput, workspaceStatsInput } from "../schemas";
+import { listAccessibleRoadmapIds } from "./sharing-service";
 
 /** DTO de métricas del workspace. */
 export type WorkspaceStats = {
@@ -39,8 +40,11 @@ export async function getWorkspaceStats(
 ): Promise<WorkspaceStats> {
   const { roadmapId } = parseInput(workspaceStatsInput, input ?? {});
 
+  // Fase III: el ámbito son los roadmaps que el actor puede LEER (propios y
+  // compartidos con él); nunca los de otros equipos.
+  const accessible = await listAccessibleRoadmapIds(ctx);
   const [rmRes, capRes] = await Promise.all([
-    ctx.db.from("roadmaps").select("id").eq("user_id", ctx.userId),
+    ctx.db.from("roadmaps").select("id").in("id", [...accessible.owned, ...accessible.shared]),
     ctx.db
       .from("roadmap_capacity")
       .select("roadmap_id, developers, dedication_pct")

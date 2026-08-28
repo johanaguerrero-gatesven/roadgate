@@ -36,6 +36,7 @@ export * as schemas from "./schemas";
 
 export {
   assertRoadmapOwned,
+  assertRoadmapReadable,
   listRoadmaps,
   createRoadmap,
   renameRoadmap,
@@ -47,6 +48,22 @@ export {
 } from "./services/roadmap-service";
 
 export { listItems, replaceItems } from "./services/item-service";
+
+// --- Fase III · Colaboración por roadmap -------------------------------------
+export {
+  getRoadmapRole,
+  requireRoadmapAccess,
+  listAccessibleRoadmapIds,
+  listRoadmapMembers,
+  listShareCandidates,
+  shareRoadmap,
+  updateRoadmapMemberRole,
+  revokeRoadmapMember,
+  transferRoadmapAdmin,
+  type RoadmapRole,
+  type RoadmapMemberView,
+  type ShareCandidate,
+} from "./services/sharing-service";
 
 export {
   getCapacity,
