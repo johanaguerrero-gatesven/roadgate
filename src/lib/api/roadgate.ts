@@ -183,3 +183,78 @@ export function deleteApiKey(input: { keyId: string }): Promise<{ ok: true }> {
     query: { purge: "true" },
   });
 }
+
+// --- Miembros e invitaciones del equipo (Fase II) ----------------------------
+
+export type TeamMemberView = {
+  id: string;
+  userId: string;
+  email: string | null;
+  role: "admin" | "member";
+  status: "active" | "inactive";
+  createdAt: string;
+};
+
+export type TeamInvitationView = {
+  id: string;
+  email: string;
+  expiresAt: string;
+  acceptedAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+  status: "pending" | "expired" | "accepted" | "revoked";
+};
+
+export type IssuedInvitationResponse = {
+  invitation: TeamInvitationView;
+  emailSent: boolean;
+  inviteUrl: string;
+};
+
+/** GET /teams/members — miembros del equipo activo. */
+export function listTeamMembers(): Promise<TeamMemberView[]> {
+  return apiFetch<TeamMemberView[]>("/teams/members");
+}
+
+/** GET /teams/invitations — invitaciones del equipo (sólo Admin). */
+export function listTeamInvitations(): Promise<TeamInvitationView[]> {
+  return apiFetch<TeamInvitationView[]>("/teams/invitations");
+}
+
+/** POST /teams/invitations — invita a un email como Team Member. */
+export function inviteTeamMember(input: { email: string }): Promise<IssuedInvitationResponse> {
+  return apiFetch<IssuedInvitationResponse>("/teams/invitations", { method: "POST", body: input });
+}
+
+/** POST /teams/invitations/:id — reenvía la invitación con un token nuevo. */
+export function resendTeamInvitation(input: {
+  invitationId: string;
+}): Promise<IssuedInvitationResponse> {
+  return apiFetch<IssuedInvitationResponse>(`/teams/invitations/${input.invitationId}`, {
+    method: "POST",
+  });
+}
+
+/** DELETE /teams/invitations/:id — revoca la invitación. */
+export function revokeTeamInvitation(input: { invitationId: string }): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/teams/invitations/${input.invitationId}`, { method: "DELETE" });
+}
+
+/** PATCH /teams/members/:id — activa o desactiva un miembro. */
+export function setTeamMemberStatus(input: {
+  memberId: string;
+  status: "active" | "inactive";
+}): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/teams/members/${input.memberId}`, {
+    method: "PATCH",
+    body: { status: input.status },
+  });
+}
+
+/** POST /teams/invitations/accept — acepta una invitación con el token. */
+export function acceptTeamInvitation(input: { token: string }): Promise<{ teamId: string }> {
+  return apiFetch<{ teamId: string }>("/teams/invitations/accept", {
+    method: "POST",
+    body: input,
+  });
+}
