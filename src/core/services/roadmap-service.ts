@@ -15,6 +15,7 @@ import { NotFoundError, unwrap } from "../errors";
 import { parseInput, createRoadmapInput, renameRoadmapInput, roadmapRefInput } from "../schemas";
 import { rowToCapacity, rowToItem, type CapacityRow, type ItemRow } from "../mappers";
 import { ensureActiveTeam } from "./team-service";
+import { assertTeamWritable } from "./billing-service";
 import {
   getRoadmapRole,
   listAccessibleRoadmapIds,
