@@ -440,5 +440,14 @@ export async function acceptInvitation(
       throw new ForbiddenError("This invitation was sent to a different email address");
     throw new ForbiddenError("The invitation could not be accepted");
   }
-  return { teamId: data as unknown as string };
+  const teamId = data as unknown as string;
+
+  await recordAuditEvent(ctx, {
+    teamId,
+    action: "invitation.accepted",
+    targetEmail: ctx.email,
+    targetUserId: ctx.userId,
+  });
+
+  return { teamId };
 }
