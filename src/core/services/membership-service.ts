@@ -258,6 +258,14 @@ export async function resendInvitation(
     "resendInvitation:update",
   );
   if (!row) throw new NotFoundError("Invitation");
+
+  await recordAuditEvent(ctx, {
+    teamId: team.id,
+    action: "invitation.sent",
+    targetEmail: row.email,
+    metadata: { invitationId: row.id, kind: "resend" },
+  });
+
   return { invitation: toInvitationView(row), token };
 }
 
