@@ -401,7 +401,36 @@ export const openApiDocument = {
         responses: { "200": { description: "Miembros del equipo." } },
       },
     },
+    "/teams/audit-events": {
+      get: {
+        tags: ["Teams"],
+        summary: "Actividad administrativa",
+        description:
+          "Sólo Team Admin. Eventos de invitación, cambio de estado de miembros y cambios de permisos o administración de roadmaps, acotados al equipo.",
+        operationId: "listAuditEvents",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "limit", in: "query", required: false, schema: { type: "integer" } },
+        ],
+        responses: {
+          "200": { description: "Eventos administrativos." },
+          "403": { description: "No es admin." },
+        },
+      },
+    },
     "/teams/members/{memberId}": {
+      get: {
+        tags: ["Teams"],
+        summary: "Roadmaps que administra el miembro",
+        description:
+          "Sólo Team Admin. Lista los roadmaps cuya administración hay que transferir antes de desactivar a esa persona.",
+        operationId: "listMemberAdminRoadmaps",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "memberId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+        ],
+        responses: { "200": { description: "Roadmaps administrados." }, "403": { description: "No es admin." } },
+      },
       patch: {
         tags: ["Teams"],
         summary: "Activar o desactivar un miembro",
