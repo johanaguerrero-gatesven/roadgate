@@ -438,6 +438,8 @@ export async function acceptInvitation(
       throw new ConflictError("This invitation was already used");
     if (message.includes("invitation_email_mismatch"))
       throw new ForbiddenError("This invitation was sent to a different email address");
+    if (message.includes("invitation_target_inactive"))
+      throw new ForbiddenError("An inactive member must be reactivated by a team admin");
     throw new ForbiddenError("The invitation could not be accepted");
   }
   const teamId = data as unknown as string;

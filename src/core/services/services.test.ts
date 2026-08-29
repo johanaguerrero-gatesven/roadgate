@@ -192,6 +192,36 @@ describe("capacity-service", () => {
     expect(tables.roadmap_capacity).toHaveLength(1);
   });
 
+  it("usa una escritura atómica sin borrar previamente la capacidad", async () => {
+    await saveCapacity(ctx, { roadmapId: RID, capacity: cfg });
+    await saveCapacity(ctx, { roadmapId: RID, capacity: { ...cfg, developers: 8 } });
+
+    expect(tables.roadmap_capacity).toHaveLength(1);
+    expect(tables.roadmap_capacity[0]).toMatchObject({ roadmap_id: RID, developers: 8 });
+    expect(ctx.tables.roadmap_capacity).toHaveLength(1);
+  });
+
+  it("permite que el mismo actor guarde capacidad en dos roadmaps", async () => {
+    tables.roadmaps.push({
+      id: "33333333-3333-4333-8333-333333333333",
+      user_id: "user-1",
+      name: "Segundo roadmap",
+      created_at: "2026-01-01",
+      updated_at: "2026-01-02",
+    });
+
+    await saveCapacity(ctx, { roadmapId: RID, capacity: cfg });
+    await saveCapacity(ctx, {
+      roadmapId: "33333333-3333-4333-8333-333333333333",
+      capacity: { ...cfg, developers: 9 },
+    });
+
+    expect(tables.roadmap_capacity).toHaveLength(2);
+    expect(new Set(tables.roadmap_capacity.map((row) => row.roadmap_id))).toEqual(
+      new Set([RID, "33333333-3333-4333-8333-333333333333"]),
+    );
+  });
+
   it("registra en el audit trail sólo los campos que cambian", async () => {
     await saveCapacity(ctx, { roadmapId: RID, capacity: cfg });
     const second = await saveCapacity(ctx, {
