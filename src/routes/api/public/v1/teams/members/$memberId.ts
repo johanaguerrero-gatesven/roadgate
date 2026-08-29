@@ -17,6 +17,15 @@ export const Route = createFileRoute("/api/public/v1/teams/members/$memberId")({
     handlers: {
       OPTIONS: async () => preflight(),
 
+      // Roadmaps que administra el miembro: hay que transferirlos antes de
+      // poder desactivarlo (Fase 4).
+      GET: async ({ request, params }) =>
+        handle(async () => {
+          const ctx = await createRestContext(request);
+          requireSession(ctx);
+          return json(await core.listMemberAdminRoadmaps(ctx, { memberId: params.memberId }));
+        }),
+
       PATCH: async ({ request, params }) =>
         handle(async () => {
           const ctx = await createRestContext(request);

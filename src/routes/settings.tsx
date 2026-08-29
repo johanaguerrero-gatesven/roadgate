@@ -6,7 +6,7 @@ import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
-import { User, Users as UsersIcon, Building2, Plug, CreditCard, ArrowLeft, KeyRound } from "lucide-react";
+import { User, Users as UsersIcon, Building2, Plug, CreditCard, ArrowLeft, KeyRound, ScrollText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/settings")({
@@ -33,6 +33,7 @@ function SettingsLayout() {
   const items = [
     { to: "/settings/profile", label: t("settings.section.profile"), icon: User },
     { to: "/settings/users", label: t("settings.section.users"), icon: UsersIcon },
+    { to: "/settings/activity", label: t("settings.section.activity"), icon: ScrollText },
     { to: "/settings/company", label: t("settings.section.company"), icon: Building2 },
     { to: "/settings/integrations", label: t("settings.section.integrations"), icon: Plug },
     { to: "/settings/api-keys", label: t("settings.section.apikeys"), icon: KeyRound },

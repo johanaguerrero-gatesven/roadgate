@@ -19,6 +19,7 @@ import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as RoadmapsIndexRouteImport } from './routes/roadmaps.index'
 import { Route as RoadmapsRoadmapIdRouteImport } from './routes/roadmaps.$roadmapId'
 import { Route as RoadmapsNewRouteImport } from './routes/roadmaps.new'
+import { Route as SettingsActivityRouteImport } from './routes/settings.activity'
 import { Route as SettingsApiKeysRouteImport } from './routes/settings.api-keys'
 import { Route as SettingsBillingRouteImport } from './routes/settings.billing'
 import { Route as SettingsCompanyRouteImport } from './routes/settings.company'
@@ -30,6 +31,7 @@ import { Route as ApiPublicV1StatsRouteImport } from './routes/api/public/v1/sta
 import { Route as ApiPublicV1ApiKeysIndexRouteImport } from './routes/api/public/v1/api-keys/index'
 import { Route as ApiPublicV1ApiKeysKeyIdRouteImport } from './routes/api/public/v1/api-keys/$keyId'
 import { Route as ApiPublicV1RoadmapsIndexRouteImport } from './routes/api/public/v1/roadmaps/index'
+import { Route as ApiPublicV1TeamsAuditEventsRouteImport } from './routes/api/public/v1/teams/audit-events'
 import { Route as ApiPublicV1TeamsMeRouteImport } from './routes/api/public/v1/teams/me'
 import { Route as ApiPublicV1RoadmapsRoadmapIdIndexRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/index'
 import { Route as ApiPublicV1RoadmapsRoadmapIdItemsRouteImport } from './routes/api/public/v1/roadmaps/$roadmapId/items'
@@ -94,6 +96,11 @@ const RoadmapsNewRoute = RoadmapsNewRouteImport.update({
   path: '/roadmaps/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsActivityRoute = SettingsActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsApiKeysRoute = SettingsApiKeysRouteImport.update({
   id: '/api-keys',
   path: '/api-keys',
@@ -149,6 +156,12 @@ const ApiPublicV1RoadmapsIndexRoute =
   ApiPublicV1RoadmapsIndexRouteImport.update({
     id: '/api/public/v1/roadmaps/',
     path: '/api/public/v1/roadmaps/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1TeamsAuditEventsRoute =
+  ApiPublicV1TeamsAuditEventsRouteImport.update({
+    id: '/api/public/v1/teams/audit-events',
+    path: '/api/public/v1/teams/audit-events',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicV1TeamsMeRoute = ApiPublicV1TeamsMeRouteImport.update({
@@ -239,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/docs/api': typeof DocsApiRoute
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/activity': typeof SettingsActivityRoute
   '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
@@ -249,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/openapi.json': typeof ApiPublicV1OpenapiDotjsonRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
   '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/teams/audit-events': typeof ApiPublicV1TeamsAuditEventsRoute
   '/api/public/v1/teams/me': typeof ApiPublicV1TeamsMeRoute
   '/api/public/v1/api-keys/': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
@@ -275,6 +290,7 @@ export interface FileRoutesByTo {
   '/docs/api': typeof DocsApiRoute
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/activity': typeof SettingsActivityRoute
   '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
@@ -285,6 +301,7 @@ export interface FileRoutesByTo {
   '/api/public/v1/openapi.json': typeof ApiPublicV1OpenapiDotjsonRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
   '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/teams/audit-events': typeof ApiPublicV1TeamsAuditEventsRoute
   '/api/public/v1/teams/me': typeof ApiPublicV1TeamsMeRoute
   '/api/public/v1/api-keys': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps': typeof ApiPublicV1RoadmapsIndexRoute
@@ -312,6 +329,7 @@ export interface FileRoutesById {
   '/docs/api': typeof DocsApiRoute
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/activity': typeof SettingsActivityRoute
   '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
@@ -322,6 +340,7 @@ export interface FileRoutesById {
   '/api/public/v1/openapi.json': typeof ApiPublicV1OpenapiDotjsonRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
   '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/teams/audit-events': typeof ApiPublicV1TeamsAuditEventsRoute
   '/api/public/v1/teams/me': typeof ApiPublicV1TeamsMeRoute
   '/api/public/v1/api-keys/': typeof ApiPublicV1ApiKeysIndexRoute
   '/api/public/v1/roadmaps/': typeof ApiPublicV1RoadmapsIndexRoute
@@ -350,6 +369,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/activity'
     | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
@@ -360,6 +380,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/openapi.json'
     | '/api/public/v1/stats'
     | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/teams/audit-events'
     | '/api/public/v1/teams/me'
     | '/api/public/v1/api-keys/'
     | '/api/public/v1/roadmaps/'
@@ -386,6 +407,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/activity'
     | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
@@ -396,6 +418,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/openapi.json'
     | '/api/public/v1/stats'
     | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/teams/audit-events'
     | '/api/public/v1/teams/me'
     | '/api/public/v1/api-keys'
     | '/api/public/v1/roadmaps'
@@ -422,6 +445,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/activity'
     | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
@@ -432,6 +456,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/openapi.json'
     | '/api/public/v1/stats'
     | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/teams/audit-events'
     | '/api/public/v1/teams/me'
     | '/api/public/v1/api-keys/'
     | '/api/public/v1/roadmaps/'
@@ -463,6 +488,7 @@ export interface RootRouteChildren {
   ApiPublicV1OpenapiDotjsonRoute: typeof ApiPublicV1OpenapiDotjsonRoute
   ApiPublicV1StatsRoute: typeof ApiPublicV1StatsRoute
   ApiPublicV1ApiKeysKeyIdRoute: typeof ApiPublicV1ApiKeysKeyIdRoute
+  ApiPublicV1TeamsAuditEventsRoute: typeof ApiPublicV1TeamsAuditEventsRoute
   ApiPublicV1TeamsMeRoute: typeof ApiPublicV1TeamsMeRoute
   ApiPublicV1ApiKeysIndexRoute: typeof ApiPublicV1ApiKeysIndexRoute
   ApiPublicV1RoadmapsIndexRoute: typeof ApiPublicV1RoadmapsIndexRoute
@@ -552,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoadmapsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/activity': {
+      id: '/settings/activity'
+      path: '/activity'
+      fullPath: '/settings/activity'
+      preLoaderRoute: typeof SettingsActivityRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/settings/api-keys': {
       id: '/settings/api-keys'
       path: '/api-keys'
@@ -627,6 +660,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/v1/roadmaps'
       fullPath: '/api/public/v1/roadmaps/'
       preLoaderRoute: typeof ApiPublicV1RoadmapsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/teams/audit-events': {
+      id: '/api/public/v1/teams/audit-events'
+      path: '/api/public/v1/teams/audit-events'
+      fullPath: '/api/public/v1/teams/audit-events'
+      preLoaderRoute: typeof ApiPublicV1TeamsAuditEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/v1/teams/me': {
@@ -724,6 +764,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface SettingsRouteChildren {
+  SettingsActivityRoute: typeof SettingsActivityRoute
   SettingsApiKeysRoute: typeof SettingsApiKeysRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
   SettingsCompanyRoute: typeof SettingsCompanyRoute
@@ -733,6 +774,7 @@ interface SettingsRouteChildren {
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsActivityRoute: SettingsActivityRoute,
   SettingsApiKeysRoute: SettingsApiKeysRoute,
   SettingsBillingRoute: SettingsBillingRoute,
   SettingsCompanyRoute: SettingsCompanyRoute,
@@ -759,6 +801,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicV1OpenapiDotjsonRoute: ApiPublicV1OpenapiDotjsonRoute,
   ApiPublicV1StatsRoute: ApiPublicV1StatsRoute,
   ApiPublicV1ApiKeysKeyIdRoute: ApiPublicV1ApiKeysKeyIdRoute,
+  ApiPublicV1TeamsAuditEventsRoute: ApiPublicV1TeamsAuditEventsRoute,
   ApiPublicV1TeamsMeRoute: ApiPublicV1TeamsMeRoute,
   ApiPublicV1ApiKeysIndexRoute: ApiPublicV1ApiKeysIndexRoute,
   ApiPublicV1RoadmapsIndexRoute: ApiPublicV1RoadmapsIndexRoute,

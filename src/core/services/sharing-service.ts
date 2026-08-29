@@ -27,6 +27,7 @@ import {
   updateRoadmapMemberInput,
   transferRoadmapAdminInput,
 } from "../schemas";
+import { recordAuditEvent } from "./audit-service";
 
 /** Rol efectivo del actor sobre un roadmap. */
 export type RoadmapRole = "admin" | "editor" | "viewer";
@@ -333,6 +334,12 @@ export async function shareRoadmap(
         .eq("id", existing.id),
       "shareRoadmap.update",
     );
+    await recordAuditEvent(ctx, {
+      teamId: rm.team_id ?? "",
+      action: "roadmap.role_changed",
+      roadmapId: roadmapId,
+      metadata: { teamMemberId, role, kind: "update" },
+    });
     return { ok: true, id: existing.id };
   }
 
@@ -350,6 +357,13 @@ export async function shareRoadmap(
       .single(),
     "shareRoadmap.insert",
   ) as unknown as { id: string };
+
+  await recordAuditEvent(ctx, {
+    teamId: rm.team_id ?? "",
+    action: "roadmap.role_changed",
+    roadmapId: roadmapId,
+    metadata: { teamMemberId, role, kind: "grant" },
+  });
 
   return { ok: true, id: row.id };
 }
@@ -381,6 +395,14 @@ export async function updateRoadmapMemberRole(
       .eq("roadmap_id", roadmapId),
     "updateRoadmapMemberRole.update",
   );
+
+  const rm = await readRoadmapRow(ctx, roadmapId);
+  await recordAuditEvent(ctx, {
+    teamId: rm?.team_id ?? "",
+    action: "roadmap.role_changed",
+    roadmapId: roadmapId,
+    metadata: { memberId, role, kind: "update" },
+  });
   return { ok: true };
 }
 
@@ -399,6 +421,14 @@ export async function revokeRoadmapMember(
       .eq("roadmap_id", roadmapId),
     "revokeRoadmapMember",
   );
+
+  const rm = await readRoadmapRow(ctx, roadmapId);
+  await recordAuditEvent(ctx, {
+    teamId: rm?.team_id ?? "",
+    action: "roadmap.access_revoked",
+    roadmapId: roadmapId,
+    metadata: { memberId },
+  });
   return { ok: true };
 }
 
@@ -431,5 +461,12 @@ export async function transferRoadmapAdmin(
     }
     throw new ValidationError(`Transfer failed: ${error.message}`);
   }
+
+  await recordAuditEvent(ctx, {
+    teamId: rm.team_id ?? "",
+    action: "roadmap.admin_transferred",
+    roadmapId: roadmapId,
+    metadata: { toTeamMemberId: teamMemberId },
+  });
   return { ok: true };
 }

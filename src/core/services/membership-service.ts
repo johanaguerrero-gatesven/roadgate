@@ -20,6 +20,7 @@ import type { RoadGateContext } from "../context";
 import { unwrap, ForbiddenError, NotFoundError, ConflictError, ValidationError } from "../errors";
 import { parseInput, uuidSchema } from "../schemas";
 import { getActiveTeam, type ActiveTeam } from "./team-service";
+import { recordAuditEvent } from "./audit-service";
 
 /** Días de validez de una invitación. */
 export const INVITATION_TTL_DAYS = 7;
@@ -211,6 +212,13 @@ export async function inviteMember(
   );
   if (!row) throw new ValidationError("Could not create the invitation");
 
+  await recordAuditEvent(ctx, {
+    teamId: team.id,
+    action: "invitation.sent",
+    targetEmail: email,
+    metadata: { invitationId: row.id, kind: "new" },
+  });
+
   return { invitation: toInvitationView(row), token };
 }
 
@@ -250,6 +258,14 @@ export async function resendInvitation(
     "resendInvitation:update",
   );
   if (!row) throw new NotFoundError("Invitation");
+
+  await recordAuditEvent(ctx, {
+    teamId: team.id,
+    action: "invitation.sent",
+    targetEmail: row.email,
+    metadata: { invitationId: row.id, kind: "resend" },
+  });
+
   return { invitation: toInvitationView(row), token };
 }
 
@@ -278,9 +294,57 @@ export async function revokeInvitation(
 
 // --- Miembros ----------------------------------------------------------------
 
+/** Roadmap que administra una persona y que bloquea su desactivación. */
+export type AdministeredRoadmap = { id: string; name: string };
+
 /**
- * Activa o desactiva un miembro. Desactivar retira el acceso de inmediato
- * (todas las políticas RLS exigen `status = 'active'`) pero NO borra datos.
+ * Roadmaps del equipo cuyo Admin es ese miembro. Solo Team Admin.
+ * Es la lista que hay que relevar ANTES de desactivar a la persona.
+ */
+export async function listMemberAdminRoadmaps(
+  ctx: RoadGateContext,
+  input: unknown,
+): Promise<AdministeredRoadmap[]> {
+  const { memberId } = parseInput(z.object({ memberId: uuidSchema }), input);
+  const team = await requireAdminTeam(ctx);
+
+  const member = unwrap(
+    await ctx.db
+      .from("team_members")
+      .select("id,user_id")
+      .eq("id", memberId)
+      .eq("team_id", team.id)
+      .maybeSingle(),
+    "listMemberAdminRoadmaps:member",
+  );
+  if (!member) throw new NotFoundError("Team member");
+
+  const rows = unwrap(
+    await ctx.db
+      .from("roadmaps")
+      .select("id,name")
+      .eq("team_id", team.id)
+      .eq("user_id", member.user_id)
+      .order("name", { ascending: true }),
+    "listMemberAdminRoadmaps:roadmaps",
+  ) as unknown as Array<{ id: string; name: string }> | null;
+
+  return (rows ?? []).map((r) => ({ id: r.id, name: r.name }));
+}
+
+/**
+ * Activa o desactiva un miembro (Fase 4).
+ *
+ * Reglas de offboarding:
+ *  - No puedes cambiar tu propio estado.
+ *  - No se puede desactivar al ÚLTIMO Team Admin activo.
+ *  - Si la persona administra roadmaps, hay que transferir esa administración
+ *    antes: se rechaza con la lista de roadmaps pendientes.
+ *  - Desactivar retira el acceso al instante (RLS exige membresía activa,
+ *    también para los roadmaps propios) pero NO borra roadmaps, items,
+ *    capacidad, historial ni sus accesos compartidos.
+ *  - Reactivar devuelve la membresía y los accesos compartidos conservados;
+ *    NO devuelve la administración de roadmaps transferida a otra persona.
  */
 export async function setMemberStatus(
   ctx: RoadGateContext,
@@ -292,7 +356,7 @@ export async function setMemberStatus(
   const member = unwrap(
     await ctx.db
       .from("team_members")
-      .select("id,user_id,role")
+      .select("id,user_id,role,status,email")
       .eq("id", memberId)
       .eq("team_id", team.id)
       .maybeSingle(),
@@ -302,9 +366,32 @@ export async function setMemberStatus(
   if (member.user_id === ctx.userId) {
     throw new ForbiddenError("You cannot change your own membership status");
   }
-  if (member.role === "admin") {
-    throw new ForbiddenError("The team admin cannot be deactivated");
+
+  if (status === "inactive") {
+    if (member.role === "admin") {
+      const admins = unwrap(
+        await ctx.db
+          .from("team_members")
+          .select("id")
+          .eq("team_id", team.id)
+          .eq("role", "admin")
+          .eq("status", "active"),
+        "setMemberStatus:admins",
+      ) as unknown as Array<{ id: string }> | null;
+      if ((admins ?? []).length <= 1) {
+        throw new ForbiddenError("The last team admin cannot be deactivated");
+      }
+    }
+
+    const administered = await listMemberAdminRoadmaps(ctx, { memberId });
+    if (administered.length > 0) {
+      throw new ConflictError(
+        `Transfer roadmap administration first: ${administered.map((r) => r.name).join(", ")}`,
+      );
+    }
   }
+
+  if (member.status === status) return { ok: true };
 
   unwrap(
     await ctx.db
@@ -315,8 +402,18 @@ export async function setMemberStatus(
       .select("id"),
     "setMemberStatus:update",
   );
+
+  await recordAuditEvent(ctx, {
+    teamId: team.id,
+    action: "member.status_changed",
+    targetEmail: member.email ?? null,
+    targetUserId: member.user_id,
+    metadata: { from: member.status, to: status },
+  });
+
   return { ok: true };
 }
+
 
 // --- Aceptación --------------------------------------------------------------
 
@@ -343,5 +440,14 @@ export async function acceptInvitation(
       throw new ForbiddenError("This invitation was sent to a different email address");
     throw new ForbiddenError("The invitation could not be accepted");
   }
-  return { teamId: data as unknown as string };
+  const teamId = data as unknown as string;
+
+  await recordAuditEvent(ctx, {
+    teamId,
+    action: "invitation.accepted",
+    targetEmail: ctx.email,
+    targetUserId: ctx.userId,
+  });
+
+  return { teamId };
 }

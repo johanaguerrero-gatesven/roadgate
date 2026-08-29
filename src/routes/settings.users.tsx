@@ -20,10 +20,22 @@ import {
   resendTeamInvitation,
   revokeTeamInvitation,
   setTeamMemberStatus,
+  listMemberAdminRoadmaps,
+  type AdministeredRoadmap,
   type TeamMemberView,
   type TeamInvitationView,
 } from "@/lib/api/roadgate";
-import { Copy, Mail, Plus, RefreshCw, X } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Copy, Mail, Plus, RefreshCw, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/users")({
@@ -39,6 +51,25 @@ function UsersPage() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  // Confirmaciones de offboarding (Fase 4)
+  const [confirm, setConfirm] = useState<
+    { member: TeamMemberView; to: "active" | "inactive" } | null
+  >(null);
+  const [blockers, setBlockers] = useState<AdministeredRoadmap[] | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  const askDeactivate = async (member: TeamMemberView) => {
+    setConfirm({ member, to: "inactive" });
+    setBlockers(null);
+    setChecking(true);
+    try {
+      setBlockers(await listMemberAdminRoadmaps({ memberId: member.id }));
+    } catch {
+      setBlockers([]);
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const refresh = useCallback(async () => {
     if (!team) return;
@@ -225,12 +256,7 @@ function UsersPage() {
                       size="sm"
                       variant="ghost"
                       disabled={busy}
-                      onClick={() =>
-                        run(
-                          () => setTeamMemberStatus({ memberId: m.id, status: "inactive" }),
-                          t("users.deactivated"),
-                        )
-                      }
+                      onClick={() => void askDeactivate(m)}
                     >
                       {t("users.deactivate")}
                     </Button>
@@ -249,12 +275,10 @@ function UsersPage() {
                       size="sm"
                       variant="outline"
                       disabled={busy}
-                      onClick={() =>
-                        run(
-                          () => setTeamMemberStatus({ memberId: m.id, status: "active" }),
-                          t("users.activated"),
-                        )
-                      }
+                      onClick={() => {
+                        setBlockers([]);
+                        setConfirm({ member: m, to: "active" });
+                      }}
                     >
                       {t("users.activate")}
                     </Button>
@@ -265,6 +289,67 @@ function UsersPage() {
           </Tabs>
         )}
       </div>
+      <AlertDialog open={!!confirm} onOpenChange={(open) => !open && setConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirm?.to === "inactive"
+                ? t("users.confirm.deactivateTitle")
+                : t("users.confirm.activateTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirm?.to === "inactive"
+                ? t("users.confirm.deactivateBody")
+                : t("users.confirm.activateBody")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {confirm?.to === "inactive" && (
+            <div className="text-sm">
+              {checking ? (
+                <p className="text-muted-foreground">{t("users.loading")}</p>
+              ) : blockers && blockers.length > 0 ? (
+                <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+                  <div className="flex items-center gap-2 font-medium text-destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    {t("users.confirm.blockedTitle")}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t("users.confirm.blockedBody")}
+                  </p>
+                  <ul className="mt-2 list-disc pl-5 text-xs">
+                    {blockers.map((r) => (
+                      <li key={r.id}>{r.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("users.confirm.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={
+                busy ||
+                checking ||
+                (confirm?.to === "inactive" && !!blockers && blockers.length > 0)
+              }
+              onClick={() => {
+                if (!confirm) return;
+                const { member, to } = confirm;
+                setConfirm(null);
+                void run(
+                  () => setTeamMemberStatus({ memberId: member.id, status: to }),
+                  to === "inactive" ? t("users.deactivated") : t("users.activated"),
+                );
+              }}
+            >
+              {confirm?.to === "inactive" ? t("users.deactivate") : t("users.activate")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
