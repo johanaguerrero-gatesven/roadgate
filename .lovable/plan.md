@@ -1,68 +1,36 @@
-# Plan: Alinear código con las reglas de negocio de Vidsigner Roadmap
+# Corrección previa a Fase III y Fase 4
 
-## Estado tras auditoría
+## Objetivo
+Cerrar las incidencias heredadas antes de avanzar: privilegios anónimos de invitaciones, edición segura de Capacity por Editors y validación real de permisos/offboarding con usuarios y equipos distintos.
 
-| Regla | Estado |
-|---|---|
-| 1. Jerarquía RoadGates (cascada EPIC→hijos) | Cumple |
-| 2. Gate de Priorización (bloqueo sin prioridad) | Parcial |
-| 3. Motor de cálculo reactivo | Cumple |
-| 4. Semáforo 50 / 90 / 100 en Dashboard | Corregido (>100 rojo, <50 ámbar, resto verde) |
+## Cambios
 
-Sólo quedan **discrepancias reales en la Regla 2** y ajustes finos de UX en las Reglas 1 y 4.
+1. **Eliminar el riesgo de pérdida de Capacity (P-1 / I-3)**
+   - Aplicar una migración aditiva que convierta `roadmap_capacity` en una relación realmente única por `roadmap_id`, preservando la fila y valores existentes.
+   - Sustituir el flujo no transaccional `DELETE + INSERT` por una escritura atómica sin ventana de pérdida.
+   - Mantener la autorización por rol efectivo del roadmap: Admin y Editor escriben; Viewer y usuarios ajenos no.
+   - Añadir pruebas de regresión para edición compartida, fallo de escritura y conservación de la capacidad previa.
 
----
+2. **Cerrar privilegios anónimos de invitaciones (W-1)**
+   - Revocar explícitamente todos los privilegios de `anon` y `PUBLIC` sobre `team_invitations`.
+   - Mantener las políticas actuales para Team Admin autenticado y la aceptación segura mediante token hash.
+   - Verificar que una solicitud anónima ya no obtiene `200 []`.
 
-## Cambios propuestos
+3. **Validar colaboración real (W-2)**
+   - Probar con identidades reales: Admin, Editor y Viewer dentro del mismo equipo, además de un usuario de otro equipo.
+   - Comprobar lectura/escritura por API y URL directa, retirada inmediata de acceso y bloqueo entre equipos.
+   - Confirmar que manipular `localStorage` no altera roles ni permisos efectivos.
 
-### A. Regla 2 — Gate de Priorización estricto  *(prioridad alta)*
+4. **Validar offboarding real (I-2)**
+   - Comprobar en backend que no puede desactivarse al último Team Admin.
+   - Comprobar que un administrador de roadmap no puede desactivarse antes de transferir todos sus roadmaps.
+   - Tras transferencia, validar que la desactivación retira acceso inmediatamente y no elimina roadmap, items, capacity ni historial.
 
-Hoy `handleDrop` (roadmap.tsx:663) abre un diálogo que permite rellenar prioridad+esfuerzo en el momento y seguir. Se comporta como "asistente", no como "bloqueo".
+5. **Compatibilidad, rollback y cierre**
+   - Incluir rollback documentado y seguro en la nueva migración.
+   - Actualizar dobles de base de datos y pruebas REST/core sin cambiar la UI ni añadir funciones de fases posteriores.
+   - Comparar conteos y valores de roadmaps, items, capacity e historial antes/después.
+   - Ejecutar suite completa, comprobación de tipos, build, linter de base de datos y pruebas negativas RLS/API.
 
-Ajustar a un bloqueo real:
-
-1. Si el item no tiene `priority` al soltarlo en un Quarter → **rechazar** el movimiento con `toast.error("No se puede añadir al Roadmap sin prioridad", { description: "Define la prioridad en la vista de Backlog." })`. Sin diálogo asistente.
-2. Añadir el mismo bloqueo en el selector `Q?` de la tarjeta del Roadmap y en el `<Select>` de Quarter de la vista Backlog (`updateOne` con patch `{ quarter }` cuando `q !== ""` y `!item.priority`).
-3. El esfuerzo faltante deja de bloquear el drop (se calcula automáticamente para padres; para hojas mostramos un `⚠` visual y KPI, pero el ítem entra al Q). Coherente con "el gate es de priorización".
-
-Motivo: la regla dice explícitamente "Bloquea cualquier intento... sin definir una prioridad". El esfuerzo no forma parte de ese gate.
-
-### B. Regla 1 — Cascada no destructiva  *(prioridad media)*
-
-`moveQuarter` sobreescribe el `quarter` de **todos** los descendientes al mover el padre. Es correcto en la primera asignación, pero destruye overrides manuales del usuario (una Feature que él movió a Q3 vuelve a Q2 si arrastra el Epic).
-
-Ajuste: en `moveQuarter`, propagar el nuevo `quarter` sólo a los descendientes cuyo `quarter` actual coincida con el `quarter` anterior del padre (o esté vacío). Los hijos con override manual distinto quedan intactos.
-
-Efecto colateral positivo: `buildRoadmapView` ya detecta hijos con Q distinto al padre y renderiza los hijos por separado (Regla 1 punto 3), así que la cobertura parcial se visualiza correctamente.
-
-### C. Regla 4 — Etiquetas del semáforo  *(prioridad baja)*
-
-Los umbrales ya son correctos (`>100` / `<50`). Falta alinear las traducciones de estado con el enunciado:
-
-- `roadmap.status.ok` → "OK" (verde) — sin cambios
-- `roadmap.status.under` → "Baja utilización" (< 50%, ámbar)
-- `roadmap.status.overload` → "Sobrecarga" (> 100%, rojo)
-- `roadmap.status.empty` → "Sin asignación" (0%)
-
-Revisar `src/lib/i18n.tsx` y ajustar strings ES/EN si difieren.
-
-### D. Verificación
-
-- Reproducir en preview: arrastrar un Epic sin prioridad a Q1 → toast de error, no dialog.
-- Mover Epic con hijos en Q2 (uno movido manualmente a Q3) a Q4 → el hijo manual sigue en Q3, el resto va a Q4.
-- Cambiar `developers` en Capacity → utilización recalcula en la misma pintura.
-- Comprobar colores: 40% ámbar, 80% verde, 120% rojo.
-
----
-
-## Archivos a tocar
-
-- `src/routes/roadmap.tsx` — `handleDrop`, `moveQuarter`, `updateOne`, selector Q de la tarjeta Roadmap.
-- `src/lib/roadmap.ts` — refinar `moveQuarter`? No: la función vive en el route file. Sólo `roadmap.tsx`.
-- `src/lib/i18n.tsx` — etiquetas `roadmap.status.*` si hace falta.
-
-## Fuera de alcance
-
-- No se toca el modelo de datos ni las columnas del Backlog.
-- No se añaden nuevas rutas ni componentes.
-- El diálogo de "completar antes de añadir" se elimina en favor del toast — no se sustituye por otro flujo.
+## Entrega
+Tabla final con criterio, evidencia, resultado e incidencia; archivos modificados; migración y rollback; pruebas ejecutadas; impacto sobre Fase 4 y riesgos residuales. La fase no se aprobará si persiste riesgo de acceso cruzado o pérdida de datos.
