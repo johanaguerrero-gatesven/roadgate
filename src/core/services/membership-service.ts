@@ -212,6 +212,13 @@ export async function inviteMember(
   );
   if (!row) throw new ValidationError("Could not create the invitation");
 
+  await recordAuditEvent(ctx, {
+    teamId: team.id,
+    action: "invitation.sent",
+    targetEmail: email,
+    metadata: { invitationId: row.id, kind: "new" },
+  });
+
   return { invitation: toInvitationView(row), token };
 }
 
