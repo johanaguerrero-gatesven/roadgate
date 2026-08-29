@@ -100,6 +100,47 @@ export type Database = {
           },
         ]
       }
+      billing_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string
+          provider: string
+          team_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          event_type: string
+          id?: string
+          payload?: Json
+          processed_at?: string
+          provider: string
+          team_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string
+          provider?: string
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_events_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_credentials: {
         Row: {
           created_at: string
@@ -481,33 +522,57 @@ export type Database = {
       }
       teams: {
         Row: {
+          billing_provider: string | null
           created_at: string
           created_by: string
+          current_period_end: string | null
+          grace_days: number
           id: string
           name: string
           plan: string
+          provider_customer_id: string | null
+          provider_subscription_id: string | null
           seat_limit: number
           status: string
+          subscription_status: string
+          trial_ends_at: string | null
+          trial_started_at: string | null
           updated_at: string
         }
         Insert: {
+          billing_provider?: string | null
           created_at?: string
           created_by: string
+          current_period_end?: string | null
+          grace_days?: number
           id?: string
           name?: string
           plan?: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
           seat_limit?: number
           status?: string
+          subscription_status?: string
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string
         }
         Update: {
+          billing_provider?: string | null
           created_at?: string
           created_by?: string
+          current_period_end?: string | null
+          grace_days?: number
           id?: string
           name?: string
           plan?: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
           seat_limit?: number
           status?: string
+          subscription_status?: string
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string
         }
         Relationships: []

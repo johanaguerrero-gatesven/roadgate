@@ -272,6 +272,70 @@ export const openApiDocument = {
       },
     },
 
+    "/billing/subscription": {
+      get: {
+        tags: ["Billing"],
+        summary: "Estado comercial del equipo",
+        description:
+          "Plan, estado de suscripción (trialing/active/past_due/grace_period/cancelled), asientos usados y límites. La fuente de verdad es el backend.",
+        operationId: "getBillingState",
+        security: [{ bearerAuth: ["roadmaps:read"] }],
+        responses: {
+          "200": {
+            description: "Estado comercial.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    plan: { type: "string", enum: ["solo", "team", "business"] },
+                    status: { type: "string" },
+                    effectiveStatus: { type: "string" },
+                    readOnly: { type: "boolean" },
+                    trialEndsAt: { type: "string", nullable: true },
+                    graceEndsAt: { type: "string", nullable: true },
+                    seatLimit: { type: "integer" },
+                    seatsUsed: { type: "integer" },
+                    overSeatLimit: { type: "boolean" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    "/billing/checkout": {
+      post: {
+        tags: ["Billing"],
+        summary: "Abrir checkout de suscripción (sólo Team Admin)",
+        description:
+          "Devuelve 403 a cualquier miembro que no sea Team Admin y 501 mientras no haya proveedor de pago aprobado.",
+        operationId: "startCheckout",
+        security: [{ bearerAuth: ["roadmaps:write"] }],
+        responses: {
+          "403": { description: "El actor no es Team Admin." },
+          "501": { description: "Proveedor de pago no configurado." },
+        },
+      },
+    },
+
+    "/billing/webhook": {
+      post: {
+        tags: ["Billing"],
+        summary: "Webhook de suscripciones (proveedor de pago)",
+        description:
+          "Única vía de cambio de plan/estado/asientos. Exige firma HMAC-SHA256 en `X-Signature` y es idempotente por `eventId`.",
+        operationId: "billingWebhook",
+        responses: {
+          "200": { description: "Evento aplicado o ignorado por duplicado." },
+          "401": { description: "Firma inválida." },
+          "503": { description: "Proveedor no configurado." },
+        },
+      },
+    },
+
     "/teams/me": {
       get: {
         tags: ["Teams"],

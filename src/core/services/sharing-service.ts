@@ -28,6 +28,7 @@ import {
   transferRoadmapAdminInput,
 } from "../schemas";
 import { recordAuditEvent } from "./audit-service";
+import { assertTeamWritable } from "./billing-service";
 
 /** Rol efectivo del actor sobre un roadmap. */
 export type RoadmapRole = "admin" | "editor" | "viewer";
@@ -128,6 +129,8 @@ export async function requireRoadmapAccess(
   if (level === "write" && role === "viewer") {
     throw new ForbiddenError("Your access to this roadmap is read-only");
   }
+  // Fase 5: trial vencido / suscripción cancelada ⇒ cuenta en solo lectura.
+  if (level !== "read") await assertTeamWritable(ctx);
   if (level === "admin" && role !== "admin") {
     throw new ForbiddenError("Only the roadmap admin can perform this action");
   }

@@ -116,3 +116,19 @@ export {
   type ApiScope,
   type ApiKeySummary,
 } from "./services/api-key-service";
+
+// --- Fase 5 · Comercialización por miembro activo -----------------------------
+export {
+  PLAN_CATALOG,
+  TRIAL_DAYS,
+  normalizePlan,
+  computeEffectiveStatus,
+  getBillingState,
+  assertTeamWritable,
+  assertSeatAvailable,
+  requireBillingAdmin,
+  type BillingPlan,
+  type SubscriptionStatus,
+  type PlanDefinition,
+  type BillingState,
+} from "./services/billing-service";
