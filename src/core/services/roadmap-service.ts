@@ -134,6 +134,8 @@ export async function createRoadmap(
   // Fase I: todo roadmap nace dentro de la cuenta de equipo del actor, que se
   // provisiona de forma idempotente si aún no existía.
   const team = await ensureActiveTeam(ctx);
+  // Fase 5: en periodo de gracia / cancelado la cuenta es de solo lectura.
+  await assertTeamWritable(ctx);
   const row = unwrap(
     await ctx.db
       .from("roadmaps")
