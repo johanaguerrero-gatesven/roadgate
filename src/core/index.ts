@@ -81,12 +81,21 @@ export {
   resendInvitation,
   revokeInvitation,
   setMemberStatus,
+  listMemberAdminRoadmaps,
   acceptInvitation,
   INVITATION_TTL_DAYS,
   type TeamMemberView,
   type TeamInvitationView,
   type IssuedInvitation,
+  type AdministeredRoadmap,
 } from "./services/membership-service";
+
+export {
+  recordAuditEvent,
+  listAuditEvents,
+  type AuditAction,
+  type AuditEventView,
+} from "./services/audit-service";
 
 export {
   ensureActiveTeam,
