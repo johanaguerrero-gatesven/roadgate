@@ -98,7 +98,7 @@ export async function applyBillingWebhook(
     event_id: payload.eventId,
     event_type: payload.eventType,
     team_id: payload.teamId,
-    payload: payload as unknown as Record<string, unknown>,
+    payload: payload as unknown as never,
   });
 
   if (insertError) {
@@ -113,7 +113,7 @@ export async function applyBillingWebhook(
   const update = sanitize(payload);
   const { error: updateError } = await supabaseAdmin
     .from("teams")
-    .update(update)
+    .update(update as never)
     .eq("id", payload.teamId);
 
   if (updateError) {
