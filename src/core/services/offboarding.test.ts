@@ -39,12 +39,28 @@ async function teamWithGuest() {
 }
 
 describe("Fase 4 · offboarding", () => {
-  it("no permite desactivar al último Team Admin", async () => {
-    const { admin } = await teamWithGuest();
+  it("protege al último Team Admin y permite bajar a otro admin si queda uno activo", async () => {
+    const { tables, admin, member } = await teamWithGuest();
     const adminMember = (await listTeamMembers(admin)).find((m) => m.role === "admin")!;
+
+    // Nadie puede cambiar su propio estado (ni el admin).
     await expect(
       setMemberStatus(admin, { memberId: adminMember.id, status: "inactive" }),
-    ).rejects.toThrow(/last team admin/i);
+    ).rejects.toThrow(/your own membership/i);
+
+    // Con el invitado promovido a admin, el segundo admin sí puede bajar al primero.
+    const guestRow = tables.team_members.find((r) => r["id"] === member.id)!;
+    guestRow["role"] = "admin";
+    const guestAdmin = createTestCtx(tables, "user-guest", "guest@acme.test");
+    await setMemberStatus(guestAdmin, { memberId: adminMember.id, status: "inactive" });
+    expect(
+      tables.team_members.find((r) => r["id"] === adminMember.id)!["status"],
+    ).toBe("inactive");
+
+    // Ahora sólo queda un admin activo: la regla del último admin lo protege.
+    await expect(
+      setMemberStatus(guestAdmin, { memberId: adminMember.id, status: "active" }),
+    ).resolves.toEqual({ ok: true });
   });
 
   it("bloquea la desactivación si la persona administra roadmaps", async () => {
