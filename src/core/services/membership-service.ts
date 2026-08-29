@@ -21,6 +21,7 @@ import { unwrap, ForbiddenError, NotFoundError, ConflictError, ValidationError }
 import { parseInput, uuidSchema } from "../schemas";
 import { getActiveTeam, type ActiveTeam } from "./team-service";
 import { recordAuditEvent } from "./audit-service";
+import { assertSeatAvailable } from "./billing-service";
 
 /** Días de validez de una invitación. */
 export const INVITATION_TTL_DAYS = 7;
@@ -164,6 +165,9 @@ export async function inviteMember(
 ): Promise<IssuedInvitation> {
   const { email } = parseInput(inviteMemberInput, input);
   const team = await requireAdminTeam(ctx);
+  // Fase 5: un asiento por miembro activo. Si el equipo está al límite se
+  // bloquea la invitación y se ofrece upgrade (no se desactiva a nadie).
+  await assertSeatAvailable(ctx, team.id);
 
   const existingMember = unwrap(
     await ctx.db
@@ -392,6 +396,9 @@ export async function setMemberStatus(
   }
 
   if (member.status === status) return { ok: true };
+
+  // Reactivar consume un asiento: se comprueba el límite del plan.
+  if (status === "active") await assertSeatAvailable(ctx, team.id);
 
   unwrap(
     await ctx.db
