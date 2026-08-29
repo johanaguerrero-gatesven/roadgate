@@ -19,6 +19,7 @@ import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as RoadmapsIndexRouteImport } from './routes/roadmaps.index'
 import { Route as RoadmapsRoadmapIdRouteImport } from './routes/roadmaps.$roadmapId'
 import { Route as RoadmapsNewRouteImport } from './routes/roadmaps.new'
+import { Route as SettingsActivityRouteImport } from './routes/settings.activity'
 import { Route as SettingsApiKeysRouteImport } from './routes/settings.api-keys'
 import { Route as SettingsBillingRouteImport } from './routes/settings.billing'
 import { Route as SettingsCompanyRouteImport } from './routes/settings.company'
@@ -94,6 +95,11 @@ const RoadmapsNewRoute = RoadmapsNewRouteImport.update({
   id: '/roadmaps/new',
   path: '/roadmaps/new',
   getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsActivityRoute = SettingsActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsApiKeysRoute = SettingsApiKeysRouteImport.update({
   id: '/api-keys',
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/docs/api': typeof DocsApiRoute
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/activity': typeof SettingsActivityRoute
   '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/docs/api': typeof DocsApiRoute
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/activity': typeof SettingsActivityRoute
   '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/docs/api': typeof DocsApiRoute
   '/roadmaps/$roadmapId': typeof RoadmapsRoadmapIdRoute
   '/roadmaps/new': typeof RoadmapsNewRoute
+  '/settings/activity': typeof SettingsActivityRoute
   '/settings/api-keys': typeof SettingsApiKeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/company': typeof SettingsCompanyRoute
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/activity'
     | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/activity'
     | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
@@ -434,6 +445,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/roadmaps/$roadmapId'
     | '/roadmaps/new'
+    | '/settings/activity'
     | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/company'
@@ -565,6 +577,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/roadmaps/new'
       preLoaderRoute: typeof RoadmapsNewRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/settings/activity': {
+      id: '/settings/activity'
+      path: '/activity'
+      fullPath: '/settings/activity'
+      preLoaderRoute: typeof SettingsActivityRouteImport
+      parentRoute: typeof SettingsRoute
     }
     '/settings/api-keys': {
       id: '/settings/api-keys'
@@ -745,6 +764,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface SettingsRouteChildren {
+  SettingsActivityRoute: typeof SettingsActivityRoute
   SettingsApiKeysRoute: typeof SettingsApiKeysRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
   SettingsCompanyRoute: typeof SettingsCompanyRoute
@@ -754,6 +774,7 @@ interface SettingsRouteChildren {
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsActivityRoute: SettingsActivityRoute,
   SettingsApiKeysRoute: SettingsApiKeysRoute,
   SettingsBillingRoute: SettingsBillingRoute,
   SettingsCompanyRoute: SettingsCompanyRoute,
