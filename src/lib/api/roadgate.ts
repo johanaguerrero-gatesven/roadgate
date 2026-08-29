@@ -91,6 +91,37 @@ export function fetchActiveTeam(): Promise<ActiveTeam> {
   return apiFetch<ActiveTeam>("/teams/me");
 }
 
+// --- Facturación (Fase 5) ----------------------------------------------------
+
+export type BillingState = {
+  teamId: string;
+  plan: "solo" | "team" | "business";
+  status: "trialing" | "active" | "past_due" | "grace_period" | "cancelled";
+  effectiveStatus: BillingState["status"];
+  readOnly: boolean;
+  trialEndsAt: string | null;
+  graceEndsAt: string | null;
+  graceDays: number;
+  currentPeriodEnd: string | null;
+  seatLimit: number;
+  seatsUsed: number;
+  seatsAvailable: number;
+  overSeatLimit: boolean;
+  features: { collaboration: boolean; api: boolean };
+  role: "admin" | "member";
+  provider: string | null;
+};
+
+/** GET /billing/subscription — plan, estado y asientos (fuente de verdad: BD). */
+export function fetchBillingState(): Promise<BillingState> {
+  return apiFetch<BillingState>("/billing/subscription");
+}
+
+/** POST /billing/checkout — sólo Team Admin. 501 mientras no haya proveedor. */
+export function startCheckout(input: { plan: string }): Promise<{ url?: string }> {
+  return apiFetch<{ url?: string }>("/billing/checkout", { method: "POST", body: input });
+}
+
 // --- Roadmaps ----------------------------------------------------------------
 
 
