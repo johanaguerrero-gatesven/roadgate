@@ -8,7 +8,7 @@
  * PostgREST que los servicios usan realmente.
  *
  * Soportado: from().select().eq().in().order().limit().maybeSingle().single(),
- * insert(), update(), delete(). Cada builder es "thenable", igual que el
+ * insert(), upsert(), update(), delete(). Cada builder es "thenable", igual que el
  * cliente real, y resuelve a `{ data, error }`.
  */
 import type { RoadGateContext, RoadGateDb } from "@/core/context";
@@ -43,8 +43,9 @@ export function createFakeDb(
 
   function builder(table: string) {
     const filters: Filter[] = [];
-    let action: "select" | "insert" | "update" | "delete" = "select";
+    let action: "select" | "insert" | "upsert" | "update" | "delete" = "select";
     let payload: Record<string, unknown>[] = [];
+    let conflictColumns: string[] = [];
     let limit: number | null = null;
     let order: { col: string; asc: boolean } | null = null;
     let single: "one" | "maybe" | null = null;
@@ -78,6 +79,25 @@ export function createFakeDb(
         }));
         rowsOf().push(...inserted);
         return finalize(inserted);
+      }
+      if (action === "upsert") {
+        const saved = payload.map((incoming, i) => {
+          const existing = rowsOf().find((row) =>
+            conflictColumns.every((column) => row[column] === incoming[column]),
+          );
+          if (existing) {
+            Object.assign(existing, incoming);
+            return existing;
+          }
+          const inserted = {
+            id: (incoming.id as string) ?? crypto.randomUUID(),
+            created_at: new Date(2026, 0, 1).toISOString(),
+            ...incoming,
+          };
+          rowsOf().push(inserted);
+          return inserted;
+        });
+        return finalize(saved);
       }
       if (action === "update") {
         const matched = applyFilters(rowsOf(), filters);
@@ -114,6 +134,15 @@ export function createFakeDb(
       insert(rows: Record<string, unknown> | Record<string, unknown>[]) {
         action = "insert";
         payload = Array.isArray(rows) ? rows : [rows];
+        return api;
+      },
+      upsert(
+        rows: Record<string, unknown> | Record<string, unknown>[],
+        options?: { onConflict?: string },
+      ) {
+        action = "upsert";
+        payload = Array.isArray(rows) ? rows : [rows];
+        conflictColumns = (options?.onConflict ?? "id").split(",").map((column) => column.trim());
         return api;
       },
       update(values: Record<string, unknown>) {

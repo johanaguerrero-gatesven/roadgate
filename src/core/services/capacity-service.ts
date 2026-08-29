@@ -6,9 +6,8 @@
  * en `roadmap_capacity_history`.
  *
  * Dos decisiones de diseño a tener en cuenta:
- *  1. Se guarda con DELETE + INSERT en lugar de UPSERT: al existir como mucho
- *     una fila por roadmap, reemplazarla evita conflictos de clave y deja el
- *     estado siempre consistente.
+ *  1. Se guarda con un UPSERT atómico por `roadmap_id`: no existe una ventana
+ *     entre borrado e inserción que pueda dejar al roadmap sin capacidad.
  *  2. El histórico se calcula "aplanando" la configuración anterior y la nueva
  *     a pares campo→valor y registrando SOLO los campos que cambian de verdad,
  *     de modo que el audit trail no se llene de ruido.
@@ -95,16 +94,16 @@ export async function saveCapacity(
   const before = prevRow ? flattenCapacity(rowToCapacity(prevRow)) : null;
   const after = flattenCapacity(capacity as CapacityConfig);
 
-  // 2) Reemplazo de la única fila de capacidad.
-  unwrap(
-    await ctx.db.from("roadmap_capacity").delete().eq("roadmap_id", roadmapId),
-    "saveCapacity.delete",
-  );
+  // 2) Escritura atómica de la única fila de capacidad. `roadmap_id` es la PK;
+  // por tanto un mismo actor puede editar varios roadmaps sin colisionar por
+  // `user_id`, y un fallo no elimina previamente la configuración existente.
   unwrap(
     await ctx.db
       .from("roadmap_capacity")
-      .insert(capacityToRow(capacity as CapacityConfig, ctx.userId, roadmapId)),
-    "saveCapacity.insert",
+      .upsert(capacityToRow(capacity as CapacityConfig, ctx.userId, roadmapId), {
+        onConflict: "roadmap_id",
+      }),
+    "saveCapacity.upsert",
   );
 
   // 3) Audit trail: sólo diferencias reales.
