@@ -20,6 +20,7 @@ import type { RoadGateContext } from "../context";
 import { unwrap, ForbiddenError, NotFoundError, ConflictError, ValidationError } from "../errors";
 import { parseInput, uuidSchema } from "../schemas";
 import { getActiveTeam, type ActiveTeam } from "./team-service";
+import { recordAuditEvent } from "./audit-service";
 
 /** Días de validez de una invitación. */
 export const INVITATION_TTL_DAYS = 7;
