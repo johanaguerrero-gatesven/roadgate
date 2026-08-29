@@ -18,14 +18,14 @@ export const Route = createFileRoute("/settings/activity")({
   component: ActivityPage,
 });
 
-const ACTION_KEY: Record<AuditEventView["action"], string> = {
+const ACTION_KEY = {
   "invitation.sent": "activity.action.invitationSent",
   "invitation.accepted": "activity.action.invitationAccepted",
   "member.status_changed": "activity.action.memberStatus",
   "roadmap.role_changed": "activity.action.roadmapRole",
   "roadmap.access_revoked": "activity.action.roadmapRevoked",
   "roadmap.admin_transferred": "activity.action.roadmapTransferred",
-};
+} as const satisfies Record<AuditEventView["action"], string>;
 
 function ActivityPage() {
   const { t } = useI18n();
