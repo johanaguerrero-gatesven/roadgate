@@ -966,7 +966,7 @@ const dict = {
     "billing.providerPending": "No payment provider is configured yet.",
     "billing.loading": "Loading billing…",
     "billing.error": "Billing could not be loaded.",
-    "billing.seatLimitReached": "You reached your plan"s seat limit. Upgrade to add more members.",
+    "billing.seatLimitReached": "You reached your plan's seat limit. Upgrade to add more members.",
 
 
     "share.title": "Share roadmap",
