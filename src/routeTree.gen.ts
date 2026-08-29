@@ -30,6 +30,9 @@ import { Route as ApiPublicV1OpenapiDotjsonRouteImport } from './routes/api/publ
 import { Route as ApiPublicV1StatsRouteImport } from './routes/api/public/v1/stats'
 import { Route as ApiPublicV1ApiKeysIndexRouteImport } from './routes/api/public/v1/api-keys/index'
 import { Route as ApiPublicV1ApiKeysKeyIdRouteImport } from './routes/api/public/v1/api-keys/$keyId'
+import { Route as ApiPublicV1BillingCheckoutRouteImport } from './routes/api/public/v1/billing/checkout'
+import { Route as ApiPublicV1BillingSubscriptionRouteImport } from './routes/api/public/v1/billing/subscription'
+import { Route as ApiPublicV1BillingWebhookRouteImport } from './routes/api/public/v1/billing/webhook'
 import { Route as ApiPublicV1RoadmapsIndexRouteImport } from './routes/api/public/v1/roadmaps/index'
 import { Route as ApiPublicV1TeamsAuditEventsRouteImport } from './routes/api/public/v1/teams/audit-events'
 import { Route as ApiPublicV1TeamsMeRouteImport } from './routes/api/public/v1/teams/me'
@@ -152,6 +155,24 @@ const ApiPublicV1ApiKeysKeyIdRoute = ApiPublicV1ApiKeysKeyIdRouteImport.update({
   path: '/api/public/v1/api-keys/$keyId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1BillingCheckoutRoute =
+  ApiPublicV1BillingCheckoutRouteImport.update({
+    id: '/api/public/v1/billing/checkout',
+    path: '/api/public/v1/billing/checkout',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1BillingSubscriptionRoute =
+  ApiPublicV1BillingSubscriptionRouteImport.update({
+    id: '/api/public/v1/billing/subscription',
+    path: '/api/public/v1/billing/subscription',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1BillingWebhookRoute =
+  ApiPublicV1BillingWebhookRouteImport.update({
+    id: '/api/public/v1/billing/webhook',
+    path: '/api/public/v1/billing/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicV1RoadmapsIndexRoute =
   ApiPublicV1RoadmapsIndexRouteImport.update({
     id: '/api/public/v1/roadmaps/',
@@ -263,6 +284,9 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/openapi.json': typeof ApiPublicV1OpenapiDotjsonRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
   '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/billing/checkout': typeof ApiPublicV1BillingCheckoutRoute
+  '/api/public/v1/billing/subscription': typeof ApiPublicV1BillingSubscriptionRoute
+  '/api/public/v1/billing/webhook': typeof ApiPublicV1BillingWebhookRoute
   '/api/public/v1/teams/audit-events': typeof ApiPublicV1TeamsAuditEventsRoute
   '/api/public/v1/teams/me': typeof ApiPublicV1TeamsMeRoute
   '/api/public/v1/api-keys/': typeof ApiPublicV1ApiKeysIndexRoute
@@ -301,6 +325,9 @@ export interface FileRoutesByTo {
   '/api/public/v1/openapi.json': typeof ApiPublicV1OpenapiDotjsonRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
   '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/billing/checkout': typeof ApiPublicV1BillingCheckoutRoute
+  '/api/public/v1/billing/subscription': typeof ApiPublicV1BillingSubscriptionRoute
+  '/api/public/v1/billing/webhook': typeof ApiPublicV1BillingWebhookRoute
   '/api/public/v1/teams/audit-events': typeof ApiPublicV1TeamsAuditEventsRoute
   '/api/public/v1/teams/me': typeof ApiPublicV1TeamsMeRoute
   '/api/public/v1/api-keys': typeof ApiPublicV1ApiKeysIndexRoute
@@ -340,6 +367,9 @@ export interface FileRoutesById {
   '/api/public/v1/openapi.json': typeof ApiPublicV1OpenapiDotjsonRoute
   '/api/public/v1/stats': typeof ApiPublicV1StatsRoute
   '/api/public/v1/api-keys/$keyId': typeof ApiPublicV1ApiKeysKeyIdRoute
+  '/api/public/v1/billing/checkout': typeof ApiPublicV1BillingCheckoutRoute
+  '/api/public/v1/billing/subscription': typeof ApiPublicV1BillingSubscriptionRoute
+  '/api/public/v1/billing/webhook': typeof ApiPublicV1BillingWebhookRoute
   '/api/public/v1/teams/audit-events': typeof ApiPublicV1TeamsAuditEventsRoute
   '/api/public/v1/teams/me': typeof ApiPublicV1TeamsMeRoute
   '/api/public/v1/api-keys/': typeof ApiPublicV1ApiKeysIndexRoute
@@ -380,6 +410,9 @@ export interface FileRouteTypes {
     | '/api/public/v1/openapi.json'
     | '/api/public/v1/stats'
     | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/billing/checkout'
+    | '/api/public/v1/billing/subscription'
+    | '/api/public/v1/billing/webhook'
     | '/api/public/v1/teams/audit-events'
     | '/api/public/v1/teams/me'
     | '/api/public/v1/api-keys/'
@@ -418,6 +451,9 @@ export interface FileRouteTypes {
     | '/api/public/v1/openapi.json'
     | '/api/public/v1/stats'
     | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/billing/checkout'
+    | '/api/public/v1/billing/subscription'
+    | '/api/public/v1/billing/webhook'
     | '/api/public/v1/teams/audit-events'
     | '/api/public/v1/teams/me'
     | '/api/public/v1/api-keys'
@@ -456,6 +492,9 @@ export interface FileRouteTypes {
     | '/api/public/v1/openapi.json'
     | '/api/public/v1/stats'
     | '/api/public/v1/api-keys/$keyId'
+    | '/api/public/v1/billing/checkout'
+    | '/api/public/v1/billing/subscription'
+    | '/api/public/v1/billing/webhook'
     | '/api/public/v1/teams/audit-events'
     | '/api/public/v1/teams/me'
     | '/api/public/v1/api-keys/'
@@ -488,6 +527,9 @@ export interface RootRouteChildren {
   ApiPublicV1OpenapiDotjsonRoute: typeof ApiPublicV1OpenapiDotjsonRoute
   ApiPublicV1StatsRoute: typeof ApiPublicV1StatsRoute
   ApiPublicV1ApiKeysKeyIdRoute: typeof ApiPublicV1ApiKeysKeyIdRoute
+  ApiPublicV1BillingCheckoutRoute: typeof ApiPublicV1BillingCheckoutRoute
+  ApiPublicV1BillingSubscriptionRoute: typeof ApiPublicV1BillingSubscriptionRoute
+  ApiPublicV1BillingWebhookRoute: typeof ApiPublicV1BillingWebhookRoute
   ApiPublicV1TeamsAuditEventsRoute: typeof ApiPublicV1TeamsAuditEventsRoute
   ApiPublicV1TeamsMeRoute: typeof ApiPublicV1TeamsMeRoute
   ApiPublicV1ApiKeysIndexRoute: typeof ApiPublicV1ApiKeysIndexRoute
@@ -655,6 +697,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1ApiKeysKeyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/billing/checkout': {
+      id: '/api/public/v1/billing/checkout'
+      path: '/api/public/v1/billing/checkout'
+      fullPath: '/api/public/v1/billing/checkout'
+      preLoaderRoute: typeof ApiPublicV1BillingCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/billing/subscription': {
+      id: '/api/public/v1/billing/subscription'
+      path: '/api/public/v1/billing/subscription'
+      fullPath: '/api/public/v1/billing/subscription'
+      preLoaderRoute: typeof ApiPublicV1BillingSubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/billing/webhook': {
+      id: '/api/public/v1/billing/webhook'
+      path: '/api/public/v1/billing/webhook'
+      fullPath: '/api/public/v1/billing/webhook'
+      preLoaderRoute: typeof ApiPublicV1BillingWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/roadmaps/': {
       id: '/api/public/v1/roadmaps/'
       path: '/api/public/v1/roadmaps'
@@ -801,6 +864,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicV1OpenapiDotjsonRoute: ApiPublicV1OpenapiDotjsonRoute,
   ApiPublicV1StatsRoute: ApiPublicV1StatsRoute,
   ApiPublicV1ApiKeysKeyIdRoute: ApiPublicV1ApiKeysKeyIdRoute,
+  ApiPublicV1BillingCheckoutRoute: ApiPublicV1BillingCheckoutRoute,
+  ApiPublicV1BillingSubscriptionRoute: ApiPublicV1BillingSubscriptionRoute,
+  ApiPublicV1BillingWebhookRoute: ApiPublicV1BillingWebhookRoute,
   ApiPublicV1TeamsAuditEventsRoute: ApiPublicV1TeamsAuditEventsRoute,
   ApiPublicV1TeamsMeRoute: ApiPublicV1TeamsMeRoute,
   ApiPublicV1ApiKeysIndexRoute: ApiPublicV1ApiKeysIndexRoute,
