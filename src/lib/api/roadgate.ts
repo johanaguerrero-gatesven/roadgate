@@ -276,6 +276,41 @@ export function setTeamMemberStatus(input: {
   });
 }
 
+/** Roadmap administrado por un miembro (bloquea su desactivación). */
+export type AdministeredRoadmap = { id: string; name: string };
+
+/** GET /teams/members/:id — roadmaps que administra ese miembro. */
+export function listMemberAdminRoadmaps(input: {
+  memberId: string;
+}): Promise<AdministeredRoadmap[]> {
+  return apiFetch<AdministeredRoadmap[]>(`/teams/members/${input.memberId}`);
+}
+
+/** Evento de actividad administrativa (Fase 4). */
+export type AuditEventView = {
+  id: string;
+  action:
+    | "invitation.sent"
+    | "invitation.accepted"
+    | "member.status_changed"
+    | "roadmap.role_changed"
+    | "roadmap.access_revoked"
+    | "roadmap.admin_transferred";
+  actorUserId: string;
+  actorEmail: string | null;
+  targetEmail: string | null;
+  targetUserId: string | null;
+  roadmapId: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+};
+
+/** GET /teams/audit-events — actividad administrativa (sólo Team Admin). */
+export function listAuditEvents(input?: { limit?: number }): Promise<AuditEventView[]> {
+  const qs = input?.limit ? `?limit=${input.limit}` : "";
+  return apiFetch<AuditEventView[]>(`/teams/audit-events${qs}`);
+}
+
 /** POST /teams/invitations/accept — acepta una invitación con el token. */
 export function acceptTeamInvitation(input: { token: string }): Promise<{ teamId: string }> {
   return apiFetch<{ teamId: string }>("/teams/invitations/accept", {
