@@ -206,13 +206,12 @@ export function createFakeDb(
       if (new Date(inv.expires_at as string).getTime() < Date.now()) return fail("invitation_expired");
       if (inv.email !== currentEmail.toLowerCase()) return fail("invitation_email_mismatch");
       const already = members.find((m) => m.team_id === inv.team_id && m.user_id === currentUserId);
+      if (already?.status === "inactive") return fail("invitation_target_inactive");
       if (inv.accepted_at) {
         if (already) return Promise.resolve({ data: inv.team_id, error: null });
         return fail("invitation_already_used");
       }
-      if (already) {
-        already.status = "active";
-      } else {
+      if (!already) {
         members.push({
           id: crypto.randomUUID(),
           team_id: inv.team_id,

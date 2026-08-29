@@ -101,6 +101,27 @@ describe("Fase 4 · offboarding", () => {
     await expect(listAuditEvents(guest)).rejects.toThrow();
   });
 
+  it("una invitación no puede reactivar a un miembro desactivado", async () => {
+    const { tables, admin, guest, member, teamId } = await teamWithGuest();
+    await setMemberStatus(admin, { memberId: member.id, status: "inactive" });
+
+    tables.team_invitations.push({
+      id: "inactive-invite",
+      team_id: teamId,
+      email: "guest@acme.test",
+      token_hash: "blocked-token-hash",
+      expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+      accepted_at: null,
+      revoked_at: null,
+      invited_by: "user-admin",
+    });
+
+    await expect(
+      guest.db.rpc("accept_team_invitation", { _token_hash: "blocked-token-hash" }),
+    ).resolves.toMatchObject({ error: { message: "invitation_target_inactive" } });
+    expect(tables.team_members.find((row) => row.id === member.id)?.status).toBe("inactive");
+  });
+
   it("los eventos están acotados por equipo", async () => {
     const { tables, admin, teamId } = await teamWithGuest();
     const events = await listAuditEvents(admin);
