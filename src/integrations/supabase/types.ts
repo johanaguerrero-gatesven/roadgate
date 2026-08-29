@@ -53,6 +53,53 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_events: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_user_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          roadmap_id: string | null
+          target_email: string | null
+          target_user_id: string | null
+          team_id: string
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_user_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          roadmap_id?: string | null
+          target_email?: string | null
+          target_user_id?: string | null
+          team_id: string
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_user_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          roadmap_id?: string | null
+          target_email?: string | null
+          target_user_id?: string | null
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_events_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_credentials: {
         Row: {
           created_at: string
@@ -499,6 +546,13 @@ export type Database = {
       roadmap_role: {
         Args: { _roadmap_id: string; _user_id: string }
         Returns: string
+      }
+      roadmaps_administered_by: {
+        Args: { _member_id: string }
+        Returns: {
+          roadmap_id: string
+          roadmap_name: string
+        }[]
       }
       transfer_roadmap_admin: {
         Args: { _roadmap_id: string; _team_member_id: string }
