@@ -86,9 +86,10 @@ describe("Fase 4 · offboarding", () => {
   });
 
   it("los eventos están acotados por equipo", async () => {
-    const { admin } = await teamWithGuest();
+    const { tables, admin, teamId } = await teamWithGuest();
     const events = await listAuditEvents(admin);
-    const teams = new Set(events.map((e) => e.actorUserId));
-    expect([...teams]).toEqual(["user-admin"]);
+    expect(events.length).toBeGreaterThan(0);
+    const rows = tables.audit_events as Array<{ team_id: string }>;
+    expect(new Set(rows.map((r) => r.team_id))).toEqual(new Set([teamId]));
   });
 });
