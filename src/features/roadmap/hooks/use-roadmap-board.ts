@@ -91,7 +91,19 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
    * quarter), refresca el estado local y programa el guardado con debounce.
    * Nunca llames a `setItems` directamente desde fuera de aquí.
    */
+  /**
+   * Guardia de solo lectura: un Viewer no puede mutar el roadmap. Se corta aquí
+   * (antes de tocar el estado local) para que no vea cambios que el backend
+   * rechazaría y que desaparecerían al recargar.
+   */
+  const blockedForViewer = () => {
+    if (role !== "viewer") return false;
+    toast.error(t("share.readOnly"));
+    return true;
+  };
+
   const update = (next: RoadmapItem[]) => {
+    if (blockedForViewer()) return;
     const normalized = normalizeItems(next);
     setItems(normalized);
     schedulePersist(normalized);
@@ -104,6 +116,7 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
   const capacityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (capacityTimer.current) clearTimeout(capacityTimer.current); }, []);
   const updateCapacity = (c: CapacityConfig) => {
+    if (blockedForViewer()) return;
     setCfg(c);
     if (capacityTimer.current) clearTimeout(capacityTimer.current);
     capacityTimer.current = setTimeout(() => {
