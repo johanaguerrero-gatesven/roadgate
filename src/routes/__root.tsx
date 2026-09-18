@@ -70,6 +70,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "google-site-verification", content: "JY6wHDa5gEvmOvB0lWVq3ARCfyxjbQt0nZd4Lywq74c" },
       { title: "RoadGate — Roadmap de producto con capacidad real | by GATES" },
       { name: "description", content: "Planifica el roadmap de tu producto considerando la capacidad real de tu equipo. Una herramienta de GATES." },
       { name: "author", content: "GATES" },
