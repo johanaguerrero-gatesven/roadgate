@@ -15,9 +15,15 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
-      { title: "Crear cuenta — RoadGate" },
-      { name: "description", content: "Crea tu cuenta de RoadGate y empieza a planificar tu roadmap." },
+      { title: "Create your account — RoadGate" },
+      { name: "description", content: "Create a free RoadGate account and start planning roadmaps based on your team's real capacity." },
+      { property: "og:title", content: "Create your account — RoadGate" },
+      { property: "og:description", content: "Create a free RoadGate account and start planning roadmaps based on your team's real capacity." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://myroadgate.com/register" },
+      { name: "twitter:card", content: "summary" },
     ],
+    links: [{ rel: "canonical", href: "https://myroadgate.com/register" }],
   }),
   component: RegisterPage,
 });

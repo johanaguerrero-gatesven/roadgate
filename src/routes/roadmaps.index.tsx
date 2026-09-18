@@ -13,7 +13,16 @@ import {
 } from "@/lib/api/roadgate";
 
 export const Route = createFileRoute("/roadmaps/")({
-  head: () => ({ meta: [{ title: "Mis roadmaps — RoadGate" }] }),
+  head: () => ({
+    meta: [
+      { title: "My roadmaps — RoadGate" },
+      { name: "description", content: "All the roadmaps you own or collaborate on in RoadGate." },
+      { property: "og:title", content: "My roadmaps — RoadGate" },
+      { property: "og:description", content: "All the roadmaps you own or collaborate on in RoadGate." },
+      { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: RoadmapsListPage,
 });
 

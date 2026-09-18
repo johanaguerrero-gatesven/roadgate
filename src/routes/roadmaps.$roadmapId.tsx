@@ -24,7 +24,16 @@ import { ShareRoadmapDialog } from "@/features/roadmap/components/ShareRoadmapDi
 
 
 export const Route = createFileRoute("/roadmaps/$roadmapId")({
-  head: () => ({ meta: [{ title: "Roadmap — RoadGate" }] }),
+  head: ({ params }) => ({
+    meta: [
+      { title: `Roadmap ${params.roadmapId} — RoadGate` },
+      { name: "description", content: `Backlog, quarterly plan and capacity for roadmap ${params.roadmapId} in RoadGate.` },
+      { property: "og:title", content: `Roadmap ${params.roadmapId} — RoadGate` },
+      { property: "og:description", content: `Backlog, quarterly plan and capacity for roadmap ${params.roadmapId} in RoadGate.` },
+      { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: RoadmapPage,
 });
 

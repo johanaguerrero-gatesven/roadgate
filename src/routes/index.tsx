@@ -6,6 +6,18 @@ import { ArrowRight, Calendar, Gauge, Users, Map, Sparkles, ShieldCheck } from "
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "RoadGate — Product roadmaps built on your team's real capacity" },
+      { name: "description", content: "RoadGate turns your backlog into a quarterly roadmap that respects the hours your team actually has. A GATES tool." },
+      { property: "og:title", content: "RoadGate — Product roadmaps built on your team's real capacity" },
+      { property: "og:description", content: "RoadGate turns your backlog into a quarterly roadmap that respects the hours your team actually has." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://myroadgate.com/" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: "https://myroadgate.com/" }],
+  }),
   component: Landing,
 });
 

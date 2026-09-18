@@ -10,7 +10,16 @@ import { User, Users as UsersIcon, Building2, Plug, CreditCard, ArrowLeft, KeyRo
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/settings")({
-  head: () => ({ meta: [{ title: "Settings — RoadGate" }] }),
+  head: () => ({
+    meta: [
+      { title: "Settings — RoadGate" },
+      { name: "description", content: "Manage your RoadGate profile, team, billing and integrations." },
+      { property: "og:title", content: "Settings — RoadGate" },
+      { property: "og:description", content: "Manage your RoadGate profile, team, billing and integrations." },
+      { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: SettingsLayout,
 });
 
