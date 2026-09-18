@@ -21,7 +21,14 @@ import { getWorkspaceStats, listRoadmaps } from "@/lib/api/roadgate";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
-    meta: [{ title: "Mi espacio — RoadGate" }],
+    meta: [
+      { title: "My workspace — RoadGate" },
+      { name: "description", content: "Your RoadGate workspace: roadmaps, team and capacity metrics at a glance." },
+      { property: "og:title", content: "My workspace — RoadGate" },
+      { property: "og:description", content: "Your RoadGate workspace: roadmaps, team and capacity metrics at a glance." },
+      { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
+    ],
   }),
   component: AppHome,
 });

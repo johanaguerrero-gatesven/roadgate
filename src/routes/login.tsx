@@ -58,8 +58,14 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Sign in — RoadGate" },
-      { name: "description", content: "Access your RoadGate account." },
+      { name: "description", content: "Sign in to RoadGate to plan your product roadmap with your team's real capacity." },
+      { property: "og:title", content: "Sign in — RoadGate" },
+      { property: "og:description", content: "Sign in to RoadGate to plan your product roadmap with your team's real capacity." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://myroadgate.com/login" },
+      { name: "twitter:card", content: "summary" },
     ],
+    links: [{ rel: "canonical", href: "https://myroadgate.com/login" }],
   }),
   component: LoginPage,
 });
