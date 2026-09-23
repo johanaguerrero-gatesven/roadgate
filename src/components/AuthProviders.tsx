@@ -14,17 +14,13 @@ export function AuthProviders({ providers = ["google", "microsoft"] }: { provide
   const [loading, setLoading] = useState<Provider | null>(null);
 
   const handle = async (provider: Provider) => {
-    if (provider === "microsoft") {
-      toast.info("Microsoft sign-in is not enabled yet.");
-      return;
-    }
     setLoading(provider);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
+      const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
-        toast.error(result.error.message || "Google sign-in failed");
+        toast.error(result.error.message || "Sign-in failed");
         return;
       }
       if (result.redirected) return; // browser navigates away
