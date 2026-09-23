@@ -361,7 +361,17 @@ function normalizePriority(raw: string): Priority {
   if (/^1/.test(v) || /high/i.test(v) || /alta/i.test(v)) return "1-High";
   if (/^2/.test(v) || /med/i.test(v)) return "2-Medium";
   if (/^3|4/.test(v) || /low/i.test(v) || /baja/i.test(v)) return "3-Low";
-  return (v as Priority) || "";
+  return "";
+}
+
+/** Traduce estados libres (Azure DevOps, español) al enum interno. */
+function normalizeState(raw: string): State {
+  const v = raw.trim().toLowerCase();
+  if (!v) return "Backlog";
+  if (/(done|closed|resolved|complet|hecho|cerrad|terminad|finaliz)/.test(v)) return "Done";
+  if (/(block|bloque|imped)/.test(v)) return "Blocked";
+  if (/(progress|active|doing|curso|committed|progreso|desarroll)/.test(v)) return "In Progress";
+  return "Backlog";
 }
 
 /** Extrae Q1..Q4 de un texto libre (p. ej. una Iteration Path). */
@@ -395,13 +405,13 @@ export function importCSV(text: string, defaultType: ItemType, existing: Roadmap
       uid: uid(),
       id,
       type,
-      title: pick(r, ["title", "name", "summary"]),
+      title: pick(r, ["title", "name", "summary"]).slice(0, 500),
       description: pick(r, ["description", "desc"]),
       parentId: normalizeId(pick(r, ["parent", "parentid", "parent id", "parent work item", "epic id", "epic"])) || undefined,
       effort: Number(pick(r, ["effort", "effort (h)", "hours", "estimate", "story points", "original estimate"])) || undefined,
       priority: normalizePriority(pick(r, ["priority"])),
       quarter: normalizeQuarter(pick(r, ["quarter", "q"]) || iter),
-      state: (pick(r, ["state", "status"]) as State) || "Backlog",
+      state: normalizeState(pick(r, ["state", "status"])),
       notes: pick(r, ["notes", "comment", "comments"]),
       tags: pick(r, ["tags", "labels", "owner"]),
     };

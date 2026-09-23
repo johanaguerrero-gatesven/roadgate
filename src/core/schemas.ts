@@ -56,7 +56,8 @@ export const roadmapItemSchema = z.object({
   priority: prioritySchema.optional(),
   quarter: quarterSchema.optional(),
   sprint: z.number().int().positive().optional(),
-  state: stateSchema.optional(),
+  // Texto libre editable en la tabla: se acepta cualquier estado corto.
+  state: z.string().max(60).optional(),
   notes: z.string().max(20000).optional(),
   tags: z.string().max(2000).optional(),
   displayMode: displayModeSchema.optional(),
