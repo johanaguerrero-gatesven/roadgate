@@ -80,7 +80,11 @@ export function useRoadmapBoard(roadmapId: string, userId?: string) {
     if (persistTimer.current) clearTimeout(persistTimer.current);
     persistTimer.current = setTimeout(() => {
       persistItems({ roadmapId, items: next }).catch((e) => {
-        console.error(e); toast.error("Error al guardar en el backend");
+        console.error(e);
+        const msg = e instanceof Error ? e.message : "";
+        toast.error(/duplicate|unique/i.test(msg)
+          ? "Error al guardar: hay IDs repetidos en el roadmap"
+          : "Error al guardar en el backend");
       });
     }, 350);
   };
