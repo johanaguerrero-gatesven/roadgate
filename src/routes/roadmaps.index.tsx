@@ -20,6 +20,7 @@ export const Route = createFileRoute("/roadmaps/")({
       { property: "og:title", content: "My roadmaps — RoadGate" },
       { property: "og:description", content: "All the roadmaps you own or collaborate on in RoadGate." },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

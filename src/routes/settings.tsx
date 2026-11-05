@@ -18,6 +18,7 @@ export const Route = createFileRoute("/settings")({
       { property: "og:title", content: "Settings — RoadGate" },
       { property: "og:description", content: "Manage your RoadGate profile, team, billing and integrations." },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -21,6 +21,7 @@ import { Plus, Check, Plug } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/integrations")({
+  head: () => ({ meta: [{ title: "Integrations — RoadGate" }, { name: "description", content: "Manage connected services for your RoadGate roadmaps." }, { property: "og:title", content: "Integrations — RoadGate" }, { property: "og:description", content: "Manage connected services for your RoadGate roadmaps." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: IntegrationsPage,
 });
 

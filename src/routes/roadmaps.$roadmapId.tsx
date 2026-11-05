@@ -31,6 +31,7 @@ export const Route = createFileRoute("/roadmaps/$roadmapId")({
       { property: "og:title", content: `Roadmap ${params.roadmapId} — RoadGate` },
       { property: "og:description", content: `Backlog, quarterly plan and capacity for roadmap ${params.roadmapId} in RoadGate.` },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

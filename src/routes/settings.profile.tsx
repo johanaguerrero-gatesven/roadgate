@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { ShieldOff } from "lucide-react";
 
 export const Route = createFileRoute("/settings/profile")({
+  head: () => ({ meta: [{ title: "Profile — RoadGate" }, { name: "description", content: "Manage your RoadGate profile." }, { property: "og:title", content: "Profile — RoadGate" }, { property: "og:description", content: "Manage your RoadGate profile." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: ProfilePage,
 });
 

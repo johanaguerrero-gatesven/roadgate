@@ -10,6 +10,7 @@ import { getCompany, saveCompany, type Company } from "@/lib/profile";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/company")({
+  head: () => ({ meta: [{ title: "Company — RoadGate" }, { name: "description", content: "Manage your RoadGate company settings." }, { property: "og:title", content: "Company — RoadGate" }, { property: "og:description", content: "Manage your RoadGate company settings." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: CompanyPage,
 });
 

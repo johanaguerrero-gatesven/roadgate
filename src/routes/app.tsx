@@ -28,6 +28,7 @@ export const Route = createFileRoute("/app")({
       { property: "og:title", content: "My workspace — RoadGate" },
       { property: "og:description", content: "Your RoadGate workspace: roadmaps, team and capacity metrics at a glance." },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
