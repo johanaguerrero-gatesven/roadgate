@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { clearSession } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
+import { GlobalAdminLink } from "@/components/GlobalAdminLink";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -55,6 +56,7 @@ function SettingsLayout() {
         <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
           <Logo />
           <div className="flex items-center gap-3">
+            <GlobalAdminLink userId={session.userId} />
             <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/app" })}>
               <ArrowLeft className="h-4 w-4" /> {t("nav.goApp")}
             </Button>
