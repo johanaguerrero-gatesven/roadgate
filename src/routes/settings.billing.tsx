@@ -16,6 +16,7 @@ import { getBilling, type Billing } from "@/lib/profile";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/billing")({
+  head: () => ({ meta: [{ title: "Billing — RoadGate" }, { name: "description", content: "Review your RoadGate plan and billing status." }, { property: "og:title", content: "Billing — RoadGate" }, { property: "og:description", content: "Review your RoadGate plan and billing status." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: BillingPage,
 });
 

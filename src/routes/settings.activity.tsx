@@ -15,6 +15,7 @@ import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/activity")({
+  head: () => ({ meta: [{ title: "Team activity — RoadGate" }, { name: "description", content: "Review administrative activity in your RoadGate team." }, { property: "og:title", content: "Team activity — RoadGate" }, { property: "og:description", content: "Review administrative activity in your RoadGate team." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: ActivityPage,
 });
 

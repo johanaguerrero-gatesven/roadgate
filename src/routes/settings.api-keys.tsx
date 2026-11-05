@@ -35,6 +35,7 @@ import { KeyRound, Copy, Plus, Trash2, Ban } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/api-keys")({
+  head: () => ({ meta: [{ title: "API keys — RoadGate" }, { name: "description", content: "Manage RoadGate API credentials." }, { property: "og:title", content: "API keys — RoadGate" }, { property: "og:description", content: "Manage RoadGate API credentials." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: ApiKeysPage,
 });
 

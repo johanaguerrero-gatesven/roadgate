@@ -6,6 +6,17 @@ const STORAGE_KEY = "roadgate.locale";
 
 const dict = {
   es: {
+    "admin.title": "Admin",
+    "admin.registered": "Usuarios registrados",
+    "admin.roadmaps": "Roadmaps creados",
+    "admin.email": "Email",
+    "admin.date": "Fecha de registro",
+    "admin.lastSignIn": "Último acceso",
+    "admin.unavailable": "No se puede acceder a la administración. Comprueba tus permisos o vuelve a intentarlo.",
+    "admin.empty": "No hay usuarios en esta página.",
+    "admin.previous": "Página anterior",
+    "admin.next": "Página siguiente",
+    "admin.page": "Página",
     "nav.home": "Inicio",
     "nav.product": "Producto",
     "nav.why": "Por qué RoadGate",
@@ -562,6 +573,17 @@ const dict = {
   },
 
   en: {
+    "admin.title": "Admin",
+    "admin.registered": "Registered users",
+    "admin.roadmaps": "Roadmaps created",
+    "admin.email": "Email",
+    "admin.date": "Registration date",
+    "admin.lastSignIn": "Last sign-in",
+    "admin.unavailable": "Administration is unavailable. Check your permissions or try again.",
+    "admin.empty": "No users on this page.",
+    "admin.previous": "Previous page",
+    "admin.next": "Next page",
+    "admin.page": "Page",
     "nav.home": "Home",
     "nav.product": "Product",
     "nav.why": "Why RoadGate",

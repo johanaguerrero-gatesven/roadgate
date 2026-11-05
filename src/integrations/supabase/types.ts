@@ -577,6 +577,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -604,6 +622,18 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      list_admin_registrations: {
+        Args: { _limit?: number; _offset?: number }
+        Returns: {
+          email: string
+          last_sign_in_at: string
+          registered_at: string
+          roadmap_count: number
+          total_roadmaps: number
+          total_users: number
+          user_id: string
+        }[]
+      }
       owns_roadmap: {
         Args: { _roadmap_id: string; _user_id: string }
         Returns: boolean
@@ -625,7 +655,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -752,6 +782,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+    },
   },
 } as const

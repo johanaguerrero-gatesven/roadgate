@@ -39,6 +39,7 @@ import { Copy, Mail, Plus, RefreshCw, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/users")({
+  head: () => ({ meta: [{ title: "Team members — RoadGate" }, { name: "description", content: "Manage RoadGate team members and invitations." }, { property: "og:title", content: "Team members — RoadGate" }, { property: "og:description", content: "Manage RoadGate team members and invitations." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: UsersPage,
 });
 
