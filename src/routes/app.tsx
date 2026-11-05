@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { GlobalAdminLink } from "@/components/GlobalAdminLink";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   DropdownMenu,
@@ -108,6 +109,7 @@ function AppHome() {
         <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
           <Logo />
           <div className="flex items-center gap-3">
+            <GlobalAdminLink userId={session.userId} />
             <span className="text-sm text-muted-foreground hidden sm:block">
               {t("app.greeting")} <span className="text-foreground font-medium">{session.name}</span>
               {team ? (
